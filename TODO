@@ -1,0 +1,22 @@
+resolve name similarity between Z arrays and z coordinate arrays
+
+error handling for fetching
+
+a generic fetcher so users don't need to keep track of map names
+
+test that pLinz is really doing what it's supposed to be doing - this may require a tomographic idl script set.
+
+get the random driving going.
+
+get the interior boundary slab exchange going.
+
+get calculation of H-field going
+
+get calculation of Vorticity field going.
+
+k arrays and random r-number arrays should both be vectors for the sake of easy memory management. Do this next so 
+you can get on with random driving.
+
+When all initialization-related stuff is complete for the non-cuda case, start in on cuda development up to that point.
+
+The r arrays should be complex with size n1n2c

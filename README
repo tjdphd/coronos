@@ -1,0 +1,33 @@
+Interactive tests:
+
+1.) first edit and make
+2.) then qsub -l nodes=1:ppn=2 -I
+3.) cd dev/coronos
+4.) aprun -n 2 src/coronos
+
+
+Finding include files:
+
+at the moment I do this by setting CPPFLAGS at configure time.
+The user needs to know where the correct path for -I. For example
+in the case of fftw on fish this is located in 
+/opt/fftw/default/interlagos/include/
+
+so as of this writing when I need to configure I do this:
+
+./configure CPPFLAGS='-I/opt/fftw/default/interlagos/include/' --cache-file=conf.cache
+
+the second option there about cache-file ensures that configure remembers the include path for later reference when reconfiguring. The info is stored in the file named.
+
+
+I'm at a point now where I really seriously need to be getting this under version control.
+
+just an idea for the name of the project:
+
+CURHO
+
+(CU)DA-ready (R)educed-(H)all (O)r (R)educed- MHD (O)
+(N)umerical 
+
+oh never mind...
+
