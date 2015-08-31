@@ -27,9 +27,8 @@ stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
   init_stack_data();
   allocUi();
   initxyz();
-//initz();
-//  kInit();
-//  rtInit();
+  kInit();
+  rtInit();
 
 }
 
@@ -767,6 +766,7 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 
   }
 
+
   int n2;
   stack_data.fetch("n2",    &n2 );
   y.reserve(n2);
@@ -784,6 +784,7 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 //
 
   }
+
 
   int np;
   palette.fetch(   "np"  , &np );
@@ -805,6 +806,14 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
     z.push_back(next_z);
  
   }
+
+  if (rank == 0 ) {
+    for (int i = 0; i < iu2 - 1; ++i) {
+
+      std::cout << "Z[" <<  i <<  "] = " <<  z[i]  << endl;
+    }
+  }
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -27,6 +27,9 @@ FOR I = 1, (n_contours - 1) DO BEGIN
   Res_Cntrs[I]              = Res_Cntrs[I-1] + inc_q
 ENDFOR
 
+print, "for field: ", qty, "q_max = ", q_max
+print, "for field: ", qty, "q_min = ", q_min
+
 I_mid = (n_contours - 1)/2
 
 IF ABS(Res_Cntrs[I_mid]/q_max) LT 1.0e-08 THEN Res_Cntrs[I_mid] = 0.0

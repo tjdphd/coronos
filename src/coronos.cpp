@@ -8,11 +8,11 @@
 
 #include "mpi.h"
 #include "cls_stack.hpp"
+#include "cls_redhallmhd.hpp"
 
 //#include <iostream>
 //#include "nsp_constants.hpp"
 //#include "cls_lcsolve.hpp"
-//#include "cls_redhallmhd.hpp"
 //#include "cls_parameter_map.hpp"
 
 int main(void) {
@@ -20,8 +20,8 @@ int main(void) {
   MPI::Init();
 
   stack       run(     "coronos.in");
+  redhallmhd  physics( run );
 
-//  redhallmhd  physics( run );
 //  lcsolve     solve(   run );
  
 //  physics.Loop (       run, solve );

@@ -31,16 +31,17 @@ redhallmhd::redhallmhd() {
 
 redhallmhd::redhallmhd(stack& run ) {
 
-  init_physics_data( run       ); /* ~ physics - specific parameters               ~ */
-  initU(             run       ); /* ~ initialization of layers 1 - n3 of U        ~ */
-  writeUData(        run       ); /* ~ initial conditions report                   ~ */
+  init_physics_data( run       );     /* ~ physics - specific parameters               ~ */
+  initU(             run       );     /* ~ initialization of layers 1 - n3 of U        ~ */
+  writeUData(        run       );     /* ~ initial conditions report                   ~ */
 
-//  initBoundaries(    run       ); /* ~ initialization of quantities needed for     ~ */
-                                  /* ~ boundary value application.                 ~ */
+//  initBoundaries(    run       );   /* ~ initialization of quantities needed for     ~ */
+                                      /* ~ boundary value application.                 ~ */
 
-//  initialize(        run, solve); /* ~ not a good name, I'll probably revise this  ~ */
-//                                  /* ~ it might be to let initialize do everything ~ */
-//                                  /* ~ here or, alternatively to do away with it   ~ */
+//  initialize(        run, solve);   /* ~ not a good name, I'll probably revise this  ~ */
+//                                    /* ~ it might be to let initialize do everything ~ */
+//                                    /* ~ here or, alternatively to do away with it   ~ */
+//
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -58,7 +59,7 @@ void redhallmhd::initTimeInc( stack& run ){
 
 void redhallmhd::initU( stack& run ) {
 
-  init_physics_data( run );
+//  init_physics_data( run );
 
   std::string init;
 
@@ -581,6 +582,7 @@ void redhallmhd::calculateU( stack& run ) {
   RealArray&        y = run.y;
 
   int idx             = 0;
+
   for (int i_f = 0; i_f < n_flds; ++i_f) {
 
     switch(i_f) {
@@ -599,10 +601,10 @@ void redhallmhd::calculateU( stack& run ) {
     case(1) :
       for (int i_x=0;i_x < n1; ++i_x) {
         for (int j_y=0;j_y < n1; ++j_y) {
-
+ 
           idx             = (i_x * n1) + j_y;
           U[idx][n3][i_f] = four * 0.1L * sin(two_pi *x[i_x]) * sin(two_pi * y[j_y]);
-
+ 
         }
       }
 
@@ -1170,13 +1172,19 @@ void redhallmhd::writeUData( stack& run ) {
 
       }
 
-      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_p << " ";
-      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_a << " ";
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_p << " ";
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_a << " ";
+//
+      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_p << " ";
+      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_a << " ";
 
       if (iu3 > 2)  {
 
-        ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_bz << " ";
-        ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_vz << " ";
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_bz << " ";
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_vz << " ";
+
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_bz << " ";
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_vz << " ";
 
       }
 

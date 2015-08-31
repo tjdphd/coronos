@@ -178,6 +178,8 @@ FOR kth_slc  = first_slice, last_slice DO BEGIN
    col_str             = STRTRIM(cols,2)
    fmt_str             = '(' + col_str + '(e24.16,1x),:)'
 
+   print, "fetch_slices: fmt_str = ", fmt_str
+
    READF, data_unit, FORMAT = fmt_str , A
 
    A                   = TRANSPOSE(A)

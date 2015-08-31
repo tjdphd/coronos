@@ -16,7 +16,7 @@ COMMON CC,    Cntrs
 COMMON JC,    J_Cntrs
 
 IF (KEYWORD_SET(inc_qty)) THEN BEGIN
-
+dummy = 1.0
 ENDIF ELSE BEGIN
           qty         = 'p'
       ENDELSE

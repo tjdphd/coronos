@@ -8,6 +8,7 @@
 cd $PBS_O_WORKDIR
 
 #source /etc/profile.d/modules.csh
+
 module load ffmpeg
 module load idl
 
