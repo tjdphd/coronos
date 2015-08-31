@@ -1,6 +1,6 @@
 prefix   rmct2      str rfx
 model    rmhd       str rfx
-initMode calculated str rfx
+initMode programmed str rfx
 fcfile   ser.init   str rfx
 p1       5          int rfx
 p2       5          int rfx
