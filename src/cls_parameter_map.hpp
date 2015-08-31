@@ -13,18 +13,19 @@
 #ifndef CLS_PARAMETER_MAP
 #define CLS_PARAMETER_MAP
 
-#include "mpi.h"
+/* #include <algorithm> 
+ * #include <vector>
+ */
+
 #include "cls_parameter.hpp"
+#include<map>
+#include "mpi.h"
 
 #include <fstream>
-#include <vector>
-/*#include <algorithm> */
 #include <iostream>
 #include<iomanip>
 #include<stdlib.h>
-
 #include<sstream>
-#include<map>
 
 class parameter_map
 {

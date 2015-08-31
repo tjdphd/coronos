@@ -26,10 +26,10 @@ stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
   init_stack_data();
   allocUi();
-  initxy();
-  initz();
-  kInit();
-  rtInit();
+  initxyz();
+//initz();
+//  kInit();
+//  rtInit();
 
 }
 
@@ -138,15 +138,23 @@ void stack::allocUi() {                          /* ~ U is the input/output arra
                                                  /* ~ NOTE: U holds the real-space fields        ~ */
   int iu1, iu2, iu3;                             /* ~       and is read and written to dataframe ~ */
                                                  /* ~       files for each process               ~ */
+
   stack_data.fetch("iu1", &iu1);
   stack_data.fetch("iu2", &iu2);
   stack_data.fetch("iu3", &iu3);
 
+  std::cout << "iu1 = " << iu1 << std::endl;
+  std::cout << "iu2 = " << iu2 << std::endl;
+  std::cout << "iu3 = " << iu3 << std::endl;
+
+
   U = new double**[iu1];                         /* ~ allocate U dynamically using dimensions    ~ */
+
   for (int i = 0; i< iu1; ++i) {                 /* ~ determined in init_stack_data              ~ */
     U[i] = new double*[iu2];
     for (int j = 0; j < iu2; ++j) {
       U[i][j] = new double[iu3];
+
     }
   }
 }
@@ -157,6 +165,7 @@ void stack::zeroU() {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+
 
   int iu1, iu2, iu3;
 
@@ -289,24 +298,24 @@ void stack::kInit() {                            /* ~ initialize the wave number
 
 /* ~ save for debugging ~ */
 
-/*  int rank;
- * MPI_Comm_rank(MPI_COMM_WORLD, &rank);
- *
- * if (rank == 0) {
- *
- *   std::cout << "ky: " << std::endl << std::endl;
- *
- *   for (int i = 0; i < n1; ++i) {
- *     for (int j = 0; j < n1/2 + 1; ++j) {
- *
- *       ndx = (i * n2h) + j;
- *       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << ky[ndx] << "  ";
- *
- *     }
- *       std::cout << std::endl;
- *   }
- * }
- */
+/*   int rank;
+ *  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+ * 
+ *  if (rank == 0) {
+ * 
+ *    std::cout << "ky: " << std::endl << std::endl;
+ * 
+ *    for (int i = 0; i < n1; ++i) {
+ *      for (int j = 0; j < n1/2 + 1; ++j) {
+ * 
+ *        ndx = (i * n2h) + j;
+ *        std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << ky[ndx] << "  ";
+ * 
+ *      }
+ *        std::cout << std::endl;
+ *    }
+ *  }
+ */  
 
 /* ~ save for debugging ~ */
 
@@ -736,7 +745,7 @@ std::string stack::getLastDataFilename(int srun) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void stack::initxy() {                      /* ~ Calculate x- and y-coordinates of layers ~ */
+void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates of layers ~ */
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -745,12 +754,7 @@ void stack::initxy() {                      /* ~ Calculate x- and y-coordinates 
   stack_data.fetch("n1",    &n1 );
   x.reserve(n1);
 
-  int n2;
-  stack_data.fetch("n2",    &n2 );
-  y.reserve(n2);
-
   double dx = one / ((double) n1);
-  double dy = one / ((double) n2);
 
 
   double next_x;
@@ -758,17 +762,48 @@ void stack::initxy() {                      /* ~ Calculate x- and y-coordinates 
 
     next_x = ( (double) i) * dx; 
     x.push_back(next_x);
+
 //  x[i] = next_x;                           /* ~ seems to work but I'll worry about this later ~ */
 
   }
 
+  int n2;
+  stack_data.fetch("n2",    &n2 );
+  y.reserve(n2);
+
+  double dy = one / ((double) n2);
+
   double next_y;
+
   for (int j = 0; j < n2; ++j) {
 
     next_y = ( (double) j) * dy;
     y.push_back(next_y);
-//  y[j] = next_y;                           /* ~ seems to work but I'll worry about this later ~ */
 
+//  y[j] = next_y;                           /* ~ seems to work but I'll worry about this later ~ */
+//
+
+  }
+
+  int np;
+  palette.fetch(   "np"  , &np );
+
+  int    iu2;
+  stack_data.fetch("iu2" , &iu2 );
+  double dz;
+  stack_data.fetch("dz"  , &dz );
+  double zl;
+  palette.fetch(   "zl"  , &zl );
+
+  z.reserve(iu2);
+
+  double next_z;
+
+  for (int i = 0; i < iu2 - 1; ++i) {
+
+    next_z =  ((double) (rank)) * (zl / ((double) (np))) + (((double) i) * dz);
+    z.push_back(next_z);
+ 
   }
 }
 
@@ -815,6 +850,6 @@ stack::~stack() {
 
   rtFree();
   kFree();
-  deallocUi();
+//  deallocUi();
 
 }

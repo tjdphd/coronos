@@ -13,19 +13,17 @@
 #ifndef CLS_STACK
 #define CLS_STACK
 
-#include "cls_canvas.hpp"
-// #include "cls_lcsolve.hpp"
 #include "nsp_constants.hpp"
-//#include "nsp_utilities.hpp"
-
-#include <cmath>
-#include <fstream>
-#include<new>
-
-#include<fftw3.h>
-#include <assert.h>
-
+#include "cls_canvas.hpp"
 #include "mpi.h"
+
+// #include <cmath>
+// #include <fstream>
+// #include<new>
+// #include<fftw3.h>
+// #include <assert.h>
+// #include "cls_lcsolve.hpp"
+// #include "nsp_utilities.hpp"
 
 using namespace constants;
 
@@ -100,7 +98,7 @@ class stack : public canvas
   std::string getLastDataFilename(int srun); /* ~ Input/Output                            ~ */
   std::string getNextDataFilename();
 
-  void initxy();                     /* ~ Calculate x-and y-coordinates of layers ~ */
+  void initxyz();                    /* ~ Calculate x-and y-coordinates of layers ~ */
   void initz();                      /* ~ Calculate z-coordinates of layers       ~ */
 
   ~stack();                          /* ~ Destructor                              ~ */

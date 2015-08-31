@@ -98,7 +98,6 @@ void parameter_map::emplace(parameter pmtr) {
   std::string pmtr_key;
   pmtr_key = pmtr.name;
   parameters.insert(std::pair<std::string,parameter>(pmtr_key, pmtr));
-
 }
 
 void parameter_map::emplace(std::string par_name, std::string par_val, std::string par_adj) {

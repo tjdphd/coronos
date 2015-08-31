@@ -1,22 +1,16 @@
-resolve name similarity between Z arrays and z coordinate arrays
+1.) Review everything
 
-error handling for fetching
+2.) see if palette fetch's still work with new def of palette in canvas
+    clean canvas.cpp when checked
 
-a generic fetcher so users don't need to keep track of map names
+3.) Check that initxyz acts as expected. If so, get rid of initz
 
-test that pLinz is really doing what it's supposed to be doing - this may require a tomographic idl script set.
+4.) test kInit. make sure it behaves like rmct2_np for the k's
 
-get the random driving going.
+5.) getting a broken pipe sometimes but not always because of something
+    going on in init_stack_data This is the next thing
 
-get the interior boundary slab exchange going.
 
-get calculation of H-field going
 
-get calculation of Vorticity field going.
 
-k arrays and random r-number arrays should both be vectors for the sake of easy memory management. Do this next so 
-you can get on with random driving.
 
-When all initialization-related stuff is complete for the non-cuda case, start in on cuda development up to that point.
-
-The r arrays should be complex with size n1n2c

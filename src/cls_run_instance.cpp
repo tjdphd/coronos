@@ -14,6 +14,7 @@
 
 run_instance::run_instance() {
 
+  std::cout << "creating run instance" << std::endl;
   int is_init;
   int mpi_stat;
 
@@ -34,25 +35,27 @@ run_instance::run_instance() {
     std::string run_start_time = getTime();
     std::string node_name      = getNode();
     mpi_stat                   = MPI_Comm_size(MPI_COMM_WORLD, &tot_proc);
+
 #ifdef HAVE_CUDA_H
     ndevice                    = run_instance_cuda_ext::getDeviceCount();
 #endif
+
     padjust.assign("rfx");
 
       pname.assign("run_start_time");
       run_data.emplace(pname, run_start_time, padjust);
 
       pname.assign("node_name");
-      run_data.emplace(pname, node_name, padjust);
+      run_data.emplace(pname, node_name,      padjust);
 
       pname.assign("rank");
-      run_data.emplace(pname, rank, padjust);
+      run_data.emplace(pname, rank,           padjust);
 
       pname.assign("tot_proc");
-      run_data.emplace(pname, tot_proc, padjust);
+      run_data.emplace(pname, tot_proc,       padjust);
 
       pname.assign("ndevice");
-      run_data.emplace(pname, ndevice, padjust);
+      run_data.emplace(pname, ndevice,        padjust);
 
   }
   else {
