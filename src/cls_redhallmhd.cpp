@@ -33,6 +33,8 @@ redhallmhd::redhallmhd(stack& run ) {
 
   init_physics_data( run       );     /* ~ physics - specific parameters               ~ */
   initU(             run       );     /* ~ initialization of layers 1 - n3 of U        ~ */
+  fftw.fftwForwardAll( run     );
+  fftw.fftwReverseAll( run     );
   writeUData(        run       );     /* ~ initial conditions report                   ~ */
 
 //  initBoundaries(    run       );   /* ~ initialization of quantities needed for     ~ */
@@ -59,11 +61,12 @@ void redhallmhd::initTimeInc( stack& run ){
 
 void redhallmhd::initU( stack& run ) {
 
-//  init_physics_data( run );
-
   std::string init;
 
   int srun;
+
+  fftw.fftwInitialize( run );
+
   run.palette.fetch("srun", &srun);
 
   if (srun == 1) {
@@ -72,7 +75,8 @@ void redhallmhd::initU( stack& run ) {
 
     if (init.compare("realfour"  ) == 0) readUHarmReal(    run );
     if (init.compare("cplxfour"  ) == 0) readUHarmComplex( run );
-    if (init.compare("programmed") == 0) computeU(         run );
+//    if (init.compare("programmed") == 0) computeU(         run );
+    if (init.compare("programmed") == 0) computeAltU(      run );
     if (init.compare("calculated") == 0) calculateU(       run );
     if (init.compare("from_data" ) == 0) readUData(        run );
 
@@ -664,6 +668,9 @@ void redhallmhd::computeU( stack& run ) {
   cplx_in             = (std::complex<double> *) fftw_malloc(sizeof(std::complex<double>) * n1n2c );
   harm_lay_rev        = fftw_plan_dft_c2r_2d(n1, n2, reinterpret_cast<fftw_complex*>(cplx_in), r_out, FFTW_MEASURE);
   
+  // fftw.fftwReverseIC(cplx_in, r_out);
+
+
   InputOutputArray& U = run.U;
 
   double               real_part;
@@ -713,7 +720,14 @@ void redhallmhd::computeU( stack& run ) {
 
     }
 
+    if (rank == 0 && i_f == 0) {
+      for (unsigned k = 0; k < n1n2c; ++k) {
+       std::cout << "Cin[" << k << "] = " <<  cplx_in[k] << std::endl;
+      }
+    }
+
     fftw_execute(harm_lay_rev);
+
     for (unsigned k   = 0; k < n1n2; ++k) { U[k][n3][i_f] = r_out[k]; }
 
   }
@@ -721,6 +735,109 @@ void redhallmhd::computeU( stack& run ) {
   fftw_destroy_plan(harm_lay_rev);
   fftw_free(r_out);
   fftw_free(cplx_in);
+
+  for (int i_f = 0; i_f < n_flds; ++i_f) {
+    for (int i_l = 1; i_l < n_lyrs + 1; ++i_l) {
+    
+    for (int k = 0; k< n1n2; ++k) { U[k][i_l][i_f] = U[k][n3][i_f]; }
+
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::computeAltU( stack& run ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+//  fft fftw;
+
+  int n1; 
+  run.stack_data.fetch( "n1",    &n1    );
+  int n2; 
+  run.stack_data.fetch( "n2",    &n2    );
+  int n3; 
+  run.stack_data.fetch( "n3",    &n3    );
+  int n1n2; 
+  run.stack_data.fetch( "n1n2",  &n1n2  );
+  int n1n2c; 
+  run.stack_data.fetch( "n1n2c", &n1n2c );
+  int iu1; 
+  run.stack_data.fetch("iu1",    &iu1   );
+  int iu2; 
+  run.stack_data.fetch("iu2",    &iu2   );
+  int iu3;
+  run.stack_data.fetch("iu3",    &iu3   );
+
+  int n_flds          = iu3;
+  int n_lyrs          = n3;
+
+  ComplexArray Cin(n1n2c, czero);
+  RealArray    Rout(n1n2, zero);
+  
+  InputOutputArray& U = run.U;
+
+  double               real_part;
+  double               imag_part;
+
+  std::complex<double> tuple;
+
+  unsigned idx        = 0;
+
+  for (int i_f = 0; i_f < n_flds; ++i_f) {
+
+     for (unsigned k  = 0; k < n1n2c; ++k) { Cin[k]    = czero; }
+     for (unsigned k  = 0; k < n1n2;  ++k) { Rout[k]   =  zero; }
+     
+     switch(i_f) {
+
+     case(0) :
+       idx            =      0 * (n2/2 + 1) + 1;
+       Cin[idx]       = (std::complex<double>) (+0.00100);
+
+       idx            =      1 * (n2/2 + 1);
+       Cin[idx]       = (std::complex<double>) (-0.00100);
+
+       idx            = (n1-1) * (n2/2 + 1);
+       Cin[idx]       = (std::complex<double>) (-0.00100);
+
+       break;
+     case(1) :
+       idx            =       1*(n2/2 + 1) + 1;
+       real_part      =  -0.1;
+       imag_part      =   0.0;
+       tuple          = std::complex<double>(real_part, imag_part);
+       Cin[idx]       = tuple;
+
+       idx            =  (n1-1)*(n2/2 + 1) + 1;
+       real_part      =  0.1;
+       imag_part      =  0.0;
+       tuple          = std::complex<double>(real_part, imag_part);
+       Cin[idx]       = tuple;
+
+       break;
+     case(2) :
+       /* ~ edit for non-zero initial bz ~ */
+       break;
+     case(3) :
+       /* ~ edit for non-zero initial vz ~ */
+       break;
+
+    }
+
+    if (rank == 0 && i_f == 0) {
+      for (unsigned k = 0; k < n1n2c; ++k) {
+       std::cout << "Cin[" << k << "] = " <<  Cin[k] << std::endl;
+      }
+    }
+
+//    fftw.fftwInitialize( run );
+    fftw.fftwReverseIC(Cin, Rout);
+    for (unsigned k   = 0; k < n1n2; ++k) { U[k][n3][i_f] = Rout[k]; }
+
+  }
 
   for (int i_f = 0; i_f < n_flds; ++i_f) {
     for (int i_l = 1; i_l < n_lyrs + 1; ++i_l) {
@@ -1234,7 +1351,7 @@ void redhallmhd::initialize (stack& run, lcsolve &solve) {
 #else
 
             initTimeInc(       run        );
-            ff.fftwForwardAll( run, solve );
+            fftw.fftwForwardAll( run      );
 
             OfromP(         run, solve );
             HfromA(         run, solve ); 
@@ -1294,7 +1411,7 @@ void redhallmhd::OfromP( stack& run, lcsolve& solve)  {
     run.stack_data.fetch("iu2",   &n_layers);      /* ~ number of layers in stack                  ~ */
   
     RealArray&    k2 = run.k2;                     /* ~ square magnitudes of k-space vectors       ~ */
-    ComplexArray& U0 = solve.U0;                   /* ~ holds phi (i.e. P ) at this point          ~ */ 
+    ComplexArray& U0 = run.U0;                   /* ~ holds phi (i.e. P ) at this point          ~ */ 
   
     ComplexArray::size_type usize;
     usize            = U0.capacity();              /* ~ current capacity of U0 - should be known   ~ */
@@ -1333,7 +1450,7 @@ void redhallmhd::HfromA( stack& run, lcsolve& solve)  {
     run.stack_data.fetch("iu2",   &n_layers);      /* ~ number of layers in stack                  ~ */
   
     RealArray& k2    = run.k2;                     /* ~ square magnitude of k-space vectors        ~ */
-    ComplexArray& U1 = solve.U1;                   /* ~ holds A (flux function) at this point      ~ */
+    ComplexArray& U1 = run.U1;                   /* ~ holds A (flux function) at this point      ~ */
   
     ComplexArray::size_type usize;
     usize            = U1.capacity();              /* ~ current capacity of U1 - should be known   ~ */
@@ -2486,5 +2603,7 @@ void redhallmhd::updateTimeInc( stack& run ) {
 /* ~ Destructor ~ */
 
 redhallmhd:: ~redhallmhd() {
+
+  fftw.fftwFinalize();
 
 }

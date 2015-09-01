@@ -2,8 +2,14 @@
 #define UTIL_FFT
 
 #include "nsp_constants.hpp"
-#include "cls_stack.hpp"
 #include "cls_lcsolve.hpp"
+#include "cls_stack.hpp"
+
+#ifdef HAVE_CUDA_H
+#include "cls_lcsolve_cuda_ext.hpp"
+#else
+#include<fftw3.h>
+#endif
 
 class fft {
 
@@ -25,14 +31,20 @@ public:
                                                            /* ~ for initializing and "destroying"    ~ */
                                                            /* ~ FFT plans.                           ~ */
 
-    void fftwForwardAll( stack& run, lcsolve& solve);      /* ~ Forward FFT all fields all layers    ~ */
-    void fftwReverseAll( stack& run, lcsolve& solve);      /* ~ Reverst FFT all fields all layers    ~ */
+//    void fftwForwardAll( stack& run, lcsolve& solve);      /* ~ Forward FFT all fields all layers    ~ */
+//    void fftwReverseAll( stack& run, lcsolve& solve);      /* ~ Reverst FFT all fields all layers    ~ */
+
+    void fftwForwardAll( stack& run);      /* ~ Forward FFT all fields all layers    ~ */
+    void fftwReverseAll( stack& run);      /* ~ Reverst FFT all fields all layers    ~ */
 
     void fftwForwardLayerofField ( stack& run, lcsolve& solve, int layer, int field );
     void fftwReverseLayerofField ( stack& run, lcsolve& solve, int layer, int field );
 
     void fftwForwardRaw( stack& run, RealArray&    Rin, ComplexArray& Cout);
     void fftwReverseRaw( stack& run, ComplexArray& Cin, RealArray&    Rout);
+
+    void fftwForwardIC(RealArray&    Rin, ComplexArray& Cout);
+    void fftwReverseIC(ComplexArray& Cin, RealArray&    Rout);
 
 
 /* ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft  ~ */

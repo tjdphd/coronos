@@ -30,7 +30,8 @@
 #include <vector>
 #include <cstddef>
 #include<iomanip>
-#include<fftw3.h>
+
+// #include<fftw3.h>
 
 class redhallmhd
 {
@@ -39,7 +40,7 @@ class redhallmhd
 
   private:
 
-  fft ff;
+  fft fftw;
 
   parameter_map physics_data;
 
@@ -63,6 +64,7 @@ class redhallmhd
   void readUHarmReal(                   stack& run);
   void readUHarmComplex(                stack& run);
   void computeU(                        stack& run);
+  void computeAltU(                     stack& run);
   void calculateU(                      stack& run);
   void readUData(                       stack& run);
   void pLinzEnv(                        stack& run);

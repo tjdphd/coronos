@@ -53,6 +53,11 @@ class stack : public canvas
 
 #ifndef HAVE_CUDA_H
 
+   ComplexArray U0;                 /* ~Fourier Space Field Arrays               ~ */
+   ComplexArray U1;
+   ComplexArray U2;
+   ComplexArray U3;
+
   RealArray rt;                     /* ~ Fourier Transform Related               ~ */
 
   void rtInit();
@@ -99,7 +104,7 @@ class stack : public canvas
   std::string getNextDataFilename();
 
   void initxyz();                    /* ~ Calculate x-and y-coordinates of layers ~ */
-  void initz();                      /* ~ Calculate z-coordinates of layers       ~ */
+//  void initz();                      /* ~ Calculate z-coordinates of layers       ~ */
 
   ~stack();                          /* ~ Destructor                              ~ */
 

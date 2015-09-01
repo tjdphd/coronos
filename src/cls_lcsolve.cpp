@@ -165,13 +165,13 @@ void lcsolve::createFields( stack& run ) {
     std::string model;
     run.palette.fetch("model"   , &model );
   
-    U0.reserve(n1n2c * iu2);                       /* primarily Omega but also P             ~ */
-    U1.reserve(n1n2c * iu2);                       /* primarily H but also A                 ~ */
+//    run.U0.reserve(n1n2c * iu2);                       /* primarily Omega but also P             ~ */
+//    run.U1.reserve(n1n2c * iu2);                       /* primarily H but also A                 ~ */
   
-    if (model.compare("hall") == 0 ) {
-      U2.reserve(n1n2c * iu2);                     /* Z (hall case )                         ~ */
-      U3.reserve(n1n2c * iu2);                     /* V (hall case )                         ~ */
-    }
+//    if (model.compare("hall") == 0 ) {
+//      run.U2.reserve(n1n2c * iu2);                     /* Z (hall case )                         ~ */
+//      run.U3.reserve(n1n2c * iu2);                     /* V (hall case )                         ~ */
+//    }
   
     tU0.reserve(n1n2c * iu2);                      /* for predictor-step results             ~ */
     tU1.reserve(n1n2c * iu2);
@@ -218,10 +218,10 @@ void lcsolve::createFields( stack& run ) {
 
 void lcsolve::destroyFields() {
 
-  U0.resize(0); /* ~ see createFields for definitions ~ */
-  U1.resize(0);
-  U2.resize(0);
-  U3.resize(0);
+//  U0.resize(0); /* ~ see createFields for definitions ~ */
+//  U1.resize(0);
+//  U2.resize(0);
+//  U3.resize(0);
 
   tU0.resize(0);
   tU1.resize(0);

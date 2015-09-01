@@ -26,8 +26,8 @@
 
 #ifdef HAVE_CUDA_H
 #include "cls_lcsolve_cuda_ext.hpp"
-#else
-#include<fftw3.h>
+// #else
+// #include<fftw3.h>
 #endif
 
 using namespace constants;
@@ -41,11 +41,6 @@ class lcsolve
    private:
 
 #ifndef HAVE_CUDA_H
-
-   ComplexArray U0;
-   ComplexArray U1;
-   ComplexArray U2;
-   ComplexArray U3;
 
    ComplexArray tU0; /* ~ for holding predictor results?       ~ */
    ComplexArray tU1;

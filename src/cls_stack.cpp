@@ -156,6 +156,17 @@ void stack::allocUi() {                          /* ~ U is the input/output arra
 
     }
   }
+
+  int n1n2c;
+  stack_data.fetch("n1n2c", &n1n2c);
+  std::string model;
+  stack_data.fetch("model", &model);
+  U0.reserve(n1n2c * iu2);
+  U1.reserve(n1n2c * iu2);
+  if (model.compare("hall") == 0) { 
+    U2.reserve(n1n2c * iu2);
+    U3.reserve(n1n2c * iu2);
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -818,30 +829,30 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void stack::initz() {
-
-  int rank; 
-  run_data.fetch(  "rank", &rank);
-  int np;
-  palette.fetch(   "np"  , &np );
-  int iu2;
-  stack_data.fetch("iu2" , &iu2 );
-  double zl;
-  palette.fetch(   "zl"  , &zl );
-  double dz;
-  stack_data.fetch("dz"  , &dz );
-
-  z.reserve(iu2);
-
-  double next_z;
-
-  for (int i = 0; i < iu2 - 1; ++i) {
-
-    next_z =  ((double) (rank)) * (zl / ((double) (np))) + (((double) i) * dz) ;
-    z.push_back(next_z);
- 
-  }
-}
+// void stack::initz() {
+// 
+//   int rank; 
+//   run_data.fetch(  "rank", &rank);
+//   int np;
+//   palette.fetch(   "np"  , &np );
+//   int iu2;
+//   stack_data.fetch("iu2" , &iu2 );
+//   double zl;
+//   palette.fetch(   "zl"  , &zl );
+//   double dz;
+//   stack_data.fetch("dz"  , &dz );
+// 
+//   z.reserve(iu2);
+// 
+//   double next_z;
+// 
+//   for (int i = 0; i < iu2 - 1; ++i) {
+// 
+//     next_z =  ((double) (rank)) * (zl / ((double) (np))) + (((double) i) * dz) ;
+//     z.push_back(next_z);
+//  
+//   }
+// }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
