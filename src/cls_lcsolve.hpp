@@ -36,7 +36,7 @@ class lcsolve
 {
 
    friend class redhallmhd;
-   friend class fft;
+//   friend class fft;
 
    private:
 
@@ -75,35 +75,6 @@ class lcsolve
    void createFields(stack& run );
    void destroyFields();
 
-/* ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft  ~ */
-
-
-//   double          * r_in;                       /* ~ input and output data arguments      ~ */
-//   double          * r_out;                      /* ~ to FFT routines.                     ~ */
-//
-//   std::complex<double> * cplx_in;
-//   std::complex<double> * cplx_out;
-//
-//   fftw_plan      p_lay_for;                     /* ~ For establishing plans for forward   ~ */
-//   fftw_plan      p_lay_rev;                     /* ~ reverse FFT's of layers              ~ */
-//
-//   void fftwInitialize( stack& run );            /* ~ For allocating and deallocating "in" ~ */
-//   void fftwFinalize();                          /* ~ and "out" arguments of FFT's, and    ~ */
-//                                                 /* ~ for initializing and "destroying"    ~ */
-//                                                 /* ~ FFT plans.                           ~ */
-//
-//   void fftwForwardAll( stack& run );            /* ~ Forward FFT all fields all layers    ~ */
-//   void fftwReverseAll( stack& run );            /* ~ Reverst FFT all fields all layers    ~ */
-//
-//   void fftwForwardLayerofField ( int layer, int field, stack& run);
-//   void fftwReverseLayerofField ( int layer, int field, stack& run);
-//
-//   void fftwForwardRaw( stack& run, RealArray&    Rin, ComplexArray& Cout);
-//   void fftwReverseRaw( stack& run, ComplexArray& Cin, RealArray&    Rout);
-
-
-/* ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft  ~ */
-
    void partialsInXandY(ComplexArray& U, RealArray& Ux, RealArray& Uy);
    void bracket( ComplexArray& BrKt, RealArray& dx1, RealArray& dy1, RealArray& dx2, RealArray& dy2);
 
@@ -117,11 +88,13 @@ class lcsolve
      
    public:
 
-//   lcsolve();                                    /* ~ Constructors                         ~ */
+// lcsolve();                                    /* ~ Constructors                         ~ */
 //
    lcsolve( stack& run );
 
-   void passAdjacentLayers( std::string str_step );
+   void Loop(      stack& run );                /* ~ stepping and such                     ~ */
+
+   void passAdjacentLayers( std::string str_step, stack& run);
 
    ~lcsolve();                                   /* ~ Destructor                           ~ */
 

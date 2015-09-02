@@ -31,12 +31,8 @@
 #include <cstddef>
 #include<iomanip>
 
-// #include<fftw3.h>
-
 class redhallmhd
 {
-
-//  friend class lcsolve;
 
   private:
 
@@ -61,12 +57,10 @@ class redhallmhd
 
   void initTimeInc(                     stack& run);
   void initU(                           stack& run);                  /* ~ U initialization functions                ~ */
-  void readUHarmReal(                   stack& run);
-  void readUHarmComplex(                stack& run);
-  void computeU(                        stack& run);
-  void computeAltU(                     stack& run);
-  void calculateU(                      stack& run);
+  void computeFourierU(                 stack& run);
+  void computeRealU(                    stack& run);
   void readUData(                       stack& run);
+
   void pLinzEnv(                        stack& run);
   void initBoundaries(                  stack& run);
   void countModes(                      stack& run);
@@ -74,17 +68,20 @@ class redhallmhd
   void initNoDrive(                     stack& run);
   void writeUData(                      stack& run);
 
-  void initialize(                      stack& run, lcsolve& solve);
-  void OfromP(                          stack& run, lcsolve& solve);  /* ~ Obtain vorticity from P                   ~ */
-  void HfromA(                          stack& run, lcsolve& solve);  /* ~ Obtain H from A                           ~ */
-  void PfromO(                          stack& run, lcsolve& solve);  /* ~ Obtain P from vorticity                   ~ */
-  void AfromH(                          stack& run, lcsolve& solve);  /* ~ Obtain A from H                           ~ */
+  void initialize(                      stack& run );
+  void OfromP(                          stack& run );                 /* ~ Obtain vorticity from P                   ~ */
+  void HfromA(                          stack& run );                 /* ~ Obtain H from A                           ~ */
+
+  void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
+  void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
 
   void applyBC(                         stack& run, lcsolve& solve);  /* ~ Apply Boundary Conditions at current step ~ */
   void applyFootPointDrivingBC(         stack& run, lcsolve& solve);  /* ~ "pevol"                                   ~ */
   void applyLineTiedBC(                 stack& run, lcsolve& solve);  /* ~ pbot and p(:,n3) set to zero              ~ */
 
   void finalizeFootPointDriving(        stack& run, lcsolve& solve);  /* ~                                           ~ */
+
+/* ~ Insofar as these are about stepping they should belong to solve.  ~ */
 
   void setS(    std::string str_step,   stack& run, lcsolve& solve);
   void setB(    std::string str_step,   stack& run, lcsolve& solve);
@@ -96,12 +93,13 @@ class redhallmhd
 
   public:
 
-  void Loop(                            stack& run, lcsolve& solve);  /* ~ stepping and such                         ~ */
+//  void Loop(                            stack& run, lcsolve& solve);  /* ~ stepping and such                         ~ */
   void finalize(                        stack& run, lcsolve& solve);
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
   redhallmhd();                                                       /* ~ Constructor (default)                     ~ */
   redhallmhd(                           stack& run );                 /* ~ Constructor                               ~ */
-//  redhallmhd(                           stack& run, lcsolve& solve);  /* ~ Constructor                               ~ */
 
   ~redhallmhd();                                                      /* ~ Destructor                                ~ */
 

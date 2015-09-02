@@ -27,7 +27,6 @@ void fft::fftwInitialize( stack& run ) {
   r_in      = (double *)               fftw_malloc(sizeof(double)               * nr_in  );
   cplx_out  = (std::complex<double> *) fftw_malloc(sizeof(std::complex<double>) * nc_out );
 
-//  p_lay_for = fftw_plan_dft_r2c_1d(nr_in, r_in, reinterpret_cast<fftw_complex*>(cplx_out), FFTW_MEASURE);
     p_lay_for = fftw_plan_dft_r2c_2d(n1, n2, r_in, reinterpret_cast<fftw_complex*>(cplx_out), FFTW_MEASURE);
 
   /* ~ Reverse field/layer transforms: ~ */
@@ -35,7 +34,6 @@ void fft::fftwInitialize( stack& run ) {
   cplx_in   = (std::complex<double> *) fftw_malloc(sizeof(std::complex<double>) * nc_out );
   r_out     = (double *)               fftw_malloc(sizeof(double)               * nr_in  );
   
-//  p_lay_rev = fftw_plan_dft_c2r_1d(nr_in, reinterpret_cast<fftw_complex*>(cplx_in), r_out, FFTW_MEASURE);
   p_lay_rev = fftw_plan_dft_c2r_2d(n1, n2, reinterpret_cast<fftw_complex*>(cplx_in), r_out, FFTW_MEASURE);
 
 }
@@ -57,7 +55,6 @@ void fft::fftwFinalize() {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-//void fft::fftwForwardAll( stack& run, lcsolve& solve) {
 void fft::fftwForwardAll( stack& run ) {
 
   InputOutputArray& U = run.U;               /* ~ raw input array                         ~ */
@@ -115,7 +112,6 @@ void fft::fftwForwardAll( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-//void fft::fftwReverseAll( stack& run, lcsolve& solve ) {
 void fft::fftwReverseAll( stack& run ) {
 
   InputOutputArray& U = run.U;               /* ~ raw input array                         ~ */
@@ -176,7 +172,7 @@ void fft::fftwReverseAll( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void fft::fftwForwardLayerofField ( stack& run, lcsolve& solve, int i_l, int i_f ) {
+void fft::fftwForwardLayerofField ( stack& run, int i_l, int i_f ) {
 
   InputOutputArray& U = run.U;               /* ~ raw input array                         ~ */
 
@@ -226,7 +222,7 @@ void fft::fftwForwardLayerofField ( stack& run, lcsolve& solve, int i_l, int i_f
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void fft::fftwReverseLayerofField ( stack& run, lcsolve& solve, int i_l, int i_f) {
+void fft::fftwReverseLayerofField ( stack& run, int i_l, int i_f) {
 
   InputOutputArray& U = run.U;               /* ~ raw input array                         ~ */
 
@@ -354,11 +350,7 @@ void fft::fftwReverseIC(ComplexArray& Cin, RealArray& Rout ) {
 
   for (unsigned k = 0 ; k < n1n2c; k++) {cplx_in[k]  = czero; }
   for (unsigned k = 0 ; k < n1n2 ; k++) {r_out[k]    =  zero; }
-  for (unsigned k = 0 ; k < n1n2c; k++) {cplx_in[k]  = Cin[k];
-//    if (rank == 0) {
-//      std::cout << "Cin[" << k << "] = " << Cin[k] << std::endl;
-//    }
-  }
+  for (unsigned k = 0 ; k < n1n2c; k++) {cplx_in[k]  = Cin[k];}
 
   fftw_execute(p_lay_rev);
   for (unsigned k = 0 ; k < n1n2 ; k++) {Rout[k]     = (scale * r_out[k]);}
@@ -372,9 +364,6 @@ void fft::fftwForwardIC( RealArray& Rin, ComplexArray& Cout) {
   n1n2c           = Cout.size();
   int n1n2;
   n1n2            = Rin.size();
-
-  std::cout << "fftwReverseIC: n1n2  = " << n1n2  << std::endl;
-  std::cout << "fftwReverseIC: n1n2c = " << n1n2c << std::endl;
 
   for (unsigned k = 0 ; k < n1n2 ; k++) {r_in[k]     =  zero;       }
   for (unsigned k = 0 ; k < n1n2c; k++) {cplx_out[k] = czero;       }

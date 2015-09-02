@@ -1,78 +1,15 @@
 
-Priority: 
+0.) get started on instantiation of lcsolve
 
-  I want to separate the fft stuff from everything else as much as possible. Right now
-  the major change I'd like to make next is to eliminate the dependence of at least
-  fftwForwardRaw and fftwReverseRaw on the stack class. Or, if this needs to be retained
-  for some reason, introduce another fftw option that requires only Cin and Rout or Rin and Cout
-  as arguments for which size information can be inferred. My reasons are that I want to
-  computeU procedure to be able to call fftw utilies instead of having to do the fftw's itself,
-  and I want this in turn to serve as a model for what to do elsewhere also if possible.
+    the easy part of this is done. the hard part is moving the Loop over to solve.
+    I expect to run into FFT issue here. This is probably what's going to occupy 
+    me for the next little while.
 
-  Here's one way it could work. Suppose instead of passing the whole stack we just pass
-  the transverse resolution, ie n1 and n2. This is enough to infer n1n2c and n1n2 and
-  hence the number of layers, ie iu2. It's a bit of a hack though. 
-
-  Note that the fftw****Raw routines are almost pointless if the in and out arrays don't
-  carry all layers of a field.
-
-  Okay hold on, redhallmhd quite rightly "knows" the stack and thus should be able to
-  pass it around whenever it wants to. So Raw should work as is. It's just a matter of
-  coding it up. Maybe the next thing is to try switching off the current apparatus
-  and substituting Raw to see what happens.
-
-  Okay, I think I see the issue: looks like the way computeU is written right now
-  is "inside out" with respect to layers and fields as compared to fftw***Raw.
-  The latter takes all layers of a given field while the form has an outside
-  loop over the layers and then an inside loop ove the fields. 
-
-  No that's not it either. The thing is that computeU doen't care about layers
-  because all layers of a field are the same. So it just does one field at a time
-  one layer at at time. This suggests that I should use fftw****LayerofField, which
-  for some reason requires lcsolve. Can I get rid of that dependency? No. That's not
-  going to work either. Neither routine is designed with the needs of computeU
-  satisfied. Basically I need another option.
-
-  There's an argument incompatiblity problem having to do with RealArray references
-  and ComplexArray References. Will have to wait till I'm fresh to figure it out.
-
-  Okay, yeah I see the issue. It's somewhat non-trivial but fixable. It's just that
-  computeU is currently written so that cplx_in and r_out are defined the same
-  way as the fft class's are in its hpp file while the cpp file expects to have to
-  translate these from ComplexArray and RealArray types first. Should probably
-  leave it this way or user ease of use. So the code to edit is computeU's code,
-  but since I already have that tested and working I have to be careful. 
-
-  I now have a new version of computeU which creates and fft object and lets
-  that object transform the initially specified fourier components into real
-  space, and it seems to work as desired. But the price to be paid here involved
-  re-defining the fftw_plan data component of the fft class at the fftwInitialize
-  stage. I worry that this will have an undesireable effect on the other member 
-  functions, so this still has to be checked out somehow.
-
-  Turns out that cls_redhallmhd has an fft member object. So I've eliminated the
-  need to define one in computeU and just use the existing object instead,
-  however, I should put the task of initializing it into the initialization of
-  the redhallmhd object. I also need to make sure it's properly dealt with insofar
-  as "finalizing" is concerned. 
-
-  But more importantly, it's this object that is evidently used when calling
-  fftwForwardAll and its sibling elsewhere, and this is where that redefinition
-  might have an impact. 
-
-  So next task is to relocate the initialization/finalization of the fft object,
-  then do a Forward/Reverse test with the fftw****All pair and see what happens.
-
-  This test is now complete, and it appears to be working. Time will tell if
-  problems still exist, but redhallmhd is nearly free from the bonds of
-  lcsolve. There's one more thing that has to be dealt with
-
-  One issue: I had to move U0, U1, U2, and U3 to the stack from solve. This
-  seems reasonable because the stack is the stack after all and these arrays
-  are just the Fourier space fields on that stack. But it makes solve look
-  a little less self-contained. Not sure this is a design flaw per se. 
-  I just hope it doesn't generate confusion or problems.
-  
+    I've begun the hard part. So far the adjacent layers business is up and running.
+    The next thing on the agenda is updatePAJ which currently resides on the physics
+    class. Question: should it stay there? If so, the next step is to add the physic
+    class as an argument to the solve class so that updatePAJ can be called from
+    solve. Alternatively, maybe using the friend approach will work. 
 
 1.) Review everything
 
@@ -80,23 +17,13 @@ Priority:
            the calculated mode or the "programmed" mode. Other modes should be disposed of
            and the remaining modes renamed to more intelligent choices.
 
-2.) see if palette fetch's still work with new def of palette in canvas
-    clean canvas.cpp when checked
-  
-    notes: as it turns out the answer is no. This screwed things up and I don't know why.
-           leave it as is with the "palette = cv_map" line
+2.) test kInit. make sure it behaves like rmct2_np for the k's
 
-3.) Check that initxyz acts as expected. If so, get rid of initz
+3.) rename redhallmhd to rhmhd. 
 
-    notes: sees to be okay so far. Have commented out initz in hpp and cpp files of cls_stack.
+4.) simplication (ie elimination of run_instance and canvas in favor of just a stack)
 
-4.) test kInit. make sure it behaves like rmct2_np for the k's
-
-5.) getting a broken pipe sometimes but not always because of something
-    going on in init_stack_data This is the next thing
-
-    notes: this was because of the attempt to change the declaration of palette. see 2 above.
-
+5.) gpu implementation
 
 
 

@@ -13,8 +13,6 @@
 
 class fft {
 
-/* ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft  ~ */
-
 public:
 
     double          * r_in;                                /* ~ input and output data arguments      ~ */
@@ -31,23 +29,17 @@ public:
                                                            /* ~ for initializing and "destroying"    ~ */
                                                            /* ~ FFT plans.                           ~ */
 
-//    void fftwForwardAll( stack& run, lcsolve& solve);      /* ~ Forward FFT all fields all layers    ~ */
-//    void fftwReverseAll( stack& run, lcsolve& solve);      /* ~ Reverst FFT all fields all layers    ~ */
+    void fftwForwardAll( stack& run);                      /* ~ Forward FFT all fields all layers    ~ */
+    void fftwReverseAll( stack& run);                      /* ~ Reverst FFT all fields all layers    ~ */
 
-    void fftwForwardAll( stack& run);      /* ~ Forward FFT all fields all layers    ~ */
-    void fftwReverseAll( stack& run);      /* ~ Reverst FFT all fields all layers    ~ */
-
-    void fftwForwardLayerofField ( stack& run, lcsolve& solve, int layer, int field );
-    void fftwReverseLayerofField ( stack& run, lcsolve& solve, int layer, int field );
+    void fftwForwardLayerofField ( stack& run, int layer, int field );
+    void fftwReverseLayerofField ( stack& run, int layer, int field );
 
     void fftwForwardRaw( stack& run, RealArray&    Rin, ComplexArray& Cout);
     void fftwReverseRaw( stack& run, ComplexArray& Cin, RealArray&    Rout);
 
     void fftwForwardIC(RealArray&    Rin, ComplexArray& Cout);
     void fftwReverseIC(ComplexArray& Cin, RealArray&    Rout);
-
-
-/* ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft ~ fft  ~ */
 
 };
 

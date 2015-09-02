@@ -20,11 +20,12 @@ int main(void) {
   MPI::Init();
 
   stack       run(     "coronos.in");
-  redhallmhd  physics( run );
 
-//  lcsolve     solve(   run );
- 
-//  physics.Loop (       run, solve );
+  redhallmhd  physics( run         );
+  lcsolve     solve(   run         );
+
+  solve.Loop (         run         );
+
 //  physics.finalize(    run, solve );
 
 //    pm = run.palette;

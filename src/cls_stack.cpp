@@ -829,33 +829,6 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// void stack::initz() {
-// 
-//   int rank; 
-//   run_data.fetch(  "rank", &rank);
-//   int np;
-//   palette.fetch(   "np"  , &np );
-//   int iu2;
-//   stack_data.fetch("iu2" , &iu2 );
-//   double zl;
-//   palette.fetch(   "zl"  , &zl );
-//   double dz;
-//   stack_data.fetch("dz"  , &dz );
-// 
-//   z.reserve(iu2);
-// 
-//   double next_z;
-// 
-//   for (int i = 0; i < iu2 - 1; ++i) {
-// 
-//     next_z =  ((double) (rank)) * (zl / ((double) (np))) + (((double) i) * dz) ;
-//     z.push_back(next_z);
-//  
-//   }
-// }
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 /* ~~~~~~~~~~~~~~~ */
 /* ~ Destructor  ~ */
 /* ~~~~~~~~~~~~~~~ */
@@ -870,6 +843,6 @@ stack::~stack() {
 
   rtFree();
   kFree();
-//  deallocUi();
+  deallocUi();
 
 }
