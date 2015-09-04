@@ -73,11 +73,11 @@ DIST_SOURCES = $(coronos_SOURCES) $(EXTRA_coronos_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run aclocal-1.11
-AMTAR = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run tar
-AUTOCONF = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoconf
-AUTOHEADER = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoheader
-AUTOMAKE = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run automake-1.11
+ACLOCAL = ${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run aclocal-1.11
+AMTAR = ${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run tar
+AUTOCONF = ${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run autoconf
+AUTOHEADER = ${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run autoheader
+AUTOMAKE = ${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run automake-1.11
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -110,7 +110,7 @@ LDFLAGS =
 LIBOBJS = 
 LIBS = 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run makeinfo
+MAKEINFO = ${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 NVCC = nvcc
 OBJEXT = o
@@ -125,10 +125,10 @@ SET_MAKE =
 SHELL = /bin/sh
 STRIP = 
 VERSION = 0.01
-abs_builddir = /center/w/tdennis10/dev/coronos/src
-abs_srcdir = /center/w/tdennis10/dev/coronos/src
-abs_top_builddir = /center/w/tdennis10/dev/coronos
-abs_top_srcdir = /center/w/tdennis10/dev/coronos
+abs_builddir = /u1/uaf/tdennis10/dev/coronos/src
+abs_srcdir = /u1/uaf/tdennis10/dev/coronos/src
+abs_top_builddir = /u1/uaf/tdennis10/dev/coronos
+abs_top_srcdir = /u1/uaf/tdennis10/dev/coronos
 ac_ct_CC = gcc
 ac_ct_CXX = mpiCC
 am__include = include
@@ -148,7 +148,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /center/w/tdennis10/dev/coronos/install-sh
+install_sh = ${SHELL} /u1/uaf/tdennis10/dev/coronos/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -175,7 +175,7 @@ coronos_SOURCES = coronos.cpp cls_run_instance.cpp  cls_run_instance.hpp \
 			         cls_redhallmhd.cpp    cls_redhallmhd.hpp \
 			      cls_parameter_map.cpp cls_parameter_map.hpp \
 			          cls_parameter.cpp     cls_parameter.hpp \
-                                        cls_fft.cpp           clx_fft.hpp \
+                                        cls_fft.cpp           cls_fft.hpp \
                                                         nsp_constants.hpp
 
 EXTRA_coronos_SOURCES = cls_run_instance_cuda_ext.cu  cls_run_instance_cuda_ext.hpp \

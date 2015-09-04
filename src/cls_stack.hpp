@@ -58,6 +58,11 @@ class stack : public canvas
    ComplexArray U2;
    ComplexArray U3;
 
+   ComplexArray tU0;                          /* ~ for holding predictor results           ~ */
+   ComplexArray tU1;
+   ComplexArray tU2;
+   ComplexArray tU3;
+
   RealArray rt;                               /* ~ Fourier Transform Related               ~ */
 
   void rtInit();

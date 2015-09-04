@@ -16,14 +16,10 @@
 #define CLS_REDHALLMHD
 
 #include "mpi.h"
-
 #include "nsp_constants.hpp"
-
 #include "cls_parameter_map.hpp"
-#include "cls_lcsolve.hpp"
 #include "cls_stack.hpp"
 #include "cls_fft.hpp"
-
 #include <assert.h>
 #include <fstream>
 #include <complex>
@@ -36,16 +32,10 @@ class redhallmhd
 
   private:
 
-  fft fftw;
-
-  parameter_map physics_data;
-
-  RealArray maxU;        /* ~ for time-step determination          ~ */
 
 
-  ComplexArray P;        /* ~ Stream function Phi in Fourier Space ~ */
-  ComplexArray A;        /* ~ flux function A in Fourier Space     ~ */
-  ComplexArray J;        /* ~ current density in Fourier Space     ~ */
+
+
 
   ComplexArray roldlb;
   ComplexArray rnewlb;
@@ -66,7 +56,6 @@ class redhallmhd
   void countModes(                      stack& run);
   void initFootPointDriving(            stack& run);
   void initNoDrive(                     stack& run);
-  void writeUData(                      stack& run);
 
   void initialize(                      stack& run );
   void OfromP(                          stack& run );                 /* ~ Obtain vorticity from P                   ~ */
@@ -75,26 +64,29 @@ class redhallmhd
   void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
   void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
 
-  void applyBC(                         stack& run, lcsolve& solve);  /* ~ Apply Boundary Conditions at current step ~ */
-  void applyFootPointDrivingBC(         stack& run, lcsolve& solve);  /* ~ "pevol"                                   ~ */
-  void applyLineTiedBC(                 stack& run, lcsolve& solve);  /* ~ pbot and p(:,n3) set to zero              ~ */
+  void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
+  void applyLineTiedBC(                 stack& run );                 /* ~ pbot and p(:,n3) set to zero              ~ */
 
-  void finalizeFootPointDriving(        stack& run, lcsolve& solve);  /* ~                                           ~ */
-
-/* ~ Insofar as these are about stepping they should belong to solve.  ~ */
-
-  void setS(    std::string str_step,   stack& run, lcsolve& solve);
-  void setB(    std::string str_step,   stack& run, lcsolve& solve);
-  void setD(    std::string str_step,   stack& run, lcsolve& solve);
-  void setAi(                           stack& run, lcsolve& solve);
-
-  void updatePAJ( std::string str_step, stack& run, lcsolve& solve);
-  void updateTimeInc(                   stack& run                );
+//  void finalizeFootPointDriving(        stack& run, lcsolve& solve);  /* ~                                         ~ */
 
   public:
 
-//  void Loop(                            stack& run, lcsolve& solve);  /* ~ stepping and such                         ~ */
-  void finalize(                        stack& run, lcsolve& solve);
+  parameter_map physics_data;
+
+  fft fftw;
+
+  ComplexArray P;                                                     /* ~ Stream function Phi in Fourier Space ~ */
+  ComplexArray A;                                                     /* ~ flux function A in Fourier Space     ~ */
+  ComplexArray J;                                                     /* ~ current density in Fourier Space     ~ */
+
+  RealArray maxU;                                                     /* ~ for time-step determination          ~ */
+
+  void updatePAJ( std::string str_step, stack& run );
+  void applyBC(                         stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
+  void updateTimeInc(                   stack& run                );
+  void writeUData(                      stack& run);
+
+//  void finalize(                        stack& run, lcsolve& solve);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

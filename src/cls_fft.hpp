@@ -2,8 +2,10 @@
 #define UTIL_FFT
 
 #include "nsp_constants.hpp"
-#include "cls_lcsolve.hpp"
 #include "cls_stack.hpp"
+#include <assert.h>
+//#include "cls_lcsolve.hpp"
+//#include "cls_redhallmhd.hpp"
 
 #ifdef HAVE_CUDA_H
 #include "cls_lcsolve_cuda_ext.hpp"

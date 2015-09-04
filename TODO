@@ -1,16 +1,27 @@
 
-0.) get started on instantiation of lcsolve
+0.) At this point everything that had been commented out is back "online." There are quite a 
+    few design issues that should still be addressed. These are as follows:
 
-    the easy part of this is done. the hard part is moving the Loop over to solve.
-    I expect to run into FFT issue here. This is probably what's going to occupy 
-    me for the next little while.
+    a.) I've concluded that fftw belongs on run, mainly because this considerable simplifies
+        argument lists and because both physics and solve use it. the alternative would be to
+        put separate fftw objects on each of these which seems silly. Also, if fftw is on run
+        then its members don't have to take run as an argument.
 
-    I've begun the hard part. So far the adjacent layers business is up and running.
-    The next thing on the agenda is updatePAJ which currently resides on the physics
-    class. Question: should it stay there? If so, the next step is to add the physic
-    class as an argument to the solve class so that updatePAJ can be called from
-    solve. Alternatively, maybe using the friend approach will work. 
+    b.) I'm still planning on merging canvas and run_instance into a single parent class. This
+        has CUDA implications I believe.
 
+    c.) I'm thinking about names and readability. To begin with I'd like to simplify the name
+        "redhallmhd" to "rhmhd." This will be a huge pain in the butt but otherwise trivial.
+        Another question: is it more logical to name the class "physics" and the object
+        "rhmhd?" Gotta think about this one. Maybe it's not worth the fuss. Come to think of
+        it another "kind" of physics would have to be defined via another class, e.g. 
+        gyrokinetics. Maybe it makes sense the way it is.
+
+    d.) this isn't really a design issue, but I think I should start a document that describes
+        the whole business from theory to numerics. This will ostensibly be for other users
+        but I think it will help me clarify things for myself given how long its been since
+        I've been able to work on this.
+ 
 1.) Review everything
 
     notes: have gotten to the point where I can get initial conditions correctly whether using
@@ -19,7 +30,7 @@
 
 2.) test kInit. make sure it behaves like rmct2_np for the k's
 
-3.) rename redhallmhd to rhmhd. 
+3.) rename redhallmhd to rhmhd.
 
 4.) simplication (ie elimination of run_instance and canvas in favor of just a stack)
 
