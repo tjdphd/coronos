@@ -363,7 +363,7 @@ Copyright (C) 2008 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/center/w/tdennis10/dev/coronos'
+ac_pwd='/u1/uaf/tdennis10/dev/coronos'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/bin/mkdir -p'
@@ -572,7 +572,7 @@ S["CC"]="gcc"
 S["NVCC"]="nvcc"
 S["am__untar"]="${AMTAR} xf -"
 S["am__tar"]="${AMTAR} chof - \"$$tardir\""
-S["AMTAR"]="${SHELL} /center/w/tdennis10/dev/coronos/missing --run tar"
+S["AMTAR"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run tar"
 S["am__leading_dot"]="."
 S["SET_MAKE"]=""
 S["AWK"]="gawk"
@@ -580,12 +580,12 @@ S["mkdir_p"]="/bin/mkdir -p"
 S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]=""
-S["install_sh"]="${SHELL} /center/w/tdennis10/dev/coronos/install-sh"
-S["MAKEINFO"]="${SHELL} /center/w/tdennis10/dev/coronos/missing --run makeinfo"
-S["AUTOHEADER"]="${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoheader"
-S["AUTOMAKE"]="${SHELL} /center/w/tdennis10/dev/coronos/missing --run automake-1.11"
-S["AUTOCONF"]="${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoconf"
-S["ACLOCAL"]="${SHELL} /center/w/tdennis10/dev/coronos/missing --run aclocal-1.11"
+S["install_sh"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/install-sh"
+S["MAKEINFO"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run makeinfo"
+S["AUTOHEADER"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run autoheader"
+S["AUTOMAKE"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run automake-1.11"
+S["AUTOCONF"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run autoconf"
+S["ACLOCAL"]="${SHELL} /u1/uaf/tdennis10/dev/coronos/missing --run aclocal-1.11"
 S["VERSION"]="0.01"
 S["PACKAGE"]="coronos"
 S["CYGPATH_W"]="echo"

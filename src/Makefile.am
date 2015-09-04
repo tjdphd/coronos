@@ -8,7 +8,7 @@ coronos_SOURCES  = coronos.cpp cls_run_instance.cpp  cls_run_instance.hpp \
 			         cls_redhallmhd.cpp    cls_redhallmhd.hpp \
 			      cls_parameter_map.cpp cls_parameter_map.hpp \
 			          cls_parameter.cpp     cls_parameter.hpp \
-                                        cls_fft.cpp           clx_fft.hpp \
+                                        cls_fft.cpp           cls_fft.hpp \
                                                         nsp_constants.hpp
 
 EXTRA_coronos_SOURCES = cls_run_instance_cuda_ext.cu  cls_run_instance_cuda_ext.hpp \
