@@ -14,7 +14,7 @@
 
 #include "mpi.h"
 #include "cls_stack.hpp"
-//#include "cls_redhallmhd.hpp"
+#include "cls_redhallmhd.hpp"
 #include "nsp_constants.hpp"
 
 #include <assert.h>
@@ -35,17 +35,10 @@ using namespace constants;
 class lcsolve
 {
 
-   friend class redhallmhd;
-//   friend class fft;
-
    private:
 
 #ifndef HAVE_CUDA_H
 
-   ComplexArray tU0; /* ~ for holding predictor results?       ~ */
-   ComplexArray tU1;
-   ComplexArray tU2;
-   ComplexArray tU3;
 
    RealArray    SE0; /* ~ same for different layers of U's      ~ */
    RealArray    SE1;
@@ -75,16 +68,21 @@ class lcsolve
    void createFields(stack& run );
    void destroyFields();
 
-   void partialsInXandY(ComplexArray& U, RealArray& Ux, RealArray& Uy);
-   void bracket( ComplexArray& BrKt, RealArray& dx1, RealArray& dy1, RealArray& dx2, RealArray& dy2);
+   void setS(    std::string str_step,   stack& run, redhallmhd& physics );
+   void setB(    std::string str_step,   stack& run, redhallmhd& physics );
+   void setD(    std::string str_step,   stack& run, redhallmhd& physics );
+   void setAi(                           stack& run, redhallmhd& physics );
+
+   void partialsInXandY(stack& run, redhallmhd& physics, ComplexArray& U, RealArray& Ux, RealArray& Uy);
+   void bracket( stack& run, redhallmhd& physics, ComplexArray& BrKt, RealArray& dx1, RealArray& dy1, RealArray& dx2, RealArray& dy2);
 
    double maxdU(RealArray& dx, RealArray&  dy);
-   void averageAcrossLayers( int shift_sign, RealArray& dx, RealArray&  dy);
+   void averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, RealArray&  dy);
 
 #endif
 
 
-   void Step( std::string str_step );
+   void Step( std::string str_step, stack& run );
      
    public:
 

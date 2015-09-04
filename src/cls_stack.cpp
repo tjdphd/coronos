@@ -818,7 +818,7 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
  
   }
 
-  if (rank == 0 ) {
+  if (rank == 1 ) {
     for (int i = 0; i < iu2 - 1; ++i) {
 
       std::cout << "Z[" <<  i <<  "] = " <<  z[i]  << endl;
@@ -840,6 +840,16 @@ stack::~stack() {
   x.resize(0);
   y.resize(0);
   z.resize(0);
+
+  U0.resize(0);
+  U1.resize(0);
+  U2.resize(0);
+  U3.resize(0);
+
+  tU0.resize(0);
+  tU1.resize(0);
+  tU2.resize(0);
+  tU3.resize(0);
 
   rtFree();
   kFree();
