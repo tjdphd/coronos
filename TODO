@@ -59,6 +59,22 @@
        The next step is to proceed as planned with the various step-by-step tests, with
        careful attention paid to the scaling issue when doing brackets.
 
+       To my astonishment, I've now got RMHD CPU working for a single time-step! The main
+       issue was hiding in OfromP and HfromA where I was not properly preserving the values
+       of A and P in their respective containers because I was trying to use a simple
+       P = U0 and A = U1 kind of statement. This in turn was messing up the use of setB.
+       Also I was incorrectly calculation the partials in y. With these fixes the single-step
+       output now agrees out to about 5 decimal places.
+
+       Next on the agenda: check PfromO and AfromH to make sure I'm not making similar errors
+       there. -tentatively checked.
+
+       Also, I should have the writeUData write the vorticity and current density. Might as
+       well check this against rmct2_np
+
+       This is a nice idea but I'm going to wait on it until after committing and looking into
+       the matter of time-step determination.
+
 1.) Review everything
 
     notes: have gotten to the point where I can get initial conditions correctly whether using

@@ -33,6 +33,13 @@ redhallmhd::redhallmhd(stack& run ) {
 
   init_physics_data( run       );     /* ~ physics - specific parameters               ~ */
   initU(             run       );     /* ~ initialization of layers 1 - n3 of U        ~ */
+
+/* ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST   ~ */
+
+//  if ( rank == 0 )
+
+/* ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST   ~ */
+  
   writeUData(        run       );     /* ~ initial conditions report                   ~ */
 
   initBoundaries(    run       );     /* ~ initialization of quantities needed for     ~ */
@@ -862,46 +869,49 @@ void redhallmhd::initialize (stack& run ) {
 #else
 
             initTimeInc(         run );
+ 
+            std::string init;
+            run.palette.fetch("initMode", &init);
             fftw.fftwForwardAll( run );
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-   int rank;
-   int np,  n1n2c, n_layers;
-   unsigned strt_idx, stop_idx;
-
-   MPI_Comm_rank(MPI_COMM_WORLD,   &rank  );
-   run.stack_data.fetch("n1n2c", &n1n2c   );
-   run.stack_data.fetch("n3"   , &n_layers);
-   run.palette.fetch(   "np"   , &np      );
-
-   ComplexArray& P = run.U0;
-   ComplexArray& A = run.U1;
-
-   ComplexArray::size_type nc = n1n2c;
-
-   if (rank == 1) {
-
-     strt_idx  = nc;
-     stop_idx  = strt_idx + nc;
-
-        for (unsigned k = strt_idx; k < stop_idx; k++) {
-
-           if (abs(A[k].real()) >= 1.0e-12) {
-           std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << A[k].real() << std::endl;
-           }
-           else {
-           std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero        << std::endl;
-           }
-
-        }
-
-     }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
             OfromP(              run );
             HfromA(              run );
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//  int rank;
+//  int np,  n1n2c, n_layers;
+//  unsigned strt_idx, stop_idx;
+//
+//  MPI_Comm_rank(MPI_COMM_WORLD,   &rank  );
+//  run.stack_data.fetch("n1n2c", &n1n2c   );
+//  run.stack_data.fetch("n3"   , &n_layers);
+//  run.palette.fetch(   "np"   , &np      );
+//
+//  ComplexArray& P = run.U0;
+////  ComplexArray& A = run.U1;
+
+//  ComplexArray::size_type nc = n1n2c;
+//
+//  if (rank == 1) {
+//
+//    strt_idx  = nc;
+//    stop_idx  = strt_idx + nc;
+//
+//       for (unsigned k = strt_idx; k < stop_idx; k++) {
+//
+//          if (abs(A[k].real()) >= 1.0e-12) {
+//          std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << A[k].real() << std::endl;
+//          }
+//          else {
+//          std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero        << std::endl;
+//          }
+//
+//       }
+//
+//    }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
@@ -970,7 +980,10 @@ void redhallmhd::OfromP( stack& run )  {
   
     P.reserve(usize);                              /* ~ member P will be needed throughout run     ~ */
   
-    P                = U0;                         /* ~ preserve stream funtion in P               ~ */
+//    P                = U0;                         /* ~ preserve stream funtion in P               ~ */
+
+   for (unsigned k = 0; k <usize; k++) {P[k] = U0[k];}
+   
     unsigned  idx    = 0;                          /* ~ index for k2                               ~ */
     for (unsigned k  = 0; k < usize; k++) {
   
@@ -981,7 +994,8 @@ void redhallmhd::OfromP( stack& run )  {
   
     }
   
-    U0               = O;                          /* ~ U0 now holds Fourier transform of Vorticity ~ */
+//    U0               = O;                          /* ~ U0 now holds Fourier transform of Vorticity ~ */
+   for (unsigned k = 0; k <usize; k++) {U0[k] = O[k];}
                                                    /* ~ and P is initialized                        ~ */
     O.resize(0);                                   /* ~ dispense with temporary storage             ~ */
 
@@ -991,6 +1005,8 @@ void redhallmhd::OfromP( stack& run )  {
 
 void redhallmhd::HfromA( stack& run )  {
 
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int n1n2c; 
     run.stack_data.fetch("n1n2c", &n1n2c);         /* ~ number of complex elements per layer       ~ */
     int n_layers;
@@ -1018,7 +1034,27 @@ void redhallmhd::HfromA( stack& run )  {
     std::string model;
     run.palette.fetch("model", &model);
   
-    A                = U1;                         /* ~ preserve flux function in A                ~ */
+//    A                = U1;                         /* ~ preserve flux function in A                ~ */
+
+    for (unsigned k = 0; k < usize; k++) {A[k] = U1[k];}
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+// if (rank == 0) {
+//   for( unsigned k = n1n2c; k < 2*n1n2c; ++k ) {
+//    if (abs(A[k].real()) >= 1.0e-10) {
+//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << A[k].real() << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
+//    }
+//   }
+// }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+
+
     unsigned idx     = 0;                          /* ~ index for k2                               ~ */
     for (unsigned k  = 0; k < usize; k++) {
   
@@ -1035,9 +1071,11 @@ void redhallmhd::HfromA( stack& run )  {
   
     }
   
-    U1               = H;                          /* ~ U1 now holds Fourier transform of H        ~ */
-                                                   /* ~ and A and J are both initialized           ~ */
-    H.resize(0);                                   /* ~ dispense with temporary storage            ~ */
+    for (unsigned k = 0; k < usize; k++) {U1[k] = H[k];}
+
+//    U1               = H;                          /* ~ U1 now holds Fourier transform of H        ~ */
+                                                     /* ~ and A and J are both initialized           ~ */
+    H.resize(0);                                     /* ~ dispense with temporary storage            ~ */
 
 }
 
@@ -1062,7 +1100,8 @@ void redhallmhd::PfromO( stack& run )  {
   O.reserve(usize);
                                                  /* ~ note: P is already known                    ~ */
 
-  O                    = U0;                     /* ~ not necessary. Could use U0 directly        ~ */
+//  O                    = U0;                     /* ~ not necessary. Could use U0 directly        ~ */
+  for (unsigned k = 0; k <usize; k++) {O[k] = U0[k];}
 
   unsigned idx         = 0;                      /* ~ index for inv_k2                            ~ */
   for (unsigned k = 0; k < usize; k++) { 
@@ -1074,7 +1113,9 @@ void redhallmhd::PfromO( stack& run )  {
 
   }
 
-  U0                   = P;                     /* ~ U0 now holds Fourier transform of P          ~ */
+//  U0                   = P;                     /* ~ U0 now holds Fourier transform of P          ~ */
+
+  for (unsigned k = 0; k <usize; k++) {U0[k] = P[k];}
 
   O.resize(0);                                  /* ~ vorticity is discarded here                  ~ */
 
@@ -1107,7 +1148,9 @@ void redhallmhd::AfromH( stack& run )  {
   std::string model;
   run.palette.fetch("model", &model);
 
-  H                = U1;
+//  H                = U1;
+  for (unsigned k = 0; k < usize; k++) {H[k] = U1[k];}
+
   unsigned idx     = 0;                          /* ~ index for k2                               ~ */
   for (unsigned k  = 0; k < usize; k++) {
 
@@ -1124,7 +1167,8 @@ void redhallmhd::AfromH( stack& run )  {
 
   }
 
-  U1               = A;                          /* ~  U1 now holds Fourier transform of A       ~ */
+//  U1               = A;                          /* ~  U1 now holds Fourier transform of A       ~ */
+  for (unsigned k = 0; k < usize; k++) {U1[k] = A[k];}
 
   H.resize(0);                                   /* ~ H is discarded                             ~ */
 

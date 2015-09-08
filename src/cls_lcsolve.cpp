@@ -36,6 +36,8 @@ void lcsolve::Loop( stack& run ) {
 
   int n1n2;
   run.stack_data.fetch("n1n2", &n1n2);
+  int n1n2c;
+  run.stack_data.fetch("n1n2c", &n1n2c);
 
   int l, ndt,    iptest;
   double tstart, t_cur, dt;
@@ -51,8 +53,24 @@ void lcsolve::Loop( stack& run ) {
     /* ~ iptest conditional goes here              ~ */
     /* ~ mv, mb, etc.... initialization goes here  ~ */
 
-    passAdjacentLayers("predict", run );
+    
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
+// if (rank == 0) {
+//   for( unsigned k = n1n2c; k < 5*n1n2c; ++k ) {
+//
+//    if (abs(run.U0[k].real()) > 1.0e-10 ) {
+//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << run.U0[k].real() << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
+//   }
+// }
+//}
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+    passAdjacentLayers("predict", run );
     physics.updatePAJ( "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
     physics.applyBC(              run );
 
@@ -71,10 +89,10 @@ void lcsolve::Loop( stack& run ) {
     setAi(                        run, physics );   /* ~ set corrector A's                                       ~ */
     Step(              "correct", run );            /* ~ execute corrector update                                ~ */
 
-  run.palette.fetch("dt", &dt);
-  t_cur       = t_cur + dt;
+    run.palette.fetch("dt", &dt);
+    t_cur       = t_cur + dt;
 
-  physics.updateTimeInc(          run );
+    physics.updateTimeInc(          run );
 
 ///* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 //
@@ -120,20 +138,19 @@ void lcsolve::Loop( stack& run ) {
 //       
   }
 
-  physics.updatePAJ("predict", run        );   /* ~ P, A, and J contain final corrector-updated values ~ */
+  physics.updatePAJ(  "predict", run        );   /* ~ P, A, and J contain final corrector-updated values ~ */
 
-  run.palette.reset(   "tstart", t_cur    );
+  run.palette.reset(   "tstart", t_cur      );
 
   std::string prefix;
-  run.palette.fetch(   "prefix", &prefix  );
+  run.palette.fetch(   "prefix", &prefix    );
 
   std::string res_str;
-  run.stack_data.fetch("res_str", &res_str);
+  run.stack_data.fetch("res_str", &res_str  );
 
   int srun;
-  run.palette.fetch(   "srun"   , &srun   );
+  run.palette.fetch(   "srun"   , &srun     );
   
-
   if (rank == 0) { run.palette.report(prefix + '_' +  res_str, srun); }
 
   physics.writeUData( run );
@@ -481,41 +498,53 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P         ~ */
 
-//  if (str_step.compare("predict") == 0 && rank == 0) {
-//    for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
-
- //     std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d1x[k] << std::endl;
-
-//    }
-//  }
-
 if (str_step.compare("predict"     ) == 0) {
-  partialsInXandY( run, physics, O, d2x, d2y);                /* ~ d2x, d2y hold real-space partials in x and y of O         ~ */
-  maxU[0] = maxdU(         d2x, d2y);                /* ~                                                           ~ */
+  partialsInXandY( run, physics, O, d2x, d2y);              /* ~ d2x, d2y hold real-space partials in x and y of O  ~ */
+  maxU[0] = maxdU(         d2x, d2y);                       /* ~                                                    ~ */
 }
 else if (str_step.compare("correct") == 0) {
-  partialsInXandY( run, physics, tO,     d2x, d2y);  /* ~ d2x, d2y hold real-space partials in x and y of tO        ~ */
+  partialsInXandY( run, physics, tO,     d2x, d2y);         /* ~ d2x, d2y hold real-space partials in x and y of tO ~ */
 }
-bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);                  /* ~ calculate [phi, Omega]                                    ~ */
+bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);           /* ~ calculate [phi, Omega]                             ~ */
+
 for (unsigned k = 0; k < kstop; k++) { B0[k] = - BrKt[k]; } /* ~ place result in B0                                 ~ */
 
 if (model.compare("hall") == 0 ) {
 
    if (str_step.compare("predict"     ) == 0) {
-     partialsInXandY( run, physics, Z, d2x, d2y);   /* ~ d2x, d2y hold real-space partials in x and y of Z         ~ */
-     maxU[2] = maxdU(        d2x, d2y);             /* ~                                                           ~ */
+     partialsInXandY( run, physics, Z, d2x, d2y);           /* ~ d2x, d2y hold real-space partials in x and y of Z  ~ */
+     maxU[2] = maxdU(        d2x, d2y);                     /* ~                                                    ~ */
    }
    else if (str_step.compare("correct") == 0) {
-     partialsInXandY( run, physics, tZ, d2x, d2y);  /* ~ d2x, d2y hold real-space partials in x and y of tZ        ~ */
+     partialsInXandY( run, physics, tZ, d2x, d2y);          /* ~ d2x, d2y hold real-space partials in x and y of tZ ~ */
    }
-   bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);                     /* ~ calculate [phi, Z]                                        ~ */
-   for (unsigned k = 0; k < kstop; k++) { B2[k] = - BrKt[k]; } /* ~ place result in B2                                  ~ */
+   bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);        /* ~ calculate [phi, Z]                                 ~ */
+   for (unsigned k = 0; k < kstop; k++) { B2[k] = - BrKt[k]; } /* ~ place result in B2                              ~ */
 }
 
-averageAcrossLayers( run, -1, d1x, d1y );                       /* ~ calculate averages of phi_x & phi_y across adj't layers   ~ */
+averageAcrossLayers( run, -1, d1x, d1y );                   /* ~ calculate averages of phi_x & phi_y across adj't layers ~ */
 if (str_step.compare("predict"     ) == 0) {
-  partialsInXandY( run, physics, H, d3x, d3y);            /* ~ d3x, d3y hold real-space partials in x and y of H         ~ */
-  maxU[1] = maxdU(         d3x, d3y);                     /* ~                                                           ~ */
+
+  partialsInXandY( run, physics, H, d3x, d3y);              /* ~ d3x, d3y hold real-space partials in x and y of H       ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+ if (rank == 0) {
+   for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
+
+    if (abs(d3y[k]) > 1.0e-10) {
+    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << d3y[k] << std::endl;
+    }
+    else {
+    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
+    }
+   }
+ }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+
+  maxU[1] = maxdU(         d3x, d3y);                       /* ~                                                         ~ */
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tH, d3x, d3y);           /* ~ d3x, d3y hold real-space partials in x and y of tH        ~ */
@@ -896,7 +925,14 @@ void lcsolve::partialsInXandY( stack& run, redhallmhd& physics, ComplexArray& U,
   } /* ~ dU/dx -> ik_x U         ~ */
 
   physics.fftw.fftwReverseRaw( run, U_tmp,  Ux);                                          /* ~ transform to real space ~ */
-  for (unsigned k = 0; k < usize; k++) { U_tmp[k] =  iunit * ky[k] * U[k]; }             /* ~ dU/dy -> ik_y U ~ */
+
+  for (unsigned k = 0; k < usize; k++) { 
+    if ( k % n1n2c == 0 ) { idk = 0; }
+    U_tmp[k] =  iunit * ky[idk] * U[k]; 
+    ++idk;
+    
+  } /* ~ dU/dy -> ik_y U ~ */
+
   physics.fftw.fftwReverseRaw( run, U_tmp,  Uy);                                          /* ~ transform to real space ~ */
 
 }
