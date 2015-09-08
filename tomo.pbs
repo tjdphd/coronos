@@ -12,7 +12,7 @@ cd $PBS_O_WORKDIR
 module load ffmpeg
 module load idl
 
-./tomo_idl.s p ts 31 1 8 32_8 8 0
-./tomo_idl.s a ts 31 1 8 32_8 8 0
+./tomo_idl.s p ts 31 4 4 32_8 8 0
+./tomo_idl.s a ts 31 4 4 32_8 8 0
 
 idl

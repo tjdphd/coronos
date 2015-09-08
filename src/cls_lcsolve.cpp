@@ -481,13 +481,13 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P         ~ */
 
-  if (str_step.compare("predict") == 0 && rank == 0) {
-    for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
+//  if (str_step.compare("predict") == 0 && rank == 0) {
+//    for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
 
-      std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d1x[k] << std::endl;
+ //     std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d1x[k] << std::endl;
 
-    }
-  }
+//    }
+//  }
 
 if (str_step.compare("predict"     ) == 0) {
   partialsInXandY( run, physics, O, d2x, d2y);                /* ~ d2x, d2y hold real-space partials in x and y of O         ~ */
