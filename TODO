@@ -7,8 +7,20 @@
         put separate fftw objects on each of these which seems silly. Also, if fftw is on run
         then its members don't have to take run as an argument.
 
+        well...as it turns out, as nice as this idea is it has problems. fft needs to be able
+        to access members of run. So putting fftw on run means that the "child" has to access
+        its "parents" members  - though fftw is not a child in the sense of inheriting
+        run.  There's probably a way to this, but it involves me in codeing-oriented issues
+        rather then implementing-oriented issues and I suspect it can be done at any time
+        without too much trouble when I do eventually understand how to do it. So I'm going
+        to leave this as is for now but keep this here as a reminder.
+
     b.) I'm still planning on merging canvas and run_instance into a single parent class. This
         has CUDA implications I believe.
+
+        Once again, not sure this is the best use of my time right now. I've got CPU 
+        configuration up and running, would be good to know if it actually works. I guess
+        I'll go with that.
 
     c.) I'm thinking about names and readability. To begin with I'd like to simplify the name
         "redhallmhd" to "rhmhd." This will be a huge pain in the butt but otherwise trivial.
@@ -17,11 +29,36 @@
         it another "kind" of physics would have to be defined via another class, e.g. 
         gyrokinetics. Maybe it makes sense the way it is.
 
+         see b.
+
     d.) this isn't really a design issue, but I think I should start a document that describes
         the whole business from theory to numerics. This will ostensibly be for other users
         but I think it will help me clarify things for myself given how long its been since
         I've been able to work on this.
  
+
+
+    Notes: 
+
+       The first problem is to figure out why fourier space and realspace don't give precisely
+       the same results. Plan of action: use realspace and a forward fft to generate a listing
+       of data for a and/or p in fourier space. Compare with a listing as generated directly
+       using fourier space and look for differences. If they're there, try to understand them.
+       If not try to understand why they're not there.
+
+       Got this figured out and it may have been important. The reason was because I wasn't
+       scaling the Fourier harmonics prior to a reverseFFT. This may be important for 
+       bracket calculations.
+
+       Now the problem is reconciling coronos with rmct2_np. The qualitative appearance is
+       consistent, but in the case of the p field, the amplitude is off by a factor of 3
+       between rmct2_np and coronos. I should check ilnr!
+
+       Yep, that's what it was. ilnr should be set to zero for now in rmct2_np for comparisons.
+
+       The next step is to proceed as planned with the various step-by-step tests, with
+       careful attention paid to the scaling issue when doing brackets.
+
 1.) Review everything
 
     notes: have gotten to the point where I can get initial conditions correctly whether using

@@ -36,7 +36,7 @@ redhallmhd::redhallmhd(stack& run ) {
   writeUData(        run       );     /* ~ initial conditions report                   ~ */
 
   initBoundaries(    run       );     /* ~ initialization of quantities needed for     ~ */
-                                    /* ~ boundary value application.                 ~ */
+                                      /* ~ boundary value application.                 ~ */
 
   initialize(        run       );     /* ~ not a good name, I'll probably revise this  ~ */
                                       /* ~ it might be to let initialize do everything ~ */
@@ -306,26 +306,32 @@ void redhallmhd::computeFourierU( stack& run ) {
      switch(i_f) {
 
      case(0) :
-       idx            =      0 * (n2/2 + 1) + 1;
-       Cin[idx]       = (std::complex<double>) (+0.00100);
-
-       idx            =      1 * (n2/2 + 1);
-       Cin[idx]       = (std::complex<double>) (-0.00100);
-
-       idx            = (n1-1) * (n2/2 + 1);
-       Cin[idx]       = (std::complex<double>) (-0.00100);
-
-       break;
-     case(1) :
-       idx            =       1*(n2/2 + 1) + 1;
-       real_part      =  -0.1;
-       imag_part      =   0.0;
+       idx            =        0 * (n2/2 + 1) + 1;
+       real_part      =  2.5e-04 * n1n2;
+       imag_part      =  0.0;
        tuple          = std::complex<double>(real_part, imag_part);
        Cin[idx]       = tuple;
 
-       idx            =  (n1-1)*(n2/2 + 1) + 1;
-       real_part      =  0.1;
+       idx            =        1 * (n2/2 + 1);
+       real_part      = -2.5e-04 * n1n2;
        imag_part      =  0.0;
+       tuple          = std::complex<double>(real_part, imag_part);
+       Cin[idx]       = tuple;
+
+       idx            = (n1-1) * (n2/2 + 1);
+       Cin[idx]       = tuple;
+
+       break;
+     case(1) :
+       idx            =       1 * (n2/2 + 1) + 1;
+       real_part      =    -0.1 * n1n2;
+       imag_part      =     0.0;
+       tuple          = std::complex<double>(real_part, imag_part);
+       Cin[idx]       = tuple;
+
+       idx            =  (n1-1) * (n2/2 + 1) + 1;
+       real_part      =     0.1 * n1n2;
+       imag_part      =     0.0;
        tuple          = std::complex<double>(real_part, imag_part);
        Cin[idx]       = tuple;
 
@@ -857,6 +863,43 @@ void redhallmhd::initialize (stack& run ) {
 
             initTimeInc(         run );
             fftw.fftwForwardAll( run );
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+   int rank;
+   int np,  n1n2c, n_layers;
+   unsigned strt_idx, stop_idx;
+
+   MPI_Comm_rank(MPI_COMM_WORLD,   &rank  );
+   run.stack_data.fetch("n1n2c", &n1n2c   );
+   run.stack_data.fetch("n3"   , &n_layers);
+   run.palette.fetch(   "np"   , &np      );
+
+   ComplexArray& P = run.U0;
+   ComplexArray& A = run.U1;
+
+   ComplexArray::size_type nc = n1n2c;
+
+   if (rank == 1) {
+
+     strt_idx  = nc;
+     stop_idx  = strt_idx + nc;
+
+        for (unsigned k = strt_idx; k < stop_idx; k++) {
+
+           if (abs(A[k].real()) >= 1.0e-12) {
+           std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << A[k].real() << std::endl;
+           }
+           else {
+           std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero        << std::endl;
+           }
+
+        }
+
+     }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
             OfromP(              run );
             HfromA(              run );
 

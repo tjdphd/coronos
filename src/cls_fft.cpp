@@ -356,6 +356,7 @@ void fft::fftwReverseIC(ComplexArray& Cin, RealArray& Rout ) {
   for (unsigned k = 0 ; k < n1n2 ; k++) {Rout[k]     = (scale * r_out[k]);}
 
 }
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void fft::fftwForwardIC( RealArray& Rin, ComplexArray& Cout) {
