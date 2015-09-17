@@ -1,79 +1,113 @@
 
-0.) At this point everything that had been commented out is back "online." There are quite a 
-    few design issues that should still be addressed. These are as follows:
+0.) At this point it's time to start doing some scut work in more or less the following order. 
 
-    a.) I've concluded that fftw belongs on run, mainly because this considerable simplifies
-        argument lists and because both physics and solve use it. the alternative would be to
-        put separate fftw objects on each of these which seems silly. Also, if fftw is on run
-        then its members don't have to take run as an argument.
+    a.) generate a magnetic reconnection test-case with rmct2_np at a resolution of 64 X 16.
+        Figure out how far you need to go in order to see the system evolve and relax.
+        Then do a high cadence run to get a cts-animation. This means you have to get cts up
+        and running again.
 
-        well...as it turns out, as nice as this idea is it has problems. fft needs to be able
-        to access members of run. So putting fftw on run means that the "child" has to access
-        its "parents" members  - though fftw is not a child in the sense of inheriting
-        run.  There's probably a way to this, but it involves me in codeing-oriented issues
-        rather then implementing-oriented issues and I suspect it can be done at any time
-        without too much trouble when I do eventually understand how to do it. So I'm going
-        to leave this as is for now but keep this here as a reminder.
+    b.) In the meantime I need to start working on a job-chain script for coronos for testing
+        purposes. But this means I should probably cut the rmc2_np umbilical so to speak. 
+        I.e. coronos needs its own way of naming data files and its version of tomo etc. 
+        Question: do I really need to do this before the job-chain business? Maybe not. 
 
-    b.) I'm still planning on merging canvas and run_instance into a single parent class. This
-        has CUDA implications I believe.
+        Notes: have made a lot of progress on this but there are some issues:
 
-        Once again, not sure this is the best use of my time right now. I've got CPU 
-        configuration up and running, would be good to know if it actually works. I guess
-        I'll go with that.
+        i.) I want to revise things so that coronos.in is reported to <prefix>_<res_label>.00.o<desc_label><srun>
+            as soon as it's read. Then, after the end of the run and parameters have been adjusted
+            I want coronos.in over-written with the new values in the palette. This way each
+            sub-run knows what file to read and gets the correct information and the original coronos.in
+            is still preserved.
 
-    c.) I'm thinking about names and readability. To begin with I'd like to simplify the name
-        "redhallmhd" to "rhmhd." This will be a huge pain in the butt but otherwise trivial.
-        Another question: is it more logical to name the class "physics" and the object
-        "rhmhd?" Gotta think about this one. Maybe it's not worth the fuss. Come to think of
-        it another "kind" of physics would have to be defined via another class, e.g. 
-        gyrokinetics. Maybe it makes sense the way it is.
+            TENTATIVELY RESOLVED*
 
-         see b.
+        ii.)One problem with i: Currently for one-time adjustable parameters like srun,
+            resetting srun changes sfx to sfa as a precaution against multiple resets.
+            However this shows up in the output of report and will be read at the beginning
+            of the next sub-run making it impossible for that sub-run to adjust the value 
+            again. I have to do something about this.
 
-    d.) this isn't really a design issue, but I think I should start a document that describes
-        the whole business from theory to numerics. This will ostensibly be for other users
-        but I think it will help me clarify things for myself given how long its been since
-        I've been able to work on this.
- 
+            RESOLVED
+
+         iii.) job-chain/restarts are mostly done, but there's one problem: there's something
+               wrong with readUData/writeUdata. Because writeUData seems to work when comparing
+               with rmct2_np I think the problem is with the read. In any case, if I start with
+               data and use the from_data initMode, and then rewrite the UData after the read
+               the results don't match. This obviously a problem for restarts since in that
+               case I'm depending on the read to get the last sub-run data frame into U
+               correctly. This is TOP PRIORITY.
+
+               I think I've figure this out: two things - I'm not writing the initial conditions
+               until after applying the linear envelope. This was fooling me into thinking that
+               the read was bad. The read is good its just that I'm comparing unmodified
+               data to modified data. It's fair to say that the application of ilnr is probably
+               never likely to be wanted when reading data. This is an easy fix.
+
+               The other thing is that double precision in C++ appears to be good only out to
+               approximately 15 decimal places. When it's not 15 it's 14. So even when
+               ilnr is set to 0 I still get small differences. I don't like this, but what can
+               I do? Go to long doubles?
+
+               RESOLVED (up to those small ~10^-14 inconsistencies)
+   
+        NOTE: just one "last" job-chain issue - right now I'm not building archiving pbs
+              scripts, but these need to be mocked up at least so that I can put in the
+              qsub lines for the next sub-run job. Then I'll have a job-chain going -though
+              no archiving until I get around to building the archiving script.
 
 
-    Notes: 
+    c.) I have to make a decision about how fields are going to be stored. Currently
+        rmct2_np puts the vorticity and the current in the 3rd and 4th fields of the record
+        respectively, but fourfields puts  Z and V_z there. This is a confict which effects
+        the operations of IDL scripts. I have to resolve this for the future somehow.
+        Seems to me that since both versions generate vorticity and current
+        information, these should have priority. On the other hand, this is going to effect
+        restarts when doing RHMHD so this must be taken into account.
+        Should I make U big enough to hold every damn thing? I suppose I could start by 
+        adding on Vorticity.
 
-       The first problem is to figure out why fourier space and realspace don't give precisely
-       the same results. Plan of action: use realspace and a forward fft to generate a listing
-       of data for a and/or p in fourier space. Compare with a listing as generated directly
-       using fourier space and look for differences. If they're there, try to understand them.
-       If not try to understand why they're not there.
+    d.) There's a lot of commented out crap in various places in the files, would be nice to
+        get rid of it.
 
-       Got this figured out and it may have been important. The reason was because I wasn't
-       scaling the Fourier harmonics prior to a reverseFFT. This may be important for 
-       bracket calculations.
+    e.) I'd really like to disassociate fftw from physics. Seems to me the only way to do this
+        is to turn fftw into a namespace instead of a class which physics and solve can "use."
+        I feel like I tried something like this once before and ran into trouble though, so
+        I'm not sure...
 
-       Now the problem is reconciling coronos with rmct2_np. The qualitative appearance is
-       consistent, but in the case of the p field, the amplitude is off by a factor of 3
-       between rmct2_np and coronos. I should check ilnr!
 
-       Yep, that's what it was. ilnr should be set to zero for now in rmct2_np for comparisons.
 
-       The next step is to proceed as planned with the various step-by-step tests, with
-       careful attention paid to the scaling issue when doing brackets.
+   
+    added in a PfromO call at the end of the loop so that P is what gets recorded 
+    when writeUData is called. Also, I'd forgotten to to fftwReverseAll which resulted
+    in writeUData recording the initial conditions instead of the updated results. 
+    This means that my previous claim that the time-stepping was working was actually
+    erroneous in the sense that I was comparing the wrong numbers. But as it turns out
+    it still works out so far as  I can tell.
 
-       To my astonishment, I've now got RMHD CPU working for a single time-step! The main
-       issue was hiding in OfromP and HfromA where I was not properly preserving the values
-       of A and P in their respective containers because I was trying to use a simple
-       P = U0 and A = U1 kind of statement. This in turn was messing up the use of setB.
-       Also I was incorrectly calculation the partials in y. With these fixes the single-step
-       output now agrees out to about 5 decimal places.
+    However, as I increase ndt things start to diverge - though the manner in which they
+    diverge is not necessarily a bad thing. It seems like rmct2_np is starting to go
+    unstable, while coronos is evolving more slowly but at least looks stable. So maybe
+    I've improved things. Here are some things to try next:
 
-       Next on the agenda: check PfromO and AfromH to make sure I'm not making similar errors
-       there. -tentatively checked.
+    a.) consider running rmct2_np and coronos at the same resolution but with larger eta and nu.
+        see if rmct2_np appears more stable, and make the usual comparisions.
 
-       Also, I should have the writeUData write the vorticity and current density. Might as
-       well check this against rmct2_np
+        Note: think I may be on to something here. when double eta and nu for rmct2_np
+              the results look more stable/symmetric.
 
-       This is a nice idea but I'm going to wait on it until after committing and looking into
-       the matter of time-step determination.
+    b.) get restarts going on coronos, and get some kind of job-chain script going as well.
+        In this way get coronos to go through several sub-runs to watch the evolution.
+        compare with rmct2_np.
+
+        Note: as of this writing, this isn't happening. Something is wrong with readUData.
+        I suspect it has to do with scaling after the forward FFTW.
+
+    c.) start looking at somewhat higher resolutions. 64_16 in particular.
+
+    d.) depending on how these things turn out you may have to spend more time going 
+        step-by-step through the algorithm to check on intermediate quantities.
+   
+
 
 1.) Review everything
 

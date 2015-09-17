@@ -78,8 +78,11 @@ class stack : public canvas
 
 #endif
 
-  std::string getLastDataFilename(int srun);  /* ~ Input/Output                            ~ */
+  void writeUData();                          /* ~ Input/Output                            ~ */
+  std::string getLastDataFilename(int srun);
   std::string getNextDataFilename();
+  void writeParameters();
+  void writeParameters(int srun);
 
   void initxyz();                             /* ~ Calculate x-and y-coordinates of layers ~ */
 
