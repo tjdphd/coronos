@@ -259,6 +259,8 @@ bool parameter_map::fetch(std::string par_name, bool        *val) {
 
 /* ~   Reporting     ~ */
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 void parameter_map::report(std::string out_file_prefix, int srun) {
 
      std::map<std::string, parameter>::iterator it;
@@ -358,6 +360,119 @@ void parameter_map::report(std::string out_file_prefix, int srun) {
         
         ofs   << std::setw(4)                   << pmtr.type;
         ofs   << std::setw(4)                   << pmtr.adjustability;
+        ofs   << std::endl;
+
+     }
+
+     ofs.close();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void parameter_map::report(std::string out_file) {
+
+     std::map<std::string, parameter>::iterator it;
+
+     parameter   pmtr;
+
+
+     std::string str_val;
+     int         int_val;
+     float       flt_val;
+     double      dbl_val;
+     bool        log_val;
+
+     int         str_key_len;
+     int         max_str_key_len;
+
+     int         str_val_len;
+     int         max_str_val_len;
+
+     max_str_key_len     = 0;
+     max_str_val_len     = 0;
+
+     for (it = parameters.begin(); it != parameters.end(); ++it) {
+
+       pmtr              = parameters[it->first];
+
+       str_key_len       = pmtr.name.length();
+       if (str_key_len > max_str_key_len) max_str_key_len = str_key_len;
+       
+       if (pmtr.type.compare("str") == 0) {
+ 
+         str_val_len     = pmtr.value.length();
+         if (str_val_len > max_str_val_len) max_str_val_len = str_val_len;
+
+       }
+     }
+     
+     if (max_str_val_len < 24) max_str_val_len = 24;
+
+//     int rank;
+//     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//
+//     std::string    str_srun               = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
+//     std::string    str_rank               = static_cast<std::ostringstream*>( &(std::ostringstream() << rank) ) -> str();
+//     int rnk_len                           = str_rank.length();
+//     switch(rnk_len) {
+//
+//     case(1) : str_rank = "0" + str_rank;
+//     case(2) : ;
+//     default : ;
+//
+//     }
+//     std::string    out_file               = out_file_prefix + "." + str_rank + ".ots" + str_srun;
+
+     const char    *c_str_out_file         = out_file.c_str();
+     std::fstream   ofs;
+
+     ofs.open(c_str_out_file, std::fstream::out);
+
+     for (it = parameters.begin(); it     != parameters.end(); ++it) {
+
+        pmtr                               = parameters[it->first];
+
+
+        ofs  << std::setw(max_str_key_len + 2) << std::left << pmtr.name;
+
+        if      (pmtr.type.compare("str") ==       0)
+        {
+          fetch(pmtr.name, &str_val);
+          ofs << std::setw(max_str_val_len + 2) << std::left;
+          ofs << str_val;
+        }
+        else if (pmtr.type.compare("int") ==       0)
+        {
+          fetch(pmtr.name, &int_val);
+          ofs << std::setw(max_str_val_len + 2) << std::left;
+          ofs << int_val;
+        }
+        else if (pmtr.type.compare("flt") ==       0) 
+        {
+          fetch(pmtr.name, &flt_val);
+          ofs << std::setw(max_str_val_len + 2) << std::left;
+          ofs << std::setprecision(15) << std::scientific;
+          ofs << flt_val;
+        }
+        else if (pmtr.type.compare("dbl") ==       0) 
+        {
+          fetch(pmtr.name, &dbl_val);
+          ofs << std::setw(max_str_val_len + 2) << std::left;
+          ofs << std::setprecision(15) << std::scientific;
+          ofs <<  dbl_val;
+        }
+        else if (pmtr.type.compare("log") ==       0) 
+        {
+          fetch(pmtr.name, &log_val);
+          ofs << std::setw(max_str_val_len + 2) << std::left;
+          ofs << log_val;
+        }
+        
+        ofs   << std::setw(4)                   << pmtr.type;
+
+        if (pmtr.adjustability.compare("sfa") == 0 ) { pmtr.adjustability.assign("sfx"); }
+        ofs   << std::setw(4)                   << pmtr.adjustability;
+
         ofs   << std::endl;
 
      }

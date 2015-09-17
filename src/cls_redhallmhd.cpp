@@ -34,13 +34,14 @@ redhallmhd::redhallmhd(stack& run ) {
   init_physics_data( run       );     /* ~ physics - specific parameters               ~ */
   initU(             run       );     /* ~ initialization of layers 1 - n3 of U        ~ */
 
-/* ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST   ~ */
+  int srun;
+  run.palette.fetch("srun", &srun);
 
-//  if ( rank == 0 )
+  if (srun == 1) {
 
-/* ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST    ~ TEST   ~ */
-  
-  writeUData(        run       );     /* ~ initial conditions report                   ~ */
+  run.writeUData(              );     /* ~ initial conditions report                   ~ */
+
+  }
 
   initBoundaries(    run       );     /* ~ initialization of quantities needed for     ~ */
                                       /* ~ boundary value application.                 ~ */
@@ -48,7 +49,6 @@ redhallmhd::redhallmhd(stack& run ) {
   initialize(        run       );     /* ~ not a good name, I'll probably revise this  ~ */
                                       /* ~ it might be to let initialize do everything ~ */
                                       /* ~ here or, alternatively to do away with it   ~ */
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -85,14 +85,14 @@ void redhallmhd::initU( stack& run ) {
     int ilnr;
     run.palette.fetch("ilnr", &ilnr);
 
-    if (ilnr != 0 ) pLinzEnv( run );
+    if (ilnr != 0 && init.compare("from_data") !=0 ) pLinzEnv( run );
 
   }
-  else {
+  else { std::cout << "reading data for subrun " << srun << std::endl;                                  
 
-    if (init.compare("from_data")  == 0) readUData(        run );
+                                           readUData(       run );
 
-  }
+       }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -374,19 +374,19 @@ void redhallmhd::readUData( stack& run ) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-  std::string      data_file;
-  const char    *c_data_file;
-
-  std::ifstream    ifs;
-
   int srun;
   run.palette.fetch("srun", &srun);
 
-  if (srun == 1) { srun = 0; }
+  std::cout << "readUData << srun = " << srun << std::endl;
 
-    data_file = run.getLastDataFilename(srun);
+  std::string      data_file;
+//  if (srun == 1) { srun = 0; }
+  data_file = run.getLastDataFilename(srun-1);
+  std::cout << "readUData: opening file - " << data_file << " for reading..." << std::endl;
+  const char    *c_data_file;
   c_data_file = data_file.c_str();
 
+  std::ifstream    ifs;
   ifs.open( c_data_file, std::ios::in );
 
   if ( ifs.good() ) {
@@ -736,126 +736,121 @@ void redhallmhd::initNoDrive( stack& run) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::writeUData( stack& run ) {
-
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
-
-  int    srun;
-  run.palette.fetch("srun",    &srun  );
-  double tstart;
-  run.palette.fetch("tstart",  &tstart);
-
-  if (srun == 1 && tstart == 0.) { srun = 0;}
-
-  std::string data_file;
-  data_file   = run.getLastDataFilename(srun);
-  const char  *c_data_file;
-  c_data_file = data_file.c_str();
-
-
-  std::ofstream ofs;
-  ofs.open( c_data_file, std::ios::out );
-
-  if ( ofs.good() ) {
-
-    InputOutputArray& U = run.U;
-    
-    int iu3; 
-    run.stack_data.fetch("iu3",  &iu3);
-    int n1; 
-    run.stack_data.fetch("n1",   &n1);
-    int n2; 
-    run.stack_data.fetch("n2",   &n2);
-    int n3; 
-    run.stack_data.fetch("n3",   &n3);
-    int n1n2;
-    run.stack_data.fetch("n1n2", &n1n2);
-
-    int n_slab_points    = n1n2 * iu3;
-    int point_count      = 0;
-    int slab_index       = 1;
-    int from_col_maj_idx = 0;
-    int to_row_maj_idx   = 0;
-    int i                = 0;
-    int j                = 0;
-
-    double next_p; 
-    double next_a; 
-    double next_bz; 
-    double next_vz;
-    
-    while ( slab_index < n3 + 1 ) {
-
-//    U[to_row_maj_idx][slab_index][0] = next_p;
-//    U[to_row_maj_idx][slab_index][1] = next_a;
-
-      ++point_count;
-      next_p = U[to_row_maj_idx][slab_index][0];
-      ++point_count;
-      next_a = U[to_row_maj_idx][slab_index][1];
-
-      if(iu3 > 2) {
-
-//        U[to_row_maj_idx][slab_index][2] = next_bz;
-//        U[to_row_maj_idx][slab_index][3] = next_vz;
-
-        ++point_count;
-        next_bz = U[to_row_maj_idx][slab_index][2];
-        ++point_count;
-        next_vz = U[to_row_maj_idx][slab_index][3];
-
-      }
-
-//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_p << " ";
-//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_a << " ";
+//void redhallmhd::writeUData( stack& run ) {
 //
-      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_p << " ";
-      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_a << " ";
-
-      if (iu3 > 2)  {
-
-//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_bz << " ";
-//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_vz << " ";
-
-        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_bz << " ";
-        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_vz << " ";
-
-      }
-
-      ofs << std::endl;
-     
-      if (from_col_maj_idx < n1n2) {
-
-        ++from_col_maj_idx;
-        if (from_col_maj_idx % n2 != 0) ++j;
-        else {
-          j = 0;
-          ++i;
-        }
-      }
-
-      if (to_row_maj_idx < n1n2 - 1) to_row_maj_idx = i + (j*n1);
-      else to_row_maj_idx  = 0;
-
-      if (from_col_maj_idx == n1n2) {
-
-        from_col_maj_idx   = 0;
-        i                  = 0;
-        j                  = 0;
-      }
-
-      if(point_count == n_slab_points) {
-
-        point_count        = 0;
-        ++slab_index;
-      }
-    }
-
-    ofs.close();
-
-  }
-}
+//  int rank;
+//  MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
+//
+//  int    srun;
+//  run.palette.fetch("srun",    &srun  );
+//
+//  std::string data_file;
+//  data_file   = run.getLastDataFilename(srun-1);
+//  const char  *c_data_file;
+//  c_data_file = data_file.c_str();
+//
+//  std::ofstream ofs;
+//  ofs.open( c_data_file, std::ios::out );
+//
+//  if ( ofs.good() ) {
+//
+//    InputOutputArray& U = run.U;
+//    
+//    int iu3; 
+//    run.stack_data.fetch("iu3",  &iu3);
+//    int n1; 
+//    run.stack_data.fetch("n1",   &n1);
+//    int n2; 
+//    run.stack_data.fetch("n2",   &n2);
+//    int n3; 
+//    run.stack_data.fetch("n3",   &n3);
+//    int n1n2;
+//    run.stack_data.fetch("n1n2", &n1n2);
+//
+//    int n_slab_points    = n1n2 * iu3;
+//    int point_count      = 0;
+//    int slab_index       = 1;
+//    int from_col_maj_idx = 0;
+//    int to_row_maj_idx   = 0;
+//    int i                = 0;
+//    int j                = 0;
+//
+//    double next_p; 
+//    double next_a; 
+//    double next_bz; 
+//    double next_vz;
+//    
+//    while ( slab_index < n3 + 1 ) {
+//
+////    U[to_row_maj_idx][slab_index][0] = next_p;
+////    U[to_row_maj_idx][slab_index][1] = next_a;
+//
+//      ++point_count;
+//      next_p = U[to_row_maj_idx][slab_index][0];
+//      ++point_count;
+//      next_a = U[to_row_maj_idx][slab_index][1];
+//
+//      if(iu3 > 2) {
+//
+////        U[to_row_maj_idx][slab_index][2] = next_bz;
+////        U[to_row_maj_idx][slab_index][3] = next_vz;
+//
+//        ++point_count;
+//        next_bz = U[to_row_maj_idx][slab_index][2];
+//        ++point_count;
+//        next_vz = U[to_row_maj_idx][slab_index][3];
+//
+//      }
+//
+////      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_p << " ";
+////      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_a << " ";
+////
+//      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_p << " ";
+//      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_a << " ";
+//
+//      if (iu3 > 2)  {
+//
+////      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_bz << " ";
+////      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_vz << " ";
+//
+//        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_bz << " ";
+//        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_vz << " ";
+//
+//      }
+//
+//      ofs << std::endl;
+//     
+//      if (from_col_maj_idx < n1n2) {
+//
+//        ++from_col_maj_idx;
+//        if (from_col_maj_idx % n2 != 0) ++j;
+//        else {
+//          j = 0;
+//          ++i;
+//        }
+//      }
+//
+//      if (to_row_maj_idx < n1n2 - 1) to_row_maj_idx = i + (j*n1);
+//      else to_row_maj_idx  = 0;
+//
+//      if (from_col_maj_idx == n1n2) {
+//
+//        from_col_maj_idx   = 0;
+//        i                  = 0;
+//        j                  = 0;
+//      }
+//
+//      if(point_count == n_slab_points) {
+//
+//        point_count        = 0;
+//        ++slab_index;
+//      }
+//    }
+//
+//    ofs.close();
+//
+//  }
+//}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -1029,7 +1024,7 @@ void redhallmhd::HfromA( stack& run )  {
     double ssqd;                                   /* ~ parameter sigma^2 needed for H             ~ */
     physics_data.fetch( "ssqd", &ssqd);
   
-    std::cout << "HfromA: ssqd = " << ssqd << std::endl;
+//    std::cout << "HfromA: ssqd = " << ssqd << std::endl;
   
     std::string model;
     run.palette.fetch("model", &model);
@@ -1975,7 +1970,6 @@ void redhallmhd::applyLineTiedBC( stack& run ) {
 
 void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
 
-  std::cout << "updatePAJ is turned on " << std::endl;
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c);         /* ~ number complex elements in layer            ~ */
 
@@ -2030,45 +2024,55 @@ void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
 
 void redhallmhd::updateTimeInc( stack& run ) {
 
-//    int rank;
-//    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//    int n1n2;
-//    run.stack_data.fetch("n1n2", &n1n2);
-//    double dt;
-//    run.palette.fetch("dt", &dt);
-//    double dz;
-//    run.stack_data.fetch("dz", &dz);
-// 
-//    double q1, q2, qp;
-//
-//    run.palette.fetch("q1", &q1);
-//    run.palette.fetch("q2", &q2);
-//    run.palette.fetch("qp", &qp);
-//
-//    double dtvb;
-//    double dtr;
-//
-//    dtvb        = zero;
-//
-//    for (unsigned i_f = 0; i_f < maxU.size(); i_f++) { dtvb = dtvb + sqrt(maxU[i_f]); }
-//
-//    dtvb        = dtvb * sqrt( (double) (n1n2) );
-//    dtvb        = one / dtvb;
-//    dtr         = dtvb / dt;
-//
-//    if (( dt < (q1 * dtvb) ) && ( dt <  (half * qp * dz) ) ) {
-//
-//      dt = two * dt;
-//      run.palette.reset("dt", dt);
-//
-//    }
-//    else if ( dt > (q2 * dtvb) ) {
-//
-//      dt = half * dt;
-//      run.palette.reset("dt", dt);
-//
-//    }
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    RealArray glbMaxU;
+    glbMaxU.reserve(maxU.size());
+
+    int n1n2;
+    run.stack_data.fetch("n1n2", &n1n2);
+    double dt;
+    run.palette.fetch("dt", &dt);
+    double dz;
+    run.stack_data.fetch("dz", &dz);
+ 
+    double q1, q2, qp;
+
+    run.palette.fetch("q1", &q1);
+    run.palette.fetch("q2", &q2);
+    run.palette.fetch("qp", &qp);
+
+    double dtvb;
+    double dtr;
+
+    int i_red;
+    i_red = MPI_Reduce(&maxU[0], &glbMaxU[0], maxU.size(), MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); 
+    int i_brd;
+    i_brd = MPI_Bcast(&glbMaxU[0], maxU.size(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    for (unsigned i_f = 0; i_f < maxU.size(); i_f++) { maxU[i_f] = glbMaxU[i_f]; }
+
+    dtvb        = zero;
+
+    for (unsigned i_f = 0; i_f < maxU.size(); i_f++) { dtvb = dtvb + sqrt(maxU[i_f]); }
+
+    dtvb        = dtvb * sqrt( (double) (n1n2) );
+    dtvb        = one / dtvb;
+    dtr         = dtvb / dt;
+
+    if (( dt < (q1 * dtvb) ) && ( dt <  (half * qp * dz) ) ) {
+
+      dt = two * dt;
+      run.palette.reset("dt", dt);
+
+    }
+    else if ( dt > (q2 * dtvb) ) {
+
+      dt = half * dt;
+      run.palette.reset("dt", dt);
+
+    }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

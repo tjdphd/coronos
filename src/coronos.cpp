@@ -9,12 +9,6 @@
 #include "mpi.h"
 #include "cls_stack.hpp"
 #include "cls_lcsolve.hpp"
-//#include "cls_redhallmhd.hpp"
-
-// #include <iostream>
-// #include "nsp_constants.hpp"
-// #include "cls_lcsolve.hpp"
-// #include "cls_parameter_map.hpp"
 
 int main(void) {
 
@@ -23,13 +17,6 @@ int main(void) {
   stack       run(     "coronos.in");
   lcsolve     solve(   run         );
   solve.Loop (         run         );
-
-//    pm = run.palette;
-//    pm.report("palette");
-
-//    parameter_map &pm = run.run_data;
-
-//    pm.report("run_data");
 
   MPI::Finalize();
 

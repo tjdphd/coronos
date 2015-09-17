@@ -61,7 +61,6 @@ class redhallmhd
   void OfromP(                          stack& run );                 /* ~ Obtain vorticity from P                   ~ */
   void HfromA(                          stack& run );                 /* ~ Obtain H from A                           ~ */
 
-  void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
   void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
 
   void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
@@ -84,7 +83,8 @@ class redhallmhd
   void updatePAJ( std::string str_step, stack& run );
   void applyBC(                         stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
   void updateTimeInc(                   stack& run                );
-  void writeUData(                      stack& run);
+//  void writeUData(                      stack& run);
+  void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
 
 //  void finalize(                        stack& run, lcsolve& solve);
 

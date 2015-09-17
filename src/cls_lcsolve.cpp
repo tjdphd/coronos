@@ -92,7 +92,17 @@ void lcsolve::Loop( stack& run ) {
     run.palette.fetch("dt", &dt);
     t_cur       = t_cur + dt;
 
-    physics.updateTimeInc(          run );
+    physics.updateTimeInc(        run );
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//    if (rank == 1) {
+//                     std::cout << "mv = " << physics.maxU[0] << std::endl;
+//                     std::cout << "mb = " << physics.maxU[1] << std::endl;
+//    }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
 
 ///* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 //
@@ -140,20 +150,19 @@ void lcsolve::Loop( stack& run ) {
 
   physics.updatePAJ(  "predict", run        );   /* ~ P, A, and J contain final corrector-updated values ~ */
 
+  physics.PfromO ( run );
+  physics.fftw.fftwReverseAll( run );
+
   run.palette.reset(   "tstart", t_cur      );
 
-  std::string prefix;
-  run.palette.fetch(   "prefix", &prefix    );
-
-  std::string res_str;
-  run.stack_data.fetch("res_str", &res_str  );
 
   int srun;
   run.palette.fetch(   "srun"   , &srun     );
-  
-  if (rank == 0) { run.palette.report(prefix + '_' +  res_str, srun); }
+  ++srun;
+  run.palette.reset(   "srun"   , srun      );
 
-  physics.writeUData( run );
+  run.writeUData();
+  run.writeParameters();
 
 }
 
@@ -529,17 +538,17 @@ if (str_step.compare("predict"     ) == 0) {
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
- if (rank == 0) {
-   for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
-
-    if (abs(d3y[k]) > 1.0e-10) {
-    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << d3y[k] << std::endl;
-    }
-    else {
-    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
-    }
-   }
- }
+// if (rank == 0) {
+//   for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
+//
+//    if (abs(d3y[k]) > 1.0e-10) {
+//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << d3y[k] << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
+//    }
+//   }
+// }
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 

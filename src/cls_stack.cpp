@@ -24,7 +24,13 @@ stack::stack() : canvas::canvas() {
 
 stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
+
   init_stack_data();
+
+  int srun;
+  palette.fetch("srun", &srun);
+  writeParameters(srun);
+
   allocUi();
   initxyz();
   kInit();
@@ -142,9 +148,9 @@ void stack::allocUi() {                          /* ~ U is the input/output arra
   stack_data.fetch("iu2", &iu2);
   stack_data.fetch("iu3", &iu3);
 
-  std::cout << "iu1 = " << iu1 << std::endl;
-  std::cout << "iu2 = " << iu2 << std::endl;
-  std::cout << "iu3 = " << iu3 << std::endl;
+//  std::cout << "iu1 = " << iu1 << std::endl;
+//  std::cout << "iu2 = " << iu2 << std::endl;
+//  std::cout << "iu3 = " << iu3 << std::endl;
 
 
   U = new double**[iu1];                         /* ~ allocate U dynamically using dimensions    ~ */
@@ -341,340 +347,132 @@ void stack::kFree() {                            /* ~ also possibly a bit excess
     inv_k2.resize(0);
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~ non-CUDA Fourier-related ~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-//#ifndef HAVE_CUDA_H
-
-//void stack::fftwInitialize( ) {
-//
-//  int n1; 
-//  stack_data.fetch("n1",   &n1);
-//  int n2;
-//  stack_data.fetch("n2",   &n2);
-//  int nr_in; 
-//  stack_data.fetch("n1n2", &nr_in);
-//  int nc_out;
-//
-//  nc_out    = n1 * (((int)(0.5*n2)) + 1);
-//
-//  /* ~ Forward field/layer transforms: ~ */
-//
-//  r_in      = (double *)               fftw_malloc(sizeof(double)               * nr_in  );
-//  cplx_out  = (std::complex<double> *) fftw_malloc(sizeof(std::complex<double>) * nc_out );
-//
-//  p_lay_for = fftw_plan_dft_r2c_1d(nr_in, r_in, reinterpret_cast<fftw_complex*>(cplx_out), FFTW_MEASURE);
-//
-//  /* ~ Reverse field/layer transforms: ~ */
-//
-//  cplx_in   = (std::complex<double> *) fftw_malloc(sizeof(std::complex<double>) * nc_out );
-//  r_out     = (double *)          fftw_malloc(sizeof(double)          * nr_in  );
-//  
-//  p_lay_rev = fftw_plan_dft_c2r_1d(nr_in, reinterpret_cast<fftw_complex*>(cplx_in), r_out, FFTW_MEASURE);
-//
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwFinalize() {
-//
-//  fftw_destroy_plan(p_lay_for);
-//  fftw_destroy_plan(p_lay_rev);
-//
-//  fftw_free(r_in);
-//  fftw_free(r_out);
-//
-//  fftw_free(cplx_in); 
-//  fftw_free(cplx_out); 
-//
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwForwardAll( lcsolve& solve) {
-//
-//  ComplexArray& U0 = solve.U0;
-//  ComplexArray& U1 = solve.U1;
-//  ComplexArray& U2 = solve.U2;
-//  ComplexArray& U3 = solve.U3;
-//
-//  int n1; 
-//  stack_data.fetch("n1"   , &n1      );
-//  int n2; 
-//  stack_data.fetch("n2"   , &n2      );
-//  int n1n2c;
-//  stack_data.fetch("n1n2c", &n1n2c   );
-//  int n1n2; 
-//  stack_data.fetch("n1n2" , &n1n2    );
-//  int n_layers; 
-//  stack_data.fetch("iu2"  , &n_layers);
-//  int n_flds;
-//  stack_data.fetch("iu3"  , &n_flds  );
-//
-//  ComplexArray::size_type nc = n1n2c;
-//
-//  unsigned strt_idx;
-//
-//  for (int i_f = 0; i_f < n_flds; i_f++)  {
-//    for ( int i_l = 0; i_l < n_layers; i_l++) {
-//
-//      for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = zero; }
-//      for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = U[k][i_l][i_f]; }
-//      for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (std::complex<double>) zero; }
-//
-//      fftw_execute(p_lay_for);
-//
-//      strt_idx = i_l * nc;
-//
-//      switch(i_f) {
-//      case(0) :
-//        for (unsigned k = 0; k < nc;   k++) { U0[(strt_idx + k)] = cplx_out[k]; }
-//        break;
-//      case(1) :  
-//        for (unsigned k = 0; k < nc;   k++) { U1[(strt_idx + k)] = cplx_out[k]; }
-//        break;
-//      case(2) :  
-//        for (unsigned k = 0; k < nc;   k++) { U2[(strt_idx + k)] = cplx_out[k]; }
-//        break;
-//      case(3) :  
-//        for (unsigned k = 0; k < nc;   k++) { U3[(strt_idx + k)] = cplx_out[k]; }
-//        break;
-//      }
-//    }
-//  }
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwReverseAll( lcsolve& solve ) {
-//
-//  ComplexArray& U0 = solve.U0;
-//  ComplexArray& U1 = solve.U1;
-//  ComplexArray& U2 = solve.U2;
-//  ComplexArray& U3 = solve.U3;
-//
-//  int n1; 
-//  stack_data.fetch("n1"   , &n1      );
-//  int n2; 
-//  stack_data.fetch("n2"   , &n2      );
-//  int n1n2c; 
-//  stack_data.fetch("n1n2c", &n1n2c   );
-//  int n1n2; 
-//  stack_data.fetch("n1n2" , &n1n2    );
-//  int n_layers; 
-//  stack_data.fetch("iu2"  , &n_layers);
-//  int n_flds;
-//  stack_data.fetch("iu3"  , &n_flds  );
-//
-//  ComplexArray::size_type nc = n1n2c;
-//
-//  double scale = (double) one/((double) (n1n2));
-//  
-//  unsigned strt_idx;
-//
-//  for (int i_f = 0; i_f < n_flds; i_f++)  {
-//    for ( int i_l = 0; i_l < n_layers; i_l++) {
-//      
-//      strt_idx = (i_l * nc);
-//
-//      for (unsigned   k = 0; k < nc; k++) { cplx_in[k] = (std::complex<double>) zero; }
-//      switch(i_f) {
-//      case(0) :
-//        for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U0[strt_idx + k];  }
-//        break;
-//      case(1) :
-//        for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U1[strt_idx + k];  }
-//        break;
-//      case(2) :
-//        for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U2[strt_idx + k];  }
-//        break;
-//      case(3) :
-//        for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U3[strt_idx + k];  }
-//        break;
-//      }
-//
-//      for (int k = 0; k < n1n2; k++) { r_out[k] = zero; }
-//      fftw_execute(p_lay_rev);
-//
-//      for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] = (scale * r_out[k]); }
-//
-//    }
-//  }
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwForwardLayerofField ( lcsolve& solve, int i_l, int i_f ) {
-//
-//  ComplexArray& U0 = solve.U0;
-//  ComplexArray& U1 = solve.U1;
-//  ComplexArray& U2 = solve.U2;
-//  ComplexArray& U3 = solve.U3;
-//
-//  int n1; 
-//  stack_data.fetch("n1"   , &n1      );
-//  int n2; 
-//  stack_data.fetch("n2"   , &n2      );
-//  int n1n2c; 
-//  stack_data.fetch("n1n2c", &n1n2c   );
-//  int n1n2; 
-//  stack_data.fetch("n1n2" , &n1n2    );
-//  int n_layers; 
-//  stack_data.fetch("iu2"  , &n_layers);
-//  int n_flds;
-//  stack_data.fetch("iu3"  , &n_flds  );
-//
-//  ComplexArray::size_type nc = n1n2c;
-//
-//  for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = zero; }
-//  for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = U[k][i_l][i_f]; }
-//  for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (std::complex<double>) zero; }
-//
-//  fftw_execute(p_lay_for);
-//
-//  unsigned strt_idx = i_l * nc;
-//
-//  switch(i_f) {
-//  case(0) :
-//    for (unsigned k = 0; k < nc;   k++) { U0[(strt_idx + k)] = cplx_out[k]; }
-//    break;
-//  case(1) :  
-//    for (unsigned k = 0; k < nc;   k++) { U1[(strt_idx + k)] = cplx_out[k]; }
-//    break;
-//  case(2) :  
-//    for (unsigned k = 0; k < nc;   k++) { U2[(strt_idx + k)] = cplx_out[k]; }
-//    break;
-//  case(3) :  
-//    for (unsigned k = 0; k < nc;   k++) { U3[(strt_idx + k)] = cplx_out[k]; }
-//    break;
-//  }
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwReverseLayerofField ( lcsolve& solve, int i_l, int i_f) {
-//
-//  ComplexArray& U0 = solve.U0;
-//  ComplexArray& U1 = solve.U1;
-//  ComplexArray& U2 = solve.U2;
-//  ComplexArray& U3 = solve.U3;
-//
-//  int n1; 
-//  stack_data.fetch("n1"   , &n1      );
-//  int n2; 
-//  stack_data.fetch("n2"   , &n2      );
-//  int n1n2c; 
-//  stack_data.fetch("n1n2c", &n1n2c   );
-//  int n1n2; 
-//  stack_data.fetch("n1n2" , &n1n2    );
-//  int n_layers; 
-//  stack_data.fetch("iu2"  , &n_layers);
-//  int n_flds;
-//  stack_data.fetch("iu3"  , &n_flds  );
-//
-//  ComplexArray::size_type nc = n1n2c;
-//
-//  double scale      = (double) one/((double) (n1n2));
-//  
-//  unsigned strt_idx = (i_l * nc);
-//
-//  for (unsigned   k = 0; k < nc; k++) { cplx_in[k] = czero; }
-//  switch(i_f) {
-//  case(0) :
-//    for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U0[strt_idx + k];  }
-//    break;
-//  case(1) :
-//    for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U1[strt_idx + k];  }
-//    break;
-//  case(2) :
-//    for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U2[strt_idx + k];  }
-//    break;
-//  case(3) :
-//    for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U3[strt_idx + k];  }
-//    break;
-//  }
-//
-//  for (int k = 0; k < n1n2; k++) { r_out[k] = zero; }
-//  fftw_execute(p_lay_rev);
-//
-//  for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] = (scale * r_out[k]); }
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwForwardRaw( RealArray& Rin, ComplexArray& Cout) {
-//
-//  int n1n2c; 
-//  stack_data.fetch("n1n2c", &n1n2c   );
-//  int n1n2; 
-//  stack_data.fetch("n1n2" , &n1n2    );
-//  int iu2;
-//  stack_data.fetch("iu2"  , &iu2     );
-//
-//  unsigned c_strt_idx = 0;
-//  unsigned r_strt_idx = 0;
-//
-//  for (unsigned i_l   = 0; i_l < iu2; i_l++) {
-//
-//    c_strt_idx        = i_l * n1n2c;
-//    r_strt_idx        = i_l * n1n2;
-//
-//    for (unsigned k   = 0 ; k < n1n2 ; k++) { r_in[k]              =  zero;               }
-//    for (unsigned k   = 0 ; k < n1n2c; k++) { cplx_out[k]          = czero;               }
-//    for (unsigned k   = 0 ; k < n1n2 ; k++) { r_in[k]              = Rin[r_strt_idx + k]; }
-//    fftw_execute(p_lay_for);
-//    for (unsigned k   = 0 ; k < n1n2c ; k++){ Cout[c_strt_idx + k] = cplx_out[k];         }
-//
-//  }
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//void stack::fftwReverseRaw( ComplexArray& Cin, RealArray& Rout) {
-//
-//  int n1n2c; 
-//  stack_data.fetch("n1n2c", &n1n2c   );
-//  int n1n2; 
-//  stack_data.fetch("n1n2" , &n1n2    );
-//  int iu2;
-//  stack_data.fetch("iu2"  , &iu2     );
-//
-//  assert(n1n2        != 0 );
-//
-//  double scale        = (double) one/((double) (n1n2));
-//  
-//  unsigned c_strt_idx = 0;
-//  unsigned r_strt_idx = 0;
-//
-//  for (unsigned i_l   = 0; i_l < iu2; i_l++) {
-//
-//    c_strt_idx        = i_l * n1n2c;
-//    r_strt_idx        = i_l * n1n2;
-//
-//  for (unsigned k     = 0 ; k < n1n2c; k++) { cplx_in[k]           = czero;               }
-//  for (unsigned k     = 0 ; k < n1n2 ; k++) { r_out[k]             =  zero;               }
-//  for (unsigned k     = 0 ; k < n1n2c; k++) { cplx_in[k]           = Cin[c_strt_idx + k]; }
-//  fftw_execute(p_lay_rev);
-//  for (unsigned k     = 0 ; k < n1n2 ; k++) { Rout[r_strt_idx + k] = (scale * r_out[k]);  }
-//  
-//  }
-//}
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//
-//#endif
-//
-///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   /* ~ Initialization            ~ */
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::writeUData() {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
+
+  int    srun;
+  palette.fetch("srun",    &srun  );
+
+  std::cout << "writeUData: srun = " << srun << std::endl;
+
+  std::string data_file;
+  data_file   = getLastDataFilename(srun-1);
+
+  std::cout << "writeUData: writing to file - " << data_file << std::endl;
+  const char  *c_data_file;
+  c_data_file = data_file.c_str();
+
+  std::ofstream ofs;
+  ofs.open( c_data_file, std::ios::out );
+
+  if ( ofs.good() ) {
+
+//    InputOutputArray& U = un.U;
+    
+    int iu3; 
+    stack_data.fetch("iu3",  &iu3);
+    int n1; 
+    stack_data.fetch("n1",   &n1);
+    int n2; 
+    stack_data.fetch("n2",   &n2);
+    int n3; 
+    stack_data.fetch("n3",   &n3);
+    int n1n2;
+    stack_data.fetch("n1n2", &n1n2);
+
+    int n_slab_points    = n1n2 * iu3;
+    int point_count      = 0;
+    int slab_index       = 1;
+    int from_col_maj_idx = 0;
+    int to_row_maj_idx   = 0;
+    int i                = 0;
+    int j                = 0;
+
+    double next_p; 
+    double next_a; 
+    double next_bz; 
+    double next_vz;
+    
+    while ( slab_index < n3 + 1 ) {
+
+//    U[to_row_maj_idx][slab_index][0] = next_p;
+//    U[to_row_maj_idx][slab_index][1] = next_a;
+
+      ++point_count;
+      next_p = U[to_row_maj_idx][slab_index][0];
+      ++point_count;
+      next_a = U[to_row_maj_idx][slab_index][1];
+
+      if(iu3 > 2) {
+
+//        U[to_row_maj_idx][slab_index][2] = next_bz;
+//        U[to_row_maj_idx][slab_index][3] = next_vz;
+
+        ++point_count;
+        next_bz = U[to_row_maj_idx][slab_index][2];
+        ++point_count;
+        next_vz = U[to_row_maj_idx][slab_index][3];
+
+      }
+
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_p << " ";
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_a << " ";
+//
+      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_p << " ";
+      ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_a << " ";
+
+      if (iu3 > 2)  {
+
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_bz << " ";
+//      ofs << std::setw(19) << std::right << std::setprecision(11) << std::scientific << next_vz << " ";
+
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_bz << " ";
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_vz << " ";
+
+      }
+
+      ofs << std::endl;
+     
+      if (from_col_maj_idx < n1n2) {
+
+        ++from_col_maj_idx;
+        if (from_col_maj_idx % n2 != 0) ++j;
+        else {
+          j = 0;
+          ++i;
+        }
+      }
+
+      if (to_row_maj_idx < n1n2 - 1) to_row_maj_idx = i + (j*n1);
+      else to_row_maj_idx  = 0;
+
+      if (from_col_maj_idx == n1n2) {
+
+        from_col_maj_idx   = 0;
+        i                  = 0;
+        j                  = 0;
+      }
+
+      if(point_count == n_slab_points) {
+
+        point_count        = 0;
+        ++slab_index;
+      }
+    }
+
+    ofs.close();
+
+  }
+}
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 std::string stack::getLastDataFilename(int srun) {
@@ -684,6 +482,10 @@ std::string stack::getLastDataFilename(int srun) {
 
   std::string prefix;
   palette.fetch("prefix",     &prefix );
+
+  std::string run_label;
+  palette.fetch("run_label",  &run_label);
+
   std::string res_str;
   stack_data.fetch("res_str", &res_str);
 
@@ -707,7 +509,8 @@ std::string stack::getLastDataFilename(int srun) {
 
   }
 
-  data_file             = prefix + "_" + res_str + "." + rnk_str + ".ots" + srn_str;
+//  data_file             = prefix + "_" + res_str + "." + rnk_str + ".ots" + srn_str;
+  data_file             = prefix + "_" + res_str + "." + rnk_str + ".o" + run_label + srn_str;
 
   return data_file;
 
@@ -752,6 +555,34 @@ std::string stack::getLastDataFilename(int srun) {
   return data_file;
 
   }
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::writeParameters() {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+  if (rank == 0) {palette.report("coronos.in"); }
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::writeParameters(int srun) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+  std::string prefix;
+  palette.fetch(   "prefix",  &prefix );
+
+  std::string res_str;
+  stack_data.fetch("res_str", &res_str);
+
+  if (rank == 0) {palette.report(prefix + '_' + res_str, srun ); }
+
+}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -818,12 +649,12 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
  
   }
 
-  if (rank == 1 ) {
-    for (int i = 0; i < iu2 - 1; ++i) {
-
-      std::cout << "Z[" <<  i <<  "] = " <<  z[i]  << endl;
-    }
-  }
+//  if (rank == 1 ) {
+//    for (int i = 0; i < iu2 - 1; ++i) {
+//
+//      std::cout << "Z[" <<  i <<  "] = " <<  z[i]  << endl;
+//    }
+//  }
 
 }
 
