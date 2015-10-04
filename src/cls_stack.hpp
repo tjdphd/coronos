@@ -63,18 +63,18 @@ class stack : public canvas
    ComplexArray tU2;
    ComplexArray tU3;
 
-  RealArray rt;                               /* ~ Fourier Transform Related               ~ */
+//  RealArray rt;                               /* ~ Fourier Transform Related               ~ */
 
-  void rtInit();
-  void rtFree();
+//  void rtInit();
+//  void rtFree();
 
   RealArray kx;
   RealArray ky;
   RealArray k2;
   RealArray inv_k2;
 
-  void kInit( );                              /* ~ their initializers and "disposers"     ~ */
-  void kFree( );
+//  void kInit( );                              /* ~ their initializers and "disposers"     ~ */
+//  void kFree( );
 
 #endif
 

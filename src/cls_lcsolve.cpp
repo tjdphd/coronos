@@ -78,7 +78,10 @@ void lcsolve::Loop( stack& run ) {
     setB(              "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
     setD(              "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
     setAi(                        run, physics );   /* ~ set predictor A's                                       ~ */
-    Step(              "predict", run );            /* ~ execute predictor update                                ~ */
+//    Step(              "predict", run );            /* ~ execute predictor update                                ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+  Step(              "predict", run, physics );            /* ~ execute predictor update                                ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
     passAdjacentLayers("correct", run );
     physics.updatePAJ( "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
@@ -87,7 +90,10 @@ void lcsolve::Loop( stack& run ) {
     setB(              "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
     setD(              "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
     setAi(                        run, physics );   /* ~ set corrector A's                                       ~ */
-    Step(              "correct", run );            /* ~ execute corrector update                                ~ */
+//    Step(              "correct", run );            /* ~ execute corrector update                                ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+  Step(              "correct", run, physics );            /* ~ execute corrector update                                ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
     run.palette.fetch("dt", &dt);
     t_cur       = t_cur + dt;
@@ -356,18 +362,6 @@ void lcsolve::setS( std::string str_step, stack& run, redhallmhd& physics ) {
 
   }
 
-//  RealArray& SE0 = solve.SE0;                    /* ~ the S^(ex)'s - see documentation                 ~ */
-//  RealArray& SE1 = solve.SE1;
-//
-//  RealArray& SE2 = solve.SE2;
-//  RealArray& SE3 = solve.SE3;
-//
-//  RealArray& SI0 = solve.SI0;                    /* ~ the S^(im)'s - see documentation                 ~ */
-//  RealArray& SI1 = solve.SI1;
-//
-//  RealArray& SI2 = solve.SI2;
-//  RealArray& SI3 = solve.SI3;
-
   RealArray& k2  = run.k2;                       /* ~ square magnitude of k-space vectors              ~ */
 
   int n1n2c;                                     /* ~ number of complex elements in layer              ~ */
@@ -505,16 +499,68 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
   std::string model;
   run.palette.fetch("model", &model);
 
-  partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P         ~ */
+  partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P        ~ */
+
 
 if (str_step.compare("predict"     ) == 0) {
   partialsInXandY( run, physics, O, d2x, d2y);              /* ~ d2x, d2y hold real-space partials in x and y of O  ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+/* ~ Note - for top rank these are not required. efficiency would be enhanced if this were accounted for                  ~ */
+/* ~        also, from the debugging point of view it's worth double checking that O(n3) for the top rank is getting its  ~ */
+/* ~        value from the boundary conditions on P(n3)                                                                   ~ */
+
+//if (rank == 3) {
+//  for( unsigned k = 4*n1n2; k < 5*n1n2; ++k ) {
+
+//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
+//
+//   if (abs(d2x[k]) > 1.0e-10) {
+//   std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d2x[k] << std::endl;
+//   }
+//   else {
+//   std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
+//   }
+//  }
+//}
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
   maxU[0] = maxdU(         d2x, d2y);                       /* ~                                                    ~ */
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tO,     d2x, d2y);         /* ~ d2x, d2y hold real-space partials in x and y of tO ~ */
 }
 bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);           /* ~ calculate [phi, Omega]                             ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//  if (str_step.compare("predict") == 0 && rank == 2) {
+//  
+//    unsigned dsize = d2x.capacity();
+//    unsigned bsize = BrKt.capacity();
+//  
+//    RealArray B_tmp(dsize, zero);
+//  
+//    physics.fftw.fftwReverseRaw( run, BrKt, B_tmp);
+//  
+//    for (unsigned k = 4*n1n2; k < 5*n1n2; ++k) {
+//  
+//      if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
+//      if (abs(B_tmp[k]) > 1.0e-10) {
+//      std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << B_tmp[k] << std::endl;
+//      }
+//      else {
+//      std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
+//      }
+//  
+//    }
+//  
+//    physics.fftw.fftwForwardRaw( run, B_tmp, BrKt);
+//  
+//  }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 for (unsigned k = 0; k < kstop; k++) { B0[k] = - BrKt[k]; } /* ~ place result in B0                                 ~ */
 
@@ -532,20 +578,45 @@ if (model.compare("hall") == 0 ) {
 }
 
 averageAcrossLayers( run, -1, d1x, d1y );                   /* ~ calculate averages of phi_x & phi_y across adj't layers ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+// if (str_step.compare("predict"     ) == 0) {
+// 
+//  if (rank == 3) {
+//    for( unsigned k = 4*n1n2; k < 5*n1n2; ++k ) {
+//
+//       if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
+// 
+//     if (abs(d1y[k]) > 1.0e-10) {
+//     std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d1y[k] << std::endl;
+//     }
+//     else {
+//     std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
+//     }
+//    }
+//  }
+// 
+// }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
 if (str_step.compare("predict"     ) == 0) {
 
   partialsInXandY( run, physics, H, d3x, d3y);              /* ~ d3x, d3y hold real-space partials in x and y of H       ~ */
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
-// if (rank == 0) {
-//   for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
+// if (rank == 2) {
+//   for( unsigned k = 5*n1n2; k < 6*n1n2; ++k ) {
 //
+//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
+
 //    if (abs(d3y[k]) > 1.0e-10) {
-//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << d3y[k] << std::endl;
+//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d3y[k] << std::endl;
 //    }
 //    else {
-//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
+//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
 //    }
 //   }
 // }
@@ -557,8 +628,57 @@ if (str_step.compare("predict"     ) == 0) {
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tH, d3x, d3y);           /* ~ d3x, d3y hold real-space partials in x and y of tH        ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+// if (rank == 0) {
+//   for( unsigned k = 1*n1n2; k < 2*n1n2; ++k ) {
+//
+//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
+
+//    if (abs(d3x[k]) > 1.0e-10) {
+//    std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << d3x[k] << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << zero  << std::endl;
+//    }
+//   }
+// }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
 }
+
 bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);                       /* ~ calculate [phibar, H]                                     ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//if (str_step.compare("predict") == 0 && rank == 0) {
+//
+//  unsigned dsize = d1x.capacity();
+//  unsigned bsize = BrKt.capacity();
+//
+//  RealArray B_tmp(dsize, zero);
+//
+//  physics.fftw.fftwReverseRaw( run, BrKt, B_tmp);
+//
+//  for (unsigned k = 1*n1n2; k < 4*n1n2; ++k) {
+//
+//    if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
+//    if (abs(B_tmp[k]) > 1.0e-14) {
+//    std::cout << std::setw(17) << std::right << std::setprecision(9) << std::scientific << B_tmp[k] << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(17) << std::right << std::setprecision(9) << std::scientific << zero  << std::endl;
+//    }
+//
+//  }
+//
+//  physics.fftw.fftwForwardRaw( run, B_tmp, BrKt);
+//
+//}
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
 for (unsigned k = 0; k < kstop; k++) { B1[k] = - BrKt[k]; }    /* ~ place result in B1                                        ~ */
 
 if (model.compare("hall") == 0 ) {
@@ -590,6 +710,26 @@ if (model.compare("hall") == 0 ) {
 else if(model.compare("rmhd") == 0 ) {
   partialsInXandY( run, physics, A, d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
 }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//  if (str_step.compare("correct"     ) == 0) {
+//   if (rank == 0) {
+//     for( unsigned k = 1*n1n2; k < 2*n1n2; ++k ) {
+//  
+//     if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
+//
+//      if (abs(d1x[k]) > 1.0e-10) {
+//      std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << d1x[k] << std::endl;
+//      }
+//      else {
+//      std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << zero  << std::endl;
+//      }
+//     }
+//   }
+//  }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 averageAcrossLayers( run,  +1, d1x, d1y );             /* ~ calculate averages of A_x & A_y across adjacent layers       ~ */
 
 if (model.compare("hall") == 0 ) { 
@@ -599,12 +739,61 @@ if (model.compare("hall") == 0 ) {
   for (unsigned k = 0; k < kstop; k++) { 
     B2[k] = B2[k] + rtbeta * BrKt[k];                         /* ~ add result to B2                                           ~ */ 
   }
-
 }
 
 partialsInXandY( run, physics, J, d3x, d3y );             /* ~ d3x, d3y hold real-space partials in x and y of J          ~ */
 averageAcrossLayers( run,  +1, d3x, d3y );             /* ~ calculate averages of J_x & J_y across adjacent layers     ~ */
-bracket( run, physics, BrKt, d1x, d1y,  d3x, d3y );             /* ~ calculate [Abar, Jbar]                                     ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//if (str_step.compare("predict"     ) == 0) {
+// if (rank == 2) {
+//   for( unsigned k = 5*n1n2; k < 6*n1n2; ++k ) {
+//
+//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
+
+//    if (abs(d3y[k]) > 1.0e-10) {
+//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d3y[k] << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
+//    }
+//   }
+// }
+//}
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+bracket( run, physics, BrKt, d1x, d1y,  d3x, d3y );             /* ~ calculate [Abar, Jbar]                               ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//if (str_step.compare("predict") == 0 && rank == 2) {
+//
+//  unsigned dsize = d1x.capacity();
+//  unsigned bsize = BrKt.capacity();
+//
+//  RealArray B_tmp(dsize, zero);
+//
+//  physics.fftw.fftwReverseRaw( run, BrKt, B_tmp);
+//
+//  for (unsigned k = 4*n1n2; k < 5*n1n2; ++k) {
+//
+//    if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
+//    if (abs(B_tmp[k]) > 1.0e-09) {
+//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << B_tmp[k] << std::endl;
+//    }
+//    else {
+//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
+//    }
+//
+//  }
+//
+//  physics.fftw.fftwForwardRaw( run, B_tmp, BrKt);
+//
+//}
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 for (unsigned k = 0; k < kstop; k++) {                      /* ~ B0 = -[phi, Omega] + [Abar, Jbar]                          ~ */
   B0[k] = B0[k] + BrKt[k];
@@ -694,11 +883,11 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   double dz;
-  run.stack_data.fetch("dz"   , &dz    );         /* ~ inter-layer width along z                        ~ */
+  run.stack_data.fetch("dz"       , &dz    );      /* ~ inter-layer width along z                        ~ */
   double rho;
-  physics.physics_data.fetch(  "rho"  , &rho    );         /* ~ gyro-radius parameter                            ~ */
+  physics.physics_data.fetch("rho", &rho   );      /* ~ gyro-radius parameter                            ~ */
   double beta;                           
-  run.palette.fetch(   "beta" , &beta  );         /* ~ zero'th-order plasma-beta                        ~ */
+  run.palette.fetch("beta"        , &beta  );      /* ~ zero'th-order plasma-beta                        ~ */
 
   double dzm1      = one / dz;
   double rtbeta    = sqrt(beta);
@@ -710,63 +899,62 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   ComplexArray& tV = run.tU3;
   
   ComplexArray& P  = physics.P;
-//  ComplexArray& A  = physics.A;
   ComplexArray& J  = physics.J;
 
-  complex<double> deltaZ, deltaV, deltaJ, deltaP; /* ~ to aid in differentiating between the           ~ */
-                                                  /* ~ predictor and corrector cases                   ~ */
+  complex<double> deltaZ, deltaV, deltaJ, deltaP;  /* ~ to aid in differentiating between the           ~ */
+                                                   /* ~ predictor and corrector cases                   ~ */
 
-  unsigned kdxp1,  kdxm1;                         /* ~ neighbor - layer indices                        ~ */
-  unsigned kstart, kstop;                         /* ~ limits on k looop                               ~ */
+  unsigned kdxp1,  kdxm1;                          /* ~ neighbor - layer indices                        ~ */
+  unsigned kstart, kstop;                          /* ~ limits on k looop                               ~ */
 
   int n1n2c; 
-  run.stack_data.fetch( "n1n2c", &n1n2c );        /* ~ number of complex elements per layer            ~ */
+  run.stack_data.fetch( "n1n2c"   , &n1n2c );      /* ~ number of complex elements per layer            ~ */
   int iu2;
-  run.stack_data.fetch( "iu2"  , &iu2   );        /* ~ number of layers                                ~ */
+  run.stack_data.fetch( "iu2"     , &iu2   );      /* ~ number of layers                                ~ */
 
-  kstart    = n1n2c;                              /* ~ D's are calculated for layers 1,2,3,..n3        ~ */
-  kstop     = n1n2c * (iu2 - 1);                  /* ~ layer 1 needs layer 0 and layer n3 needs layer  ~ */
-                                                  /* ~ iu2 - 1                                         ~ */
+  kstart           = n1n2c;                        /* ~ D's are calculated for layers 1,2,3,..n3        ~ */
+  kstop            = n1n2c * (iu2 - 1);            /* ~ layer 1 needs layer 0 and layer n3 needs layer  ~ */
+                                                   /* ~ iu2 - 1                                         ~ */
 
   std::string model;
-  run.palette.fetch("model", &model);
+  run.palette.fetch("model"       , &model );
 
   for (unsigned kdx = kstart; kdx < kstop; kdx++) {
 
-    kdxm1      = kdx - n1n2c;                       /* ~ adjacent lower layer index                      ~ */
-    kdxp1      = kdx + n1n2c;                       /* ~ adjacent upper layer index                      ~ */
+    kdxm1          = kdx - n1n2c;                  /* ~ adjacent lower layer index                      ~ */
+    kdxp1          = kdx + n1n2c;                  /* ~ adjacent upper layer index                      ~ */
 
-    deltaJ     = J[ kdxp1 ] - J[ kdx   ];           /* ~ P's and J's are updated every half-step         ~ */
-    deltaP     = P[ kdx   ] - P[ kdxm1 ];           /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.       ~ */
+    deltaJ         = J[ kdxp1 ] - J[ kdx   ];      /* ~ P's and J's are updated every half-step         ~ */
+    deltaP         = P[ kdx   ] - P[ kdxm1 ];      /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.       ~ */
     
     if ( model.compare("hall") == 0) {
       if (     str_step.compare("predict") == 0) {
       
-        deltaZ = Z[ kdx   ] - Z[ kdxm1 ];           /* ~ Z and V must retain un-updated values           ~ */
-        deltaV = V[ kdxp1 ] - V[ kdx   ];           /* ~ until corrector step. Note use of kdxm1 & kdxp1 ~ */
+        deltaZ     = Z[ kdx   ] - Z[ kdxm1 ];      /* ~ Z and V must retain un-updated values           ~ */
+        deltaV     = V[ kdxp1 ] - V[ kdx   ];      /* ~ until corrector step. Note use of kdxm1 & kdxp1 ~ */
 
       }
       else if (str_step.compare("correct") == 0) {
 
-        deltaZ = tZ[ kdx   ] - tZ[ kdxm1 ];         /* ~ using results of predictor step here            ~ */
-        deltaV = tV[ kdxp1 ] - tV[ kdx   ];         /* ~ note use of kdxm1 & kdxp1                       ~ */
+        deltaZ     = tZ[ kdx   ] - tZ[ kdxm1 ];    /* ~ using results of predictor step here            ~ */
+        deltaV     = tV[ kdxp1 ] - tV[ kdx   ];    /* ~ note use of kdxm1 & kdxp1                       ~ */
 
       }
     }
     else if( model.compare("rmhd") == 0 ) {
 
-        deltaZ = czero;
-        deltaV = czero;
+        deltaZ     = czero;
+        deltaV     = czero;
 
     }
 
-    D0[kdx]    =  deltaJ                                          * dzm1;  /* ~ i.e. Delta J / Delta z                                        ~ */
-    D1[kdx]    = (          deltaP  - (       rho    *  deltaZ )) * dzm1;  /* ~ i.e. Delta F / Delta z, where F = phi - rhobar * Z            ~ */
+    D0[kdx]        =  deltaJ                                          * dzm1;  /* ~ i.e. Delta J / Delta z                                        ~ */
+    D1[kdx]        = (          deltaP  - (       rho    *  deltaZ )) * dzm1;  /* ~ i.e. Delta F / Delta z, where F = phi - rhobar * Z            ~ */
 
     if ( model.compare("hall") == 0) {
 
-      D2[kdx]  = ((rtbeta * deltaV) - (two  * rho    *  deltaJ )) * dzm1;  /* ~ i.e. Delta G / Delta z, where G = rtbeta * V - 2 * rhobar * J ~ */
-      D3[kdx]  =                      (half * rtbeta * deltaZ  )  * dzm1;  /* ~ i.e. 1/2 * sqrt{beta} * Delta Z delta z                       ~ */
+      D2[kdx]      = ((rtbeta * deltaV) - (two  * rho    *  deltaJ )) * dzm1;  /* ~ i.e. Delta G / Delta z, where G = rtbeta * V - 2 * rhobar * J ~ */
+      D3[kdx]      =                      (half * rtbeta * deltaZ  )  * dzm1;  /* ~ i.e. 1/2 * sqrt{beta} * Delta Z delta z                       ~ */
 
     }
 
@@ -800,16 +988,19 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
   int iu2;
   run.stack_data.fetch( "iu2",   &iu2 );           /* ~ number of layers                                     ~ */
 
-  ComplexArray& J = physics.J;
+  ComplexArray& J   = physics.J;
 
   std::string model;
   run.palette.fetch("model", &model);
 
   A0.assign((n1n2c * iu2), czero);
   A1.assign((n1n2c * iu2), czero);                 /* ~ to be set to  -eta * ssqd * k2 * A = -eta * ssqd * J ~ */
+  A2.assign((n1n2c * iu2), czero);
+  A3.assign((n1n2c * iu2), czero);
 
   if (model.compare("hall") == 0 ) {
 
+    std::cout << "setAi: model hall detected" << std::endl;
     A2.assign((n1n2c * iu2), czero);
     A3.assign((n1n2c * iu2), czero);
 
@@ -818,12 +1009,12 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
     double ssqd;
     physics.physics_data.fetch("ssqd", &ssqd);
   
-    unsigned kstart  = 0;
-    unsigned kstop   = n1n2c * iu2;
+    unsigned kstart = 0;
+    unsigned kstop  = n1n2c * iu2;
   
-    for (unsigned k  = kstart; k < kstop; k++) {
+    for (unsigned k = kstart; k < kstop; k++) {
   
-      A1[k]          = -( eta * ssqd * J[k] );
+      A1[k]         = -( eta * ssqd * J[k] );
   
     }
 
@@ -921,9 +1112,9 @@ void lcsolve::partialsInXandY( stack& run, redhallmhd& physics, ComplexArray& U,
   ComplexArray U_tmp(usize, czero);
 
   int      n1n2c;
-  unsigned idk;
-
   run.stack_data.fetch("n1n2c", &n1n2c   );              /* ~ number of complex elements in a layer       ~ */
+
+  unsigned idk;
 
   for (unsigned k = 0; k < usize; k++) { 
 
@@ -1024,68 +1215,73 @@ void lcsolve::averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, Re
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void lcsolve::Step( std::string str_step, stack& run ) {
+//void lcsolve::Step( std::string str_step, stack& run ) {
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+void lcsolve::Step( std::string str_step, stack& run, redhallmhd& physics ) {
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
   std::string model;
-  run.palette.fetch(   "model", &model );          /* ~ either "hall" or "rmhd"              ~ */
+  run.palette.fetch(   "model", &model );          /* ~ either "hall" or "rmhd"                     ~ */
 
   int n1n2c;
-  run.stack_data.fetch("n1n2c" ,&n1n2c );          /* ~ number of complex elements per layer ~ */
+  run.stack_data.fetch("n1n2c" ,&n1n2c );          /* ~ number of complex elements per layer        ~ */
   int iu2;
-  run.stack_data.fetch("iu2"   ,&iu2   );          /* ~ number layers                        ~ */
+  run.stack_data.fetch("iu2"   ,&iu2   );          /* ~ number layers                               ~ */
 
   double dt; 
-  run.stack_data.fetch("dt"    ,&dt    );          /* ~ current time increment               ~ */
+  run.palette.fetch("dt"    ,&dt    );          /* ~ current time increment                      ~ */
   double pfrac; 
-  run.stack_data.fetch("pfrac" ,&pfrac );          /* ~ fraction of dt to use for predictor- ~ */
-                                                   /* ~ step                                 ~ */
-  if (str_step.compare("predict") == 0 ) {         /* ~ use partial step in predictor case   ~ */
-    dt             = pfrac * dt;                   /* ~ dt is local so no problem here       ~ */
+  run.palette.fetch("pfrac" ,&pfrac );          /* ~ fraction of dt to use for predictor-        ~ */
+                                                   /* ~ step                                        ~ */
+  if (str_step.compare("predict") == 0 ) {         /* ~ use partial step in predictor case          ~ */
+    dt              = pfrac * dt;                  /* ~ dt is local so no problem here              ~ */
+    std::cout << "Step: pfrac = " << pfrac << std::endl;
+    std::cout << "Step: dt    = " << dt    << std::endl;
   }
 
-  int kstart       = n1n2c;                        /* ~ stepping is only done for layers 1   ~ */
-  int kstop        = n1n2c * (iu2 - 1);            /* ~ through iu2 - 2                      ~ */
-                                                   /* ~ layers 0 and iu2 - 1 are for the     ~ */
-                                                   /* ~ boundaries and overlaps              ~ */
-  int idx;                                         /* ~ an index for the S's which are       ~ */
-                                                   /* ~ field-independent and thus the same  ~ */
-                                                   /* ~ across layers                        ~ */
+  int kstart        = n1n2c;                       /* ~ stepping is only done for layers 1          ~ */
+  int kstop         = n1n2c * (iu2 - 1);           /* ~ through iu2 - 2                             ~ */
+                                                   /* ~ layers 0 and iu2 - 1 are for the            ~ */
+                                                   /* ~ boundaries and overlaps                     ~ */
+  int idx;                                         /* ~ an index for the S's which are              ~ */
+                                                   /* ~ field-independent and thus the same         ~ */
+                                                   /* ~ across layers                               ~ */
 
-  ComplexArray& U0    = run.U0;                    /* ~ for predictor case                          ~ */
-  ComplexArray& U1    = run.U1;                    /* ~ un-updated values are transferred           ~ */
-  ComplexArray& U2    = run.U2;
-  ComplexArray& U3    = run.U3;
+  ComplexArray& U0  = run.U0;                      /* ~ for predictor case                          ~ */
+  ComplexArray& U1  = run.U1;                      /* ~ un-updated values are transferred           ~ */
+  ComplexArray& U2  = run.U2;
+  ComplexArray& U3  = run.U3;
 
-  ComplexArray& tU0   = run.tU0;                   /* ~ for corrector case                          ~ */
-  ComplexArray& tU1   = run.tU1;                   /* ~ results from predictor step are transferred ~ */
-  ComplexArray& tU2   = run.tU2;
-  ComplexArray& tU3   = run.tU3;
+  ComplexArray& tU0 = run.tU0;                     /* ~ for corrector case                          ~ */
+  ComplexArray& tU1 = run.tU1;                     /* ~ results from predictor step are transferred ~ */
+  ComplexArray& tU2 = run.tU2;
+  ComplexArray& tU3 = run.tU3;
 
-  for (unsigned k  = kstart; k < kstop; k++) {
+  for (unsigned k   = kstart; k < kstop; k++) {
 
-    if (k % kstart == 0 ) { idx = 0; }             /* ~ reset idx when starting new layer    ~ */
+    if (k % kstart  == 0 ) { idx = 0; }            /* ~ reset idx when starting new layer           ~ */
 
-      if (     str_step.compare("predict") == 0) { /* ~ the predictor case                   ~ */
+      if (     str_step.compare("predict") == 0) { /* ~ the predictor case                          ~ */
 
-        tU0[k]     = (SE0[idx] * U0[k] + (dt * (B0[k] + D0[k] + A0[k]))) * SI0[idx];
-        tU1[k]     = (SE1[idx] * U1[k] + (dt * (B1[k] + D1[k] + A1[k]))) * SI1[idx];
+          tU0[k]    = (SE0[idx] * U0[k] + (dt * (B0[k] + D0[k] + A0[k]))) * SI0[idx];
+          tU1[k]    = (SE1[idx] * U1[k] + (dt * (B1[k] + D1[k] + A1[k]))) * SI1[idx];
 
         if ( model.compare("hall") == 0 ) {
 
-          tU2[k]   = (SE2[idx] * U2[k] + (dt * (B2[k] + D2[k] + A2[k]))) * SI2[idx];
-          tU3[k]   = (SE3[idx] * U3[k] + (dt * (B3[k] + D3[k] + A3[k]))) * SI3[idx];
+          tU2[k]    = (SE2[idx] * U2[k] + (dt * (B2[k] + D2[k] + A2[k]))) * SI2[idx];
+          tU3[k]    = (SE3[idx] * U3[k] + (dt * (B3[k] + D3[k] + A3[k]))) * SI3[idx];
 
         }
       }
-      else if (str_step.compare("correct") == 0) { /* ~ the corrector case                   ~ */
+      else if (str_step.compare("correct") == 0) { /* ~ the corrector case                          ~ */
 
-         U0[k]     = (SE0[idx] * U0[k] + (dt * (B0[k] + D0[k] + A0[k]))) * SI0[idx];
-         U1[k]     = (SE1[idx] * U1[k] + (dt * (B1[k] + D1[k] + A1[k]))) * SI1[idx];
+         U0[k]      = (SE0[idx] * U0[k] + (dt * (B0[k] + D0[k] + A0[k]))) * SI0[idx];
+         U1[k]      = (SE1[idx] * U1[k] + (dt * (B1[k] + D1[k] + A1[k]))) * SI1[idx];
 
         if ( model.compare("hall") == 0 ) {
 
-           U2[k]   = (SE2[idx] * U2[k] + (dt * (B2[k] + D2[k] + A2[k]))) * SI2[idx];
-           U3[k]   = (SE3[idx] * U3[k] + (dt * (B3[k] + D3[k] + A3[k]))) * SI3[idx];
+           U2[k]    = (SE2[idx] * U2[k] + (dt * (B2[k] + D2[k] + A2[k]))) * SI2[idx];
+           U3[k]    = (SE3[idx] * U3[k] + (dt * (B3[k] + D3[k] + A3[k]))) * SI3[idx];
 
         }
       }
@@ -1093,6 +1289,36 @@ void lcsolve::Step( std::string str_step, stack& run ) {
     ++idx;
 
   }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//       int rank;
+//       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//       int n1n2;
+//       run.stack_data.fetch( "n1n2" ,&n1n2  );
+//
+//       if (rank == 0 &&  str_step.compare("predict") == 0) { 
+//
+//        unsigned dsize = tU1.capacity();
+//        RealArray U_tmp(dsize, zero);
+//        physics.fftw.fftwReverseRaw( run, tU1, U_tmp);
+//        for (unsigned k = 1*n1n2; k < 2*n1n2; ++k) {
+//      
+//            if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
+//          if (abs(U_tmp[k]) > 1.0e-10) {
+//          std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << U_tmp[k] << std::endl;
+//          }
+//          else {
+//          std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << zero  << std::endl;
+//          }
+//      
+//        }
+//      
+//        physics.fftw.fftwForwardRaw( run, U_tmp, tU1);
+//      
+//      }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 }
 

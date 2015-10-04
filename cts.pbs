@@ -2,7 +2,7 @@
 #PBS -W group_list=mhdturb
 #PBS -q  standard
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=00:05:00
+#PBS -l walltime=00:45:00
 #PBS -r n
  
 cd $PBS_O_WORKDIR
@@ -11,7 +11,6 @@ cd $PBS_O_WORKDIR
 module load ffmpeg
 module load idl
 
-./cts_idl.s p ts 31 0 1 32_8 2 4
-./cts_idl.s a ts 31 0 1 32_8 2 4
+./cts_idl.s p ts 31 0 1 64_16 1 8
 
 idl

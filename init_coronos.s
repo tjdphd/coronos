@@ -75,8 +75,10 @@ echo "total processes:    $np"
 echo " "
 echo -n "Does this look correct? (y/n):"
 read ans
-echo -n "specify wall time (nn:nn:nn):"
-read wall
+echo -n "specify run wall time (nn:nn:nn):"
+read run_wall
+echo -n "specify archive wall time (nn:nn:nn):"
+read arch_wall
 
 for j in `seq $start $stop`
 do
@@ -87,13 +89,28 @@ subarch=$arch_name$(($j-1))".pbs"
 echo "#!/bin/bash"                     > $subr
 echo "#PBS -W group_list=mhdturb"     >> $subr
 echo "#PBS -q standard_$ppn"          >> $subr
-echo "#PBS -l nodes=$nnodes:ppn=$ppn" >> $subr
-echo "#PBS -l walltime=$wall"         >> $subr
+echo "#PBS -l nodes=$nnodes:ppn=$np"  >> $subr
+echo "#PBS -l walltime=$run_wall"     >> $subr
 echo "#PBS -r n"                      >> $subr
 echo " "                              >> $subr
 echo "cd \$PBS_O_WORKDIR"             >> $subr
-echo "mpirun -np 2 src/coronos"       >> $subr
-echo "#qsub $subarch"                 >> $subr
+echo "mpirun -np $np src/coronos"       >> $subr
+echo "qsub $subarch"                  >> $subr
+#
+ nextsr=$job_name$(($j+1))".pbs"
+echo "#!/bin/bash"                     > $subarch
+echo "#PBS -W group_list=mhdturb"     >> $subarch
+echo "#PBS -q transfer"               >> $subarch
+echo "#PBS -l nodes=1:ppn=1"          >> $subarch
+echo "#PBS -l walltime=$arch_wall"    >> $subarch
+echo "#PBS -r n"                      >> $subarch
+echo " "                              >> $subarch
+echo "cd \$PBS_O_WORKDIR"             >> $subarch
+echo "#./crs-archive.s"               >> $subarch
+if [[ "$j" -ne "$stop" ]]
+then
+echo "qsub $nextsr"                   >> $subarch
+fi
 #
 done
 

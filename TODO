@@ -1,6 +1,13 @@
 
 0.) At this point it's time to start doing some scut work in more or less the following order. 
 
+
+    Been working my way out of some confusion regarding initial conditions. The current
+    problem is that while restarts seem to work and the code "behaves" it doesn't seem
+    to evolve much and I'm not clear why. I'm afraid though that I have been comparing apples
+    and oranges up to know because of the IC problems. So first one more multi-subrun test
+    and if that doesn't pan out I'll have to go through step-by-step.
+
     a.) generate a magnetic reconnection test-case with rmct2_np at a resolution of 64 X 16.
         Figure out how far you need to go in order to see the system evolve and relax.
         Then do a high cadence run to get a cts-animation. This means you have to get cts up

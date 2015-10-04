@@ -29,12 +29,57 @@ stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
   int srun;
   palette.fetch("srun", &srun);
-  writeParameters(srun);
+  writeParameters(srun - 1);
 
   allocUi();
   initxyz();
-  kInit();
-  rtInit();
+
+//  kInit();
+//  rtInit();
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//  int rank;
+//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+//  if (rank == 0) {
+
+//  int n1;                                        /* ~ number of coordinates in x                               ~ */
+//  stack_data.fetch("n1",    &n1);
+//  int n2; 
+//  stack_data.fetch("n2",    &n2);                /* ~ number of coordinates in y                               ~ */
+//  int n2h    = (((int)(half*n2)) + 1);
+//  int ndx;
+ 
+//   std::cout << "kx: " << std::endl << std::endl;
+ 
+//    for (int i = 0; i < n1; ++i) {
+//      for (int j = 0; j < n2/2 + 1; ++j) {
+// 
+//        ndx = (i * n2h) + j;
+//        if (rt[ndx] == zero){
+//          std::cout << std::setw(3)  << std::right  << "kx(" << std::setw(4) << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std::right  << j     << std::setw(4) << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << kx[ndx]/two_pi << " ";
+//
+//          std::cout << std::setw(3)  << std::right  << "ky(" << std::setw(4) << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std:: right << j     << std::setw(4) << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << ky[ndx]/two_pi << " ";
+//
+//          std::cout << std::setw(3)  << std::right << "k2(" << std::setw(4)  << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << k2[ndx]/(two_pi*two_pi) << " ";
+//
+//          std::cout << std::setw(3)  << std::right << "rt(" << std::setw(4)  << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << rt[ndx] << std::endl;
+//       }
+// 
+//      }
+//    }
+//  }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 }
 
@@ -92,7 +137,7 @@ void stack::init_stack_data() {                  /* ~ gather/infer information t
   if (model.compare("rmhd") == 0) iu3 = 2;       /* ~ fix number of field variables             ~ */
   if (model.compare("hall") == 0) iu3 = 4;
 
-  double dz        = zl/(n3*np);                 /* ~ layer separation in z                     ~ */
+  double dz        = zl/double((n3*np));         /* ~ layer separation in z                     ~ */
 
   int izres        = (int) (n3 * np)/zl;         /* ~ integer effective resolution in z         ~ */
 
@@ -219,133 +264,166 @@ void stack::deallocUi() {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void stack::rtInit( ) {                          /* ~ initialize de-aliasing array              ~ */
-
-  int n1;                                        /* ~ number of x-coordinates                   ~ */
-  stack_data.fetch("n1",    &n1);
-  int n2;
-  stack_data.fetch("n2",    &n2);                /* ~ number of y-coordinates                   ~ */
-  int n1n2c;
-  stack_data.fetch("n1n2c", &n1n2c);             /* ~ number of Fourier space points per layer  ~ */
-
-  RealArray::size_type nc;                       /* ~ a vector size-type version of n1n2c       ~ */
-  nc  = n1n2c;
-
-  int n1h = (((int)(half*n1)) + 1);
-  int n2h = (((int)(half*n2)) + 1);
-
-  double threshold = two_thirds * sqrt(two * ((( half * n1 - one) * two_pi) * ((half * n1 - one) * two_pi)));
-
-  rt.reserve(nc);                                /* ~ create space in rt                        ~ */
-
-  RealArray::size_type ndx;
-
-  for (unsigned i = 0; i < n1; i++) {            /* ~ initialization                            ~ */
-    for (unsigned j = 0; j < n1h; j++) {
-
-      ndx = i * n2h + j;
-
-      if ( sqrt(std::abs(k2[ndx])) < threshold ) rt[ndx] = one;
-      else                                       rt[ndx] = zero;
-
-    }
-  }
-}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-void stack::rtFree() {   /* ~ this is a bit excessive no? maybe just put in destructor or something ? ~ */
-
- rt.resize(0);
-
-}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-void stack::kInit() {                            /* ~ initialize the wave number arrays kx, ky, k2, and inv_k2 ~ */
-
-  int n1;                                        /* ~ number of coordinates in x                               ~ */
-  stack_data.fetch("n1",    &n1);
-  int n2; 
-  stack_data.fetch("n2",    &n2);                /* ~ number of coordinates in y                               ~ */
-  int nc;
-  stack_data.fetch("n1n2c", &nc);                /* ~ number of Fourier space points per layer                 ~ */
-
-  int n1h    = (((int)(half*n1)) + 1);
-  int n2h    = (((int)(half*n2)) + 1);
-
-  RealArray kp;                                  /* ~ temporary definition of convenience                      ~ */
-
-  kp.reserve(n1);
-
-      kx.reserve(nc);                            /* ~ these are all lcstack members and carry the wave-number  ~ */
-      ky.reserve(nc);                            /* ~ information                                              ~ */
-      k2.reserve(nc);
-  inv_k2.reserve(nc);
-
-                                                 /* ~ the initialization as done in gpu port of old code       ~ */
-  int ndx;
-
-  for (int i = 0;   i < n1h; i++ ) kp[i] = ((double) i) * two_pi;
-  for (int i = n1h; i < n1;  i++ ) kp[i] = -kp[n1 - i];
-
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n1h; j++) {
-   
-      ndx     = (i * n2h) + j;
-      kx[ndx] = kp[j];
-      ky[ndx] = kp[i];
-    }
-  }
-
-  kp.resize(0);
-
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n1h; j++) {
-
-      ndx     = (i * n2h) + j;
-      k2[ndx] = (kx[ndx] * kx[ndx]) +  (ky[ndx] * ky[ndx]);
-
-      if (std::abs(k2[ndx]) > teensy) inv_k2[ndx] = one/k2[ndx];
-      else inv_k2[ndx] = zero;
-
-    }
-  }
-
-/* ~ save for debugging ~ */
-
-/*   int rank;
- *  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
- * 
- *  if (rank == 0) {
- * 
- *    std::cout << "ky: " << std::endl << std::endl;
- * 
- *    for (int i = 0; i < n1; ++i) {
- *      for (int j = 0; j < n1/2 + 1; ++j) {
- * 
- *        ndx = (i * n2h) + j;
- *        std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << ky[ndx] << "  ";
- * 
- *      }
- *        std::cout << std::endl;
- *    }
- *  }
- */  
-
-/* ~ save for debugging ~ */
-
-}
+//void stack::rtInit( ) {                          /* ~ initialize de-aliasing array              ~ */
+//
+//  int n1;                                        /* ~ number of x-coordinates                   ~ */
+//  stack_data.fetch("n1",    &n1);
+//  int n2;
+//  stack_data.fetch("n2",    &n2);                /* ~ number of y-coordinates                   ~ */
+//  int n1n2c;
+//  stack_data.fetch("n1n2c", &n1n2c);             /* ~ number of Fourier space points per layer  ~ */
+//
+//  RealArray::size_type nc;                       /* ~ a vector size-type version of n1n2c       ~ */
+//  nc  = n1n2c;
+//
+//  int n1h = (((int)(half*n1)) + 1);
+//  int n2h = (((int)(half*n2)) + 1);
+//
+//// double threshold = two_thirds * sqrt(two * ((( half * n1 - one) * two_pi) * ((half * n1 - one) * two_pi)));
+//
+//  double kx_max = two_pi * half * n1;
+//  double ky_max = two_pi * half * n2;
+//  double k_max;
+//
+//  if (kx_max >= ky_max) { k_max = ky_max;}
+//  else                  { k_max = kx_max;}
+//
+//  double threshold = two_thirds * k_max;
+//
+////  std::cout << "rtInit: kx_max  = "   << kx_max /two_pi    << std::endl;
+////  std::cout << "rtInit: ky_max  = "   << ky_max /two_pi    << std::endl;
+////  std::cout << "rtInit: k_max   = "   << k_max /two_pi     << std::endl;
+////  std::cout << "rtInit: threshold = " << threshold /two_pi << std::endl;
+//
+////; std::cout << "rtInit: threshold = " << threshold / (two_pi*two_pi) << std::endl;
+//
+//  rt.reserve(nc);                                /* ~ create space in rt                        ~ */
+//
+//  RealArray::size_type ndx;
+//
+//  for (unsigned i = 0; i < n1; i++) {            /* ~ initialization                            ~ */
+//    for (unsigned j = 0; j < n1h; j++) {
+//
+//      ndx = i * n2h + j;
+//
+//      if (  ky[ndx] == zero) { 
+//        if ( abs(kx[ndx]) < k_max) {
+//          rt[ndx] = one;
+//        }
+//        else {
+//          rt[ndx] = zero;
+//        }
+//      }
+//      else if ( abs(ky[ndx]) >  threshold  || abs(kx[ndx]) >  threshold  ) {
+//        rt[ndx] = zero;
+//      }
+//      else {
+//        rt[ndx] = one;
+//      }
+//
+////      if ( sqrt(std::abs(k2[ndx])) < threshold ) rt[ndx] = one;
+////
+////      else                                       rt[ndx] = zero;
+//
+////    }
+//  }
+// }
+//}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void stack::kFree() {                            /* ~ also possibly a bit excessive ~ */
+//void stack::rtFree() {   /* ~ this is a bit excessive no? maybe just put in destructor or something ? ~ */
+//
+// rt.resize(0);
+//
+//}
 
-    kx.resize(0);
-    ky.resize(0);
-    k2.resize(0);
-    inv_k2.resize(0);
-}
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+//void stack::kInit() {                            /* ~ initialize the wave number arrays kx, ky, k2, and inv_k2 ~ */
+//
+//  int n1;                                        /* ~ number of coordinates in x                               ~ */
+//  stack_data.fetch("n1",    &n1);
+//  int n2; 
+//  stack_data.fetch("n2",    &n2);                /* ~ number of coordinates in y                               ~ */
+//  int nc;
+//  stack_data.fetch("n1n2c", &nc);                /* ~ number of Fourier space points per layer                 ~ */
+//
+//  int n1h    = (((int)(half*n1)) + 1);
+//  int n2h    = (((int)(half*n2)) + 1);
+//
+//  RealArray kp;                                  /* ~ temporary definition of convenience                      ~ */
+//
+//  kp.reserve(n1);
+//
+//      kx.reserve(nc);                            /* ~ these are all lcstack members and carry the wave-number  ~ */
+//      ky.reserve(nc);                            /* ~ information                                              ~ */
+//      k2.reserve(nc);
+//  inv_k2.reserve(nc);
+//
+//                                                 /* ~ the initialization as done in gpu port of old code       ~ */
+//  int ndx;
+//
+//  for (int i = 0;   i < n1h; i++ ) kp[i] = ((double) i) * two_pi;
+//  for (int i = n1h; i < n1;  i++ ) kp[i] = -kp[n1 - i];
+//
+//  for (int i = 0; i < n1; i++) {
+//    for (int j = 0; j < n2h; j++) {
+//   
+//      ndx     = (i * n2h) + j;
+//      kx[ndx] = kp[j];
+//      ky[ndx] = kp[i];
+//    }
+//  }
+//
+//  kp.resize(0);
+//
+//  for (int i = 0; i < n1; i++) {
+//    for (int j = 0; j < n1h; j++) {
+//
+//      ndx     = (i * n2h) + j;
+//      k2[ndx] = (kx[ndx] * kx[ndx]) +  (ky[ndx] * ky[ndx]);
+//
+//      if (std::abs(k2[ndx]) > teensy) inv_k2[ndx] = one/k2[ndx];
+//      else inv_k2[ndx] = zero;
+//
+//    }
+//  }
+//
+///* ~ save for debugging ~ */
+//
+////int rank;
+////MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+// 
+////if (rank == 0) {
+// 
+////  std::cout << "kx: " << std::endl << std::endl;
+// 
+////  for (int i = 0; i < n1; ++i) {
+////    for (int j = 0; j < n1/2 + 1; ++j) {
+// 
+////      ndx = (i * n2h) + j;
+////      std::cout << "kx[" << i << "," << j << "] = "
+////      std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << kx[ndx]/two_pi << std::endl;
+// 
+////    }
+////  }
+////}
+//  
+//
+///* ~ save for debugging ~ */
+//
+//}
+
+///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//
+//void stack::kFree() {                            /* ~ also possibly a bit excessive ~ */
+//
+//    kx.resize(0);
+//    ky.resize(0);
+//    k2.resize(0);
+//    inv_k2.resize(0);
+//}
 
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -682,8 +760,8 @@ stack::~stack() {
   tU2.resize(0);
   tU3.resize(0);
 
-  rtFree();
-  kFree();
+//  rtFree();
+//  kFree();
   deallocUi();
 
 }

@@ -82,7 +82,13 @@ class lcsolve
 #endif
 
 
-   void Step( std::string str_step, stack& run );
+//   void Step( std::string str_step, stack& run );
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+ void Step( std::string str_step, stack& run, redhallmhd& physics );
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
      
    public:
 
