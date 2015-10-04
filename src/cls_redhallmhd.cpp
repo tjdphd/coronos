@@ -72,6 +72,56 @@ void redhallmhd::initU( stack& run ) {
 
   fftw.fftwInitialize( run );
 
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//  RealArray& kx = run.kx;
+//  RealArray& ky = run.ky;
+//  RealArray& k2 = run.k2;
+//  RealArray& rt = fftw.rt;
+//
+//  int rank;
+//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//
+//  if (rank == 0) {
+//
+//  int n1;                                        /* ~ number of coordinates in x                               ~ */
+//  run.stack_data.fetch("n1",    &n1);
+//  int n2; 
+//  run.stack_data.fetch("n2",    &n2);                /* ~ number of coordinates in y                               ~ */
+//  int n2h    = (((int)(half*n2)) + 1);
+//  int ndx;
+//
+//   std::cout << "kx: " << std::endl << std::endl;
+//
+//    for (int i = 0; i < n1; ++i) {
+//      for (int j = 0; j < n2/2 + 1; ++j) {
+// 
+//        ndx = (i * n2h) + j;
+//        if (rt[ndx] == zero){
+//
+//          std::cout << std::setw(3)  << std::right  << "kx(" << std::setw(4) << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std::right  << j     << std::setw(4) << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << kx[ndx]/two_pi << " ";
+//
+//          std::cout << std::setw(3)  << std::right  << "ky(" << std::setw(4) << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std:: right << j     << std::setw(4) << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << ky[ndx]/two_pi << " ";
+//
+//          std::cout << std::setw(3)  << std::right << "k2(" << std::setw(4)  << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << k2[ndx]/(two_pi*two_pi) << " ";
+//
+//          std::cout << std::setw(3)  << std::right << "rt(" << std::setw(4)  << std::right << i << ","; 
+//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
+//          std::cout << std::setw(10) << std::setprecision(4)                 << rt[ndx] << std::endl;
+//       }
+// 
+//      }
+//    }
+//  }
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
   run.palette.fetch("srun", &srun);
 
   if (srun == 1) {
@@ -229,7 +279,7 @@ void redhallmhd::computeRealU( stack& run ) {
 
           idx             = (i_x * n1) + j_y;
 
-          U[idx][n3][i_f] = -half * 0.001L * ( cos(two_pi*x[i_x]) - cos(two_pi * y[j_y]) );
+          U[idx][n3][i_f] = -half * 0.004L * ( cos(two_pi*x[i_x]) - cos(two_pi * y[j_y]) );
 
         }
       }
@@ -314,14 +364,14 @@ void redhallmhd::computeFourierU( stack& run ) {
 
      case(0) :
        idx            =        0 * (n2/2 + 1) + 1;
-       real_part      =  2.5e-04 * n1n2;
-       imag_part      =  0.0;
+       real_part      =  1.0e-03L;
+       imag_part      =  0.0L;
        tuple          = std::complex<double>(real_part, imag_part);
        Cin[idx]       = tuple;
 
        idx            =        1 * (n2/2 + 1);
-       real_part      = -2.5e-04 * n1n2;
-       imag_part      =  0.0;
+       real_part      = -1.0e-03L;
+       imag_part      =  0.0L;
        tuple          = std::complex<double>(real_part, imag_part);
        Cin[idx]       = tuple;
 
@@ -331,14 +381,14 @@ void redhallmhd::computeFourierU( stack& run ) {
        break;
      case(1) :
        idx            =       1 * (n2/2 + 1) + 1;
-       real_part      =    -0.1 * n1n2;
-       imag_part      =     0.0;
+       real_part      =    -0.1L;
+       imag_part      =     0.0L;
        tuple          = std::complex<double>(real_part, imag_part);
        Cin[idx]       = tuple;
 
        idx            =  (n1-1) * (n2/2 + 1) + 1;
-       real_part      =     0.1 * n1n2;
-       imag_part      =     0.0;
+       real_part      =     0.1L;
+       imag_part      =     0.0L;
        tuple          = std::complex<double>(real_part, imag_part);
        Cin[idx]       = tuple;
 
@@ -358,7 +408,7 @@ void redhallmhd::computeFourierU( stack& run ) {
   }
 
   for (int i_f = 0; i_f < n_flds; ++i_f) {
-    for (int i_l = 1; i_l < n_lyrs + 1; ++i_l) {
+    for (int i_l = 1; i_l < n_lyrs ; ++i_l) {
     
     for (int k = 0; k< n1n2; ++k) { U[k][i_l][i_f] = U[k][n3][i_f]; }
 
@@ -491,7 +541,7 @@ void redhallmhd::pLinzEnv( stack& run ) {
   int i, j;
 
   for (i = 0; i < n1n2; ++i) {
-    for (j = 0; j < n3; ++j) {
+    for (j = 0; j < n3+1; ++j) {
 
       U[i][j][0] = U[i][j][0] * (1.0 - (std::abs(z[j] - (0.5*zl))/(0.5*zl)));
 
@@ -958,42 +1008,38 @@ void redhallmhd::OfromP( stack& run )  {
  
 
     int n1n2c;
-    run.stack_data.fetch("n1n2c", &n1n2c   );      /* ~ number of complex elements per layer       ~ */
+    run.stack_data.fetch("n1n2c", &n1n2c   );          /* ~ number of complex elements per layer       ~ */
     int n_layers;                           
-    run.stack_data.fetch("iu2",   &n_layers);      /* ~ number of layers in stack                  ~ */
+    run.stack_data.fetch("iu2",   &n_layers);          /* ~ number of layers in stack                  ~ */
   
-    RealArray&    k2 = run.k2;                     /* ~ square magnitudes of k-space vectors       ~ */
-    ComplexArray& U0 = run.U0;                   /* ~ holds phi (i.e. P ) at this point          ~ */ 
+    RealArray&    k2 = run.k2;                         /* ~ square magnitudes of k-space vectors       ~ */
+    ComplexArray& U0 = run.U0;                         /* ~ holds phi (i.e. P ) at this point          ~ */ 
   
     ComplexArray::size_type usize;
-    usize            = U0.capacity();              /* ~ current capacity of U0 - should be known   ~ */
+    usize            = U0.capacity();                  /* ~ current capacity of U0 - should be known   ~ */
   
-    assert(usize     == (n1n2c * n_layers));       /* ~ test usize                                 ~ */
+    assert(usize     == (n1n2c * n_layers));           /* ~ test usize                                 ~ */
   
-    ComplexArray O;                                /* ~ temporary storage for vorticity            ~ */
+    ComplexArray O;                                    /* ~ temporary storage for vorticity            ~ */
     O.reserve(usize);
   
-    P.reserve(usize);                              /* ~ member P will be needed throughout run     ~ */
+    P.reserve(usize);                                  /* ~ member P will be needed throughout run     ~ */
   
-//    P                = U0;                         /* ~ preserve stream funtion in P               ~ */
-
-   for (unsigned k = 0; k <usize; k++) {P[k] = U0[k];}
+   for (unsigned k = 0; k <usize; k++) {P[k] = U0[k];} /* ~ preserve stream funtion in P               ~ */
    
-    unsigned  idx    = 0;                          /* ~ index for k2                               ~ */
+    unsigned  idx    = 0;                              /* ~ index for k2                               ~ */
     for (unsigned k  = 0; k < usize; k++) {
   
-      if (k % n1n2c  == 0 ) { idx = 0; }           /* ~ reset idx when starting new layer          ~ */
-      O[k] = k2[idx] * P[k];                       /* ~ Omega = - delperp^2 P                      ~ */
+      if (k % n1n2c  == 0 ) { idx = 0; }               /* ~ reset idx when starting new layer          ~ */
+      O[k] = k2[idx] * P[k];                           /* ~ Omega = - delperp^2 P                      ~ */
   
       ++idx;
   
     }
   
-//    U0               = O;                          /* ~ U0 now holds Fourier transform of Vorticity ~ */
-   for (unsigned k = 0; k <usize; k++) {U0[k] = O[k];}
-                                                   /* ~ and P is initialized                        ~ */
-    O.resize(0);                                   /* ~ dispense with temporary storage             ~ */
-
+   for (unsigned k = 0; k <usize; k++) {U0[k] = O[k];} /* ~ U0 now holds Fourier transform of Vorticity ~ */
+                                                       /* ~ and P is initialized                        ~ */
+    O.resize(0);                                       /* ~ dispense with temporary storage             ~ */
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1187,7 +1233,6 @@ void redhallmhd::applyBC(    stack& run ) {
     else            { applyLineTiedBC(         run ); }
 
   }
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1345,31 +1390,31 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
         run.palette.fetch("kc",       &kc);
 
         for (unsigned k = 0; k < num - oldnum; k++) {
-          for (unsigned l = 0; l < nc; l++) { oldr[l] = newr[l]; }
-          for (unsigned l = 0; l < nc; l++ ) {
-            if ( sqrt(k2[l]) < kc ) {
+//        for (unsigned l = 0; l < nc; l++) { oldr[l] = newr[l]; }
+//        for (unsigned l = 0; l < nc; l++ ) {
+//          if ( sqrt(k2[l]) < kc ) {
 
-                dummy      = rand();
-                ++trcount;
-                dummy      = rand();
-                ++trcount;
-            }
-          }
+//              dummy      = rand();
+//              ++trcount;
+//              dummy      = rand();
+//              ++trcount;
+//          }
+//        }
 
-          for (unsigned l = 0; l < nc; l++ ) {
-            if ( sqrt(k2[l]) < kc ) {
+//        for (unsigned l = 0; l < nc; l++ ) {
+//          if ( sqrt(k2[l]) < kc ) {
 
-                next_real  = ffp * (rand() * two - one);
-                ++trcount;
-                next_imag  = ffp * (rand() * two - one);
-                ++trcount;
-                tuple      = std::complex<double>(next_real, next_imag);
-                newr[l]    = tuple;
+//              next_real  = ffp * (rand() * two - one);
+//              ++trcount;
+//              next_imag  = ffp * (rand() * two - one);
+//              ++trcount;
+//              tuple      = std::complex<double>(next_real, next_imag);
+//              newr[l]    = tuple;
 
-            }
-          }
+//          }
+//        }
         }
-        physics_data.reset("trcount", trcount);
+//      physics_data.reset("trcount", trcount);
       }
     }
     
@@ -1418,8 +1463,8 @@ void redhallmhd::applyLineTiedBC( stack& run ) {
 
   unsigned strt_idx, stop_idx;
 
-  if (     rank   == 0     ) { strt_idx = 0;                   }
-  else if( rank   == np - 1) { strt_idx = (n_layers - 1) * nc; }
+  if (     rank   == 0     ) { strt_idx = 0;                }
+  else if( rank   == np - 1) { strt_idx = (n_layers  * nc); }
 
   stop_idx          = strt_idx + n1n2c;
 
@@ -1438,533 +1483,6 @@ void redhallmhd::applyLineTiedBC( stack& run ) {
 
   }
 }
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-//void redhallmhd::setS( std::string str_step, stack& run, lcsolve& solve) {
-
-//  int rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//  std::string model;
-//  run.palette.fetch("model", &model);
-//
-//  double  s0,  s1,  s2,   s3;                    /* ~ implicit fraction s - parameters                 ~ */
-//  run.palette.fetch(  "s0",   &s0 );
-//  run.palette.fetch(  "s1",   &s1 );
-//
-//  if (model.compare("hall") == 0) {
-//
-//    run.palette.fetch("s2",   &s2 );
-//    run.palette.fetch("s3",   &s3 );
-//
-//  }
-//
-//  double qs0, qs1, qs2,  qs3;                    /* ~ dissipation 'q' - parameters see documentation   ~ */
-//
-//  physics_data.fetch("qs0", &qs0);
-//  physics_data.fetch("qs1", &qs1);
-//
-//  if (model.compare("hall") == 0) {
-//
-//    physics_data.fetch("qs2", &qs2);
-//    physics_data.fetch("qs3", &qs3);
-//
-//  }
-//
-//  double ge0, ge1, ge2,  ge3;
-//  double gi0, gi1, gi2,  gi3;
-//
-//  double  dt;                                    /* ~ the current time increment                       ~ */
-//  run.palette.fetch("dt",   &dt );
-//
-//  double  pfrac;                                 /* ~ fraction of dt to use in predictor step          ~ */
-//  run.palette.fetch("pfrac", &pfrac);
-//
-//  if ( str_step.compare("predict") == 0 ) {      /* ~ use partial time-step for predictor case         ~ */
-//    dt           = dt * pfrac;                   /* ~ dt is local to setS so no harm done here         ~ */
-//  }
-//
-//  ge0            = (one - s0) * qs0 * dt;        /* ~ th g^(ex)'s  see documentation                   ~ */
-//  ge1            = (one - s1) * qs1 * dt;
-//
-//  if (model.compare("hall") == 0) {
-//
-//    ge2          = (one - s2) * qs2 * dt;
-//    ge3          = (one - s3) * qs3 * dt;
-//
-//  }
-//
-//  gi0            =        s0  * qs0 * dt;        /* ~ th g^(im)'s  see documentation                   ~ */
-//  gi1            =        s1  * qs1 * dt;
-//
-//  if (model.compare("hall") == 0) {
-//
-//    gi2          =        s2  * qs2 * dt;
-//    gi3          =        s3  * qs3 * dt;
-//
-//  }
-//
-//  RealArray& SE0 = solve.SE0;                    /* ~ the S^(ex)'s - see documentation                 ~ */
-//  RealArray& SE1 = solve.SE1;
-//
-//  RealArray& SE2 = solve.SE2;
-//  RealArray& SE3 = solve.SE3;
-//
-//  RealArray& SI0 = solve.SI0;                    /* ~ the S^(im)'s - see documentation                 ~ */
-//  RealArray& SI1 = solve.SI1;
-//
-//  RealArray& SI2 = solve.SI2;
-//  RealArray& SI3 = solve.SI3;
-//
-//  RealArray& k2  = run.k2;                       /* ~ square magnitude of k-space vectors              ~ */
-//
-//  int n1n2c;                                     /* ~ number of complex elements in layer              ~ */
-//  run.stack_data.fetch( "n1n2c", &n1n2c );
-//
-//  RealArray::size_type nc = SE0.capacity();      /* ~ S's should already by sized. This is a check     ~ */
-//  assert (nc     == n1n2c);
-//
-//  for (unsigned k = 0; k < n1n2c; k++) {         /* ~ there are only as many S-elements as k2 elements ~ */
-//
-//    SE0[k]       = ( one - (ge0 * k2[k]));       /* ~ S's are initialized. See documentation           ~ */
-//    SE1[k]       = ( one - (ge1 * k2[k]));  
-//
-//    if (model.compare("hall") == 0) {
-//
-//      SE2[k]     = ( one - (ge2 * k2[k]));  
-//      SE3[k]     = ( one - (ge3 * k2[k]));  
-//
-//    }
-//
-//    SI0[k]       = one / ( one + (gi0 * k2[k]));
-//    SI1[k]       = one / ( one + (gi1 * k2[k]));
-//
-//    if (model.compare("hall") == 0) {
-//
-//      SI2[k]     = one / ( one + (gi2 * k2[k]));
-//      SI3[k]     = one / ( one + (gi3 * k2[k]));
-//
-//    }
-//  }
-//
-///* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-//
-////  if (str_step.compare("correct") == 0 && rank == 1) {
-//
-////  unsigned kstart = n1n2c;
-////  unsigned kstop  = (2 * kstart) - 1;
-//
-////   std::cout << "setS: one   = " << one    << "\n\n";
-//
-////   std::cout << "setS: dt    = " << dt     << "\n\n";
-////   std::cout << "setS: pfrac = " << pfrac  << "\n\n";
-//
-////   std::cout << "setS: s0    = " << s0     << "\n\n";
-////   std::cout << "setS: s1    = " << s1     << "\n\n";
-//
-////   std::cout << "setS: qs0   = " << qs0    << "\n\n";
-////   std::cout << "setS: qs1   = " << qs1    << "\n\n";
-//
-////   std::cout << "setS: gi0   = " << gi0    << "\n\n";
-////   std::cout << "setS: gi1   = " << gi1    << "\n\n";
-//
-////   unsigned kstart = 0;
-////   unsigned kstop  = kstart + n1n2c;
-////    
-////   for (unsigned k = kstart; k < kstop; k++) {
-//
-////     std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << SI1[k] << std::endl;
-//
-// //   }
-////  }
-//
-///* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-//
-////  SE0.assign(nc, one);                         /* ~ retained for testing                             ~ */
-////  SE1.assign(nc, one);
-////  SE2.assign(nc, one);
-////  SE3.assign(nc, one);
-////
-////  SI0.assign(nc, one);
-////  SI1.assign(nc, one);
-////  SI2.assign(nc, one);
-////  SI3.assign(nc, one);
-
-//}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-//void redhallmhd::setB( std::string str_step, stack& run, lcsolve& solve) {
-
-//  int rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//  int n1n2;
-//  run.stack_data.fetch( "n1n2" ,&n1n2  );
-//  int n1n2c; 
-//  run.stack_data.fetch( "n1n2c",&n1n2c );
-//  int iu2;
-//  run.stack_data.fetch( "iu2"  ,&iu2   );
-//
-//  unsigned kstop = n1n2c * iu2;
-//
-//  double rho;
-//  physics_data.fetch(  "rho"  , &rho   );                     /* ~ gyro-radius parameter                                      ~ */
-//  double beta, rtbeta;                           
-//  run.palette.fetch(   "beta" , &beta  );                     /* ~ zero'th-order plasma-beta                                  ~ */
-//  rtbeta = sqrt(beta);
-//
-//  ComplexArray BrKt;
-//  BrKt.reserve(n1n2c * iu2);
-//
-//  RealArray d1x, d1y;
-//  RealArray d2x, d2y;
-//  RealArray d3x, d3y;
-//
-//  d1x.reserve(n1n2 * iu2);
-//  d1y.reserve(n1n2 * iu2);
-//
-//  d2x.reserve(n1n2 * iu2);
-//  d2y.reserve(n1n2 * iu2);
-//
-//  d3x.reserve(n1n2 * iu2);
-//  d3y.reserve(n1n2 * iu2);
-//
-//  ComplexArray& B0 = solve.B0;
-//  ComplexArray& B1 = solve.B1;
-//  ComplexArray& B2 = solve.B2;
-//  ComplexArray& B3 = solve.B3;
-//
-//  ComplexArray& O  = solve.U0;
-//  ComplexArray& H  = solve.U1;
-//  ComplexArray& Z  = solve.U2;
-//  ComplexArray& V  = solve.U3;
-//
-//  ComplexArray& tO = solve.tU0;
-//  ComplexArray& tH = solve.tU1;
-//  ComplexArray& tZ = solve.tU2;
-//  ComplexArray& tV = solve.tU3;
-//
-//  std::string model;
-//  run.palette.fetch("model", &model);
-//
-//  solve.partialsInXandY(  run, P,      d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P         ~ */
-//
-//  if (str_step.compare("predict") == 0 && rank == 0) {
-//    for( unsigned k = n1n2; k < 2*n1n2; ++k ) {
-//
-//      std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d1x[k] << std::endl;
-//
-//    }
-//  }
-//
-//  if (str_step.compare("predict"     ) == 0) {
-//    solve.partialsInXandY(run, O,      d2x, d2y);                /* ~ d2x, d2y hold real-space partials in x and y of O         ~ */
-//    maxU[0] = solve.maxdU(             d2x, d2y);                /* ~                                                           ~ */
-//  }
-//  else if (str_step.compare("correct") == 0) {
-//    solve.partialsInXandY(run, tO,     d2x, d2y);                /* ~ d2x, d2y hold real-space partials in x and y of tO        ~ */
-//  }
-//  solve.bracket(run, BrKt, d1x, d1y, d2x, d2y);                  /* ~ calculate [phi, Omega]                                    ~ */
-//  for (unsigned k = 0; k < kstop; k++) { B0[k] = - BrKt[k]; }    /* ~ place result in B0                                        ~ */
-//
-//  if (model.compare("hall") == 0 ) { 
-//
-//     if (str_step.compare("predict"     ) == 0) {
-//       solve.partialsInXandY(run, Z,      d2x, d2y);             /* ~ d2x, d2y hold real-space partials in x and y of Z         ~ */
-//       maxU[2] = solve.maxdU(             d2x, d2y);             /* ~                                                           ~ */
-//     }
-//     else if (str_step.compare("correct") == 0) {
-//       solve.partialsInXandY(run, tZ,     d2x, d2y);             /* ~ d2x, d2y hold real-space partials in x and y of tZ        ~ */
-//     }
-//     solve.bracket(run, BrKt, d1x, d1y, d2x, d2y);               /* ~ calculate [phi, Z]                                        ~ */
-//     for (unsigned k = 0; k < kstop; k++) { B2[k] = - BrKt[k]; } /* ~ place result in B2                                        ~ */
-//
-//  }
-//
-//  solve.averageAcrossLayers( run, -1, d1x, d1y );                /* ~ calculate averages of phi_x & phi_y across adj't layers   ~ */
-//  if (str_step.compare("predict"     ) == 0) {
-//    solve.partialsInXandY(run, H,      d3x, d3y);                /* ~ d3x, d3y hold real-space partials in x and y of H         ~ */
-//    maxU[1] = solve.maxdU(             d3x, d3y);                /* ~                                                           ~ */
-//  }
-//  else if (str_step.compare("correct") == 0) {
-//    solve.partialsInXandY(run, tH,     d3x, d3y);                /* ~ d3x, d3y hold real-space partials in x and y of tH        ~ */
-//  }
-//  solve.bracket(run, BrKt, d1x, d1y, d3x, d3y);                  /* ~ calculate [phibar, H]                                     ~ */
-//  for (unsigned k = 0; k < kstop; k++) { B1[k] = - BrKt[k]; }    /* ~ place result in B1                                        ~ */
-//
-//  if (model.compare("hall") == 0 ) {
-//
-//    if (str_step.compare("predict"     ) == 0) {
-//      solve.partialsInXandY(run, V,      d3x, d3y);             /* ~ d3x, d3y hold real-space partials in x and y of V          ~ */
-//      maxU[3] = solve.maxdU(             d3x, d3y);             /* ~                                                            ~ */
-//    }
-//    else if (str_step.compare("correct") == 0) {
-//      solve.partialsInXandY(run, tV,     d3x, d3y);             /* ~ d3x, d3y hold real-space partials in x and y of tV         ~ */
-//    }
-//    solve.bracket(run, BrKt, d1x, d1y, d3x, d3y);               /* ~ calculate [phibar, V]                                      ~ */
-//    for (unsigned k = 0; k < kstop; k++) { B3[k] = -BrKt[k]; }  /* ~ place result in B3                                         ~ */
-//    solve.averageAcrossLayers( run, -1, d2x, d2y );             /* ~ calculate averages of Z_x & Z_y across adjacent layers     ~ */
-//
-//    solve.partialsInXandY(run, A,      d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
-//
-////     maxu? = solve.maxdU(               d1x, d1y);            /* ~ might be interesting to do this calculation                ~ */
-//    solve.bracket(run, BrKt, d1x, d1y, d2x, d2y);               /* ~ calculate [A, Zbar]                                        ~ */
-//    for (unsigned k = 0; k < kstop; k++) { 
-//      B1[k] = B1[k] - (rho  * BrKt[k]); 
-//    }                                                           /* ~ B1 = - [phibar, H] - rho * [A, Zbar]                       ~ */
-//    for (unsigned k = 0; k < kstop; k++) { 
-//      B3[k] = B3[k] + (half * rtbeta * BrKt[k]); 
-//    }                                                           /* ~ B3 = - [phibar, V] - (1/2) * sqrt{beta} * [A, Zbar]        ~ */
-//
-//  }
-//  else if(model.compare("rmhd") == 0 ) {
-//    solve.partialsInXandY(run, A,      d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
-//  }
-//  solve.averageAcrossLayers( run, +1, d1x, d1y );             /* ~ calculate averages of A_x & A_y across adjacent layers       ~ */
-//
-//  if (model.compare("hall") == 0 ) { 
-//
-//    solve.averageAcrossLayers( run, +1, d3x, d3y );             /* ~ calculate averages of V_x & V_y across adjacent layers     ~ */
-//    solve.bracket(run, BrKt, d1x, d1y, d3x, d3y);               /* ~ calculate [Abar, Vbar]                                     ~ */
-//    for (unsigned k = 0; k < kstop; k++) { 
-//      B2[k] = B2[k] + rtbeta * BrKt[k];                         /* ~ add result to B2                                           ~ */ 
-//    }
-//
-//  }
-//
-//  solve.partialsInXandY(run, J,       d3x, d3y );             /* ~ d3x, d3y hold real-space partials in x and y of J          ~ */
-//  solve.averageAcrossLayers( run, +1, d3x, d3y );             /* ~ calculate averages of J_x & J_y across adjacent layers     ~ */
-//  solve.bracket(run, BrKt, d1x, d1y,  d3x, d3y );             /* ~ calculate [Abar, Jbar]                                     ~ */
-//
-//  for (unsigned k = 0; k < kstop; k++) {                      /* ~ B0 = -[phi, Omega] + [Abar, Jbar]                          ~ */
-//    B0[k] = B0[k] + BrKt[k];
-//  }
-// 
-//  if (model.compare("hall") == 0 ) { 
-//
-//    for (unsigned k = 0; k < kstop; k++) { 
-//      B2[k] = B2[k] - (two * rho * BrKt[k]);                    /* ~ B2 = -[phi, Z]+sqrt{beta}*[Abar, Vbar]-2*rho*[Abar, Jbar]  ~ */
-//    }
-//
-//  }
-//
-//  int n_flds;                                                 /* ~ set rank 0 maxU                                            ~ */
-//  run.stack_data.fetch("iu3", &n_flds);
-//
-//  if (str_step.compare("predict") == 0) { MPI_Allreduce(MPI_IN_PLACE, &maxU.front(), n_flds, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);}
-//
-//  d1y.resize(0);
-//  d2x.resize(0);
-//  d2y.resize(0);
-//  d3x.resize(0);
-//  d3y.resize(0);
-//
-//  /* ~ bracket collection order ~ */ 
-//
-//  /* ~ -> [phi, Omega] ( for O equation    - B0    ) ... done with omega containers ~ (+2 - 1)     [2]  (phi    | Omega ) */
-//  /* ~ -> [phi, Z    ] ( for Z equation    - B2    )                                ~ ( 1 + 1)     [2]  (phi, Z         ) */ 
-//  /* ~ -> [phibar, H ] ( for H equation    - B1    ) ... done with H containers     ~ ( 2 + 1 - 1) [3]  (phi, Z |  H    ) */
-//  /* ~ -> [phibar, V ] ( for V equation    - B3    ) ... done with phi containers   ~ ( 2 + 1 - 1) [3]  (V,   Z |  phi  ) */ 
-//  /* ~ -> [A, Zbar   ] ( for H/V equations - B1/B3 ) ... done with Z containers     ~ ( 2 + 1 - 1) [3]  (V,   A |  Z    ) */ 
-//  /* ~ -> [Abar, Vbar] ( for Z equation    - B2    ) ... done with V containers     ~ ( 2 - 1    ) [2]  (A      |  V    ) */ 
-//
-//  /* ~ -> [Abar, Jbar] ( for O equation    - B0    ) ... done with all containers   ~ ( 1 + 1 - 2) [2]  (       |  A, J ) */ 
-// 
-//
-//  /* ~ Sequence: ~ */
-//
-//  /* ~  1.) calculate phi_x, phi_y, Omega_x, Omega_y ~ */ 
-//  /* ~  2.) get maxb from phi (Omega?)               ~ */
-//  /* ~  3.) calculate [phi, Omega]                   ~ */
-//  /* ~  4.) place result of 3 in B0                  ~ */
-//  /* ~  5.) get Z_x, Z_y                             ~ */
-//  /* ~  6.) get maxb from Z                          ~ */
-//  /* ~  7.) calculate [phi, Z]                       ~ */
-//  /* ~  8.) place result of  7 in B2                 ~ */
-//  /* ~  9.) get phibar_x, phibar_y, H_x, H_y         ~ */
-//  /* ~ 10.) get maxb from H (A?)                     ~ */
-//  /* ~ 11.) calculate [phibar,H]                     ~ */
-//  /* ~ 12.) place result of 11 in B1                 ~ */
-//  /* ~ 13.) get V_x, V_y                             ~ */
-//  /* ~ 14.) get maxb from V                          ~ */
-//  /* ~ 15.) calculate [phibar, V]                    ~ */
-//  /* ~ 16.) place result of 15 in B3                 ~ */
-//  /* ~ 17.) get Zbar_x, Zbar_y, A_x, A_y             ~ */
-//  /* ~ 18.) calculate [A, Zbar]                      ~ */
-//  /* ~ 19.) add result of 18 to B1 and B3            ~ */
-//  /* ~ 20.) get Abar_x, Abar_y, Vbar_x, Vbar_y       ~ */
-//  /* ~ 21.) calculate [Abar, Vbar]                   ~ */
-//  /* ~ 22.) add result of 21 to B2                   ~ */
-//  /* ~ 23.) get Jbar_x, Jbar_y                       ~ */
-//  /* ~ 24.) calculate [Abar, Jbar]                   ~ */
-//  /* ~ 25.) add result of 24 to B0 & B2              ~ */
-//
-//  /* ~ fxy sequence ~ */
-//
-//  /* ~ a. ) for field f - multiply f by i            ~ */
-//  /* ~ b1.) for f_x multiply result of a by kx       ~ */
-//  /* ~ b2.) then inverse transform result            ~ */
-//  /* ~ c1.) for f_y multiply result a by ky          ~ */
-//  /* ~ c2.) then inverse transform result            ~ */
-//
-///* ~ retain for testing                              ~ */
-//
-//// B0.assign(n1n2c, czero);
-//// B1.assign(n1n2c, czero);
-//// B2.assign(n1n2c, czero);
-//// B3.assign(n1n2c, czero);
-
-//}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-//void redhallmhd::setD( std::string str_step, stack& run, lcsolve& solve) {
-
-//  int rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//  double dz;
-//  run.stack_data.fetch("dz"   , &dz    );         /* ~ inter-layer width along z                        ~ */
-//  double rho;
-//  physics_data.fetch(  "rho"  , &rho   );         /* ~ gyro-radius parameter                            ~ */
-//  double beta;                           
-//  run.palette.fetch(   "beta" , &beta  );         /* ~ zero'th-order plasma-beta                        ~ */
-//
-//  double dzm1      = one / dz;
-//  double rtbeta    = sqrt(beta);
-//
-//  ComplexArray& Z  = solve.U2;
-//  ComplexArray& V  = solve.U3;
-//
-//  ComplexArray& tZ = solve.tU2;
-//  ComplexArray& tV = solve.tU3;
-//  
-//  ComplexArray& D0 = solve.D0;                    /* ~ subtract across  i and i + 1                    ~ */
-//  ComplexArray& D1 = solve.D1;                    /* ~ subtract across  i and i - 1                    ~ */
-//  ComplexArray& D2 = solve.D2;                    /* ~ subtract across  i and i + 1                    ~ */
-//  ComplexArray& D3 = solve.D3;                    /* ~ subtract across  i and i - 1                    ~ */
-//
-//  complex<double> deltaZ, deltaV, deltaJ, deltaP; /* ~ to aid in differentiating between the           ~ */
-//                                                  /* ~ predictor and corrector cases                   ~ */
-//
-//  unsigned kdxp1,  kdxm1;                         /* ~ neighbor - layer indices                        ~ */
-//  unsigned kstart, kstop;                         /* ~ limits on k looop                               ~ */
-//
-//  int n1n2c; 
-//  run.stack_data.fetch( "n1n2c", &n1n2c );        /* ~ number of complex elements per layer            ~ */
-//  int iu2;
-//  run.stack_data.fetch( "iu2"  , &iu2   );        /* ~ number of layers                                ~ */
-//
-//  kstart    = n1n2c;                              /* ~ D's are calculated for layers 1,2,3,..n3        ~ */
-//  kstop     = n1n2c * (iu2 - 1);                  /* ~ layer 1 needs layer 0 and layer n3 needs layer  ~ */
-//                                                  /* ~ iu2 - 1                                         ~ */
-//
-//  std::string model;
-//  run.palette.fetch("model", &model);
-//
-//  for (unsigned kdx = kstart; kdx < kstop; kdx++) {
-//
-//    kdxm1      = kdx - n1n2c;                       /* ~ adjacent lower layer index                      ~ */
-//    kdxp1      = kdx + n1n2c;                       /* ~ adjacent upper layer index                      ~ */
-//
-//    deltaJ     = J[ kdxp1 ] - J[ kdx   ];           /* ~ P's and J's are updated every half-step         ~ */
-//    deltaP     = P[ kdx   ] - P[ kdxm1 ];           /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.       ~ */
-//    
-//    if ( model.compare("hall") == 0) {
-//      if (     str_step.compare("predict") == 0) {
-//      
-//        deltaZ = Z[ kdx   ] - Z[ kdxm1 ];           /* ~ Z and V must retain un-updated values           ~ */
-//        deltaV = V[ kdxp1 ] - V[ kdx   ];           /* ~ until corrector step. Note use of kdxm1 & kdxp1 ~ */
-//
-//      }
-//      else if (str_step.compare("correct") == 0) {
-//
-//        deltaZ = tZ[ kdx   ] - tZ[ kdxm1 ];         /* ~ using results of predictor step here            ~ */
-//        deltaV = tV[ kdxp1 ] - tV[ kdx   ];         /* ~ note use of kdxm1 & kdxp1                       ~ */
-//
-//      }
-//    }
-//    else if( model.compare("rmhd") == 0 ) {
-//
-//        deltaZ = zero;
-//        deltaV = zero;
-//
-//    }
-//
-//    D0[kdx]    =  deltaJ                                          * dzm1;  /* ~ i.e. Delta J / Delta z                                        ~ */
-//    D1[kdx]    = (          deltaP  - (       rho    *  deltaZ )) * dzm1;  /* ~ i.e. Delta F / Delta z, where F = phi - rhobar * Z            ~ */
-//
-//    if ( model.compare("hall") == 0) {
-//
-//      D2[kdx]  = ((rtbeta * deltaV) - (two  * rho    *  deltaJ )) * dzm1;  /* ~ i.e. Delta G / Delta z, where G = rtbeta * V - 2 * rhobar * J ~ */
-//      D3[kdx]  =                      (half * rtbeta * deltaZ  )  * dzm1;  /* ~ i.e. 1/2 * sqrt{beta} * Delta Z delta z                       ~ */
-//
-//    }
-//
-///* ~ retained for testing ~ */
-//
-////  D0[kdx] =                 (J[kdxp1] - J[kdx  ] ) * dzm1;
-////  D1[kdx] = (               (P[kdx  ] - P[kdxm1] ) -       rho * ( Z[kdx  ] - Z[kdxm1] ) ) * dzm1;  /* ~ F = phi - rhobar * Z  ~*/
-////  D2[kdx] = (      rtbeta * (V[kdxp1] - V[kdx  ] ) - two * rho * ( J[kdxp1] - J[kdx  ] ) ) * dzm1;  /* ~ G = rtbeta * V - 2rhobar J ~ */
-////  D3[kdx] = half * rtbeta * (Z[kdx  ] - Z[kdxm1] ) * dzm1;
-//
-//  }
-//  
-///* ~ retained for testing ~ */
-//
-////  D0.assign(nc, czero);
-////  D1.assign(nc, czero);
-////  D2.assign(nc, czero);
-////  D3.assign(nc, czero);
-
-//}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-//void redhallmhd::setAi( stack& run ) {
-
-//  int rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//  int n1n2c;
-//  run.stack_data.fetch( "n1n2c", &n1n2c );         /* ~ number of complex elements per layer                 ~ */
-//  int iu2;
-//  run.stack_data.fetch( "iu2",   &iu2 );           /* ~ number of layers                                     ~ */
-//
-//  ComplexArray& A0 = run.A0;
-//  ComplexArray& A1 = run.A1;                     /* ~ I really only need this one                          ~ */
-//  ComplexArray& A2 = run.A2;
-//  ComplexArray& A3 = run.A3;
-//
-//  std::string model;
-//  run.palette.fetch("model", &model);
-//
-//  A0.assign((n1n2c * iu2), czero);
-//  A1.assign((n1n2c * iu2), czero);                 /* ~ to be set to  -eta * ssqd * k2 * A = -eta * ssqd * J ~ */
-//
-//  if (model.compare("hall") == 0 ) {
-//
-//    A2.assign((n1n2c * iu2), czero);
-//    A3.assign((n1n2c * iu2), czero);
-//
-//    double eta; 
-//    run.palette.fetch(  "eta", &eta);
-//    double ssqd;
-//    physics_data.fetch("ssqd", &ssqd);
-//  
-//    unsigned kstart  = 0;
-//    unsigned kstop   = n1n2c * iu2;
-//  
-//    for (unsigned k  = kstart; k < kstop; k++) {
-//  
-//      A1[k]          = -( eta * ssqd * J[k] );
-//  
-//    }
-//
-//  }
-//}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

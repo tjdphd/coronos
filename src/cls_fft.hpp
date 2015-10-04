@@ -31,6 +31,14 @@ public:
                                                            /* ~ for initializing and "destroying"    ~ */
                                                            /* ~ FFT plans.                           ~ */
 
+    void fftwKInit( stack& run );
+    void fftwKFree( stack& run );
+
+    RealArray rt;                                          /* ~ Fourier Transform Related               ~ */
+
+    void fftwrtInit( stack& run );
+    void fftwrtFree( );
+
     void fftwForwardAll( stack& run);                      /* ~ Forward FFT all fields all layers    ~ */
     void fftwReverseAll( stack& run);                      /* ~ Reverst FFT all fields all layers    ~ */
 
