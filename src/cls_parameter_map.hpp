@@ -1,4 +1,3 @@
-
 /* class parameter_map (definition)
  *
  * Timothy J. Dennis
@@ -12,10 +11,6 @@
 
 #ifndef CLS_PARAMETER_MAP
 #define CLS_PARAMETER_MAP
-
-/* #include <algorithm> 
- * #include <vector>
- */
 
 #include "cls_parameter.hpp"
 #include<map>
@@ -50,23 +45,26 @@ class parameter_map
   void emplace(std::string par_name, int         par_val, std::string par_adj);
   void emplace(std::string par_name, float       par_val, std::string par_adj);
   void emplace(std::string par_name, double      par_val, std::string par_adj);
+  void emplace(std::string par_name, long double par_val, std::string par_adj);
   void emplace(std::string par_name, bool        par_val, std::string par_adj);
 
   /* ~ resetting     ~ */
 
-  bool reset(std::string str_key, std::string str_val);
-  bool reset(std::string str_key, int         int_val);
-  bool reset(std::string str_key, float       flt_val);
-  bool reset(std::string str_key, double      dbl_val);
-  bool reset(std::string str_key, bool        log_val);
+  bool reset(  std::string str_key,  std::string str_val);
+  bool reset(  std::string str_key,  int         int_val);
+  bool reset(  std::string str_key,  float       flt_val);
+  bool reset(  std::string str_key,  double      dbl_val);
+  bool reset(  std::string str_key,  long double dbl_val);
+  bool reset(  std::string str_key,  bool        log_val);
 
   /* ~ fetching      ~ */
 
-  bool fetch(std::string par_name, std::string *val);
-  bool fetch(std::string par_name, int         *val);
-  bool fetch(std::string par_name, float       *val);
-  bool fetch(std::string par_name, double      *val);
-  bool fetch(std::string par_name, bool        *val);
+  bool fetch(  std::string par_name, std::string *val);
+  bool fetch(  std::string par_name, int         *val);
+  bool fetch(  std::string par_name, float       *val);
+  bool fetch(  std::string par_name, double      *val);
+  bool fetch(  std::string par_name, long double *val);
+  bool fetch(  std::string par_name, bool        *val);
 
   /* ~ reporting     ~ */
 

@@ -737,6 +737,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_long_doubles
 with_cuda
 enable_dependency_tracking
 '
@@ -1384,6 +1385,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-long_doubles     use long double precision (default is no)]
   --with-cuda=PATH        use gpu acceleration (default is no)]
 
 Some influential environment variables:
@@ -2371,22 +2373,51 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 ac_config_headers="$ac_config_headers config.h"
 
 
-
 # Get the architecture
 
 { $as_echo "$as_me:$LINENO: checking architecture" >&5
 $as_echo_n "checking architecture... " >&6; }
-ARCH=`uname -m`
 
-if test x$ARCH == xx86_64
+                   ARCH=`uname -m`
+
+if test x$ARCH==xx86_64
 then
-  SUFFIX="64"
+                 SUFFIX="64"
 else
-  SUFFIX=""
+                 SUFFIX=""
 fi
 
 { $as_echo "$as_me:$LINENO: result: $ARCH" >&5
 $as_echo "$ARCH" >&6; }
+
+# Establish precision to be used
+
+
+
+
+
+
+
+# Check whether --with-long_doubles was given.
+if test "${with_long_doubles+set}" = set; then
+  withval=$with_long_doubles;
+fi
+
+
+if test -n "$with_long_doubles"
+then
+  echo "with_long_doubles = " $with_long_doubles
+  cat >>confdefs.h <<\_ACEOF
+#define LD_PRECISION_H 1
+_ACEOF
+
+else
+  echo "with_long_doubles = " $with_long_doubles
+  cat >>confdefs.h <<\_ACEOF
+#define OD_PRECISION_H 1
+_ACEOF
+
+fi
 
 # Check for CUDA
 
@@ -2402,6 +2433,7 @@ if test "${with_cuda+set}" = set; then
 fi
 
 
+
 # Start CUDA vs. NOT-CUDA CONDITIONAL
 # -> IF CUDA ==>
 
@@ -2412,7 +2444,7 @@ then
 
   # ->-> try nvcc --version
 
-    NVCC=""
+                   NVCC=""
     # Extract the first word of "nvcc", so it can be a program name with args.
 set dummy nvcc; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -2453,23 +2485,24 @@ fi
 
 
     echo "NVCC = " $NVCC
+
   # ->-> try whereis
 
-    WHERECUDA=""
+              WHERECUDA=""
     if test ! -n "$NVCC"
     then
-      WHERECUDA=`whereis cuda`
-      WHERECUDA=${WHERECUDA#cuda:}
+              WHERECUDA=`whereis cuda`
+              WHERECUDA=${WHERECUDA#cuda:}
       echo "WHERECUDA" =$WHERECUDA
     fi
 
-    USR_LOCAL_CUDA="/usr/local/cuda"
+         USR_LOCAL_CUDA="/usr/local/cuda"
 
     if test -n "$WHERECUDA"
     then
       echo "CHAKRAH!"
-      W_LEN=${#WHERECUDA}
-      POS=`expr $W_LEN - 15`
+                  W_LEN=${#WHERECUDA}
+                    POS=`expr $W_LEN - 15`
       TEST_CUDA_DEFAULT=${WHERECUDA:$POS}
       echo "TEST_CUDA_DEFAULT = " $TEST_CUDA_DEFAULT
     else
@@ -2480,7 +2513,7 @@ fi
     then
       TEST_CUDA_DEFAULT="$TEST_CUDA_DEFAULT/bin"
       echo "TEST_CUDA_DEFAULT = " $TEST_CUDA_DEFAULT
-      NVCC=""
+                   NVCC=""
       # Extract the first word of "nvcc", so it can be a program name with args.
 set dummy nvcc; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -2533,38 +2566,36 @@ $as_echo "$as_me: error: cuda not found, check modules and try again" >&2;}
 _ACEOF
 
 
-
   # ->-> Establish library search variables for headers and paths
 
   # ->-> CUDA:
 
-  CUDA_H="cuda.h"
-  CUDA_LIBS=" -lcudart"
+                 CUDA_H="cuda.h"
+              CUDA_LIBS=" -lcudart"
 
   # ->-> FFT:
 
-  FFTW_H="cufft.h"
-  FFTW_LIBS=" -lcufft"
-
+                 FFTW_H="cufft.h"
+              FFTW_LIBS=" -lcufft"
 
   if test -n "$CRAY_CUDATOOLKIT_DIR"
   then
-    CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-    FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-    BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
   else
-    CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-    FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-    BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
   fi
 
  # ->-> BLAS:
 
-  BLAS_H="cublas.h"
-  BLAS_LIBS=" -lcublas"
+                 BLAS_H="cublas.h"
+              BLAS_LIBS=" -lcublas"
 
-  CRS_CXX="mpiCC CC"
-  CRS_CC=" mpicc cc "
+                CRS_CXX="mpiCC CC"
+                 CRS_CC=" mpicc cc "
 
 else # -> IF NOT-CUDA ==>
 
@@ -2573,30 +2604,39 @@ else # -> IF NOT-CUDA ==>
 _ACEOF
 
 
-
   # ->-> Establish library search variables for headers and paths
 
     # ->->-> CUDA:
 
-    CUDA_H=""
-    CUDA_LIBS=""
-    CUDA_PATH_DEFAULT=""
+                 CUDA_H=""
+              CUDA_LIBS=""
+      CUDA_PATH_DEFAULT=""
 
     # ->->-> FFT:
 
-    FFTW_H="fftw3.h"
-    FFTW_LIBS="-lfftw3 -lm"
+                 FFTW_H="fftw3.h"
+      if test -n "$with_long_doubles"
+      then
+              FFTW_LIBS="-lfftw3l -lm"
+      else
+              FFTW_LIBS="-lfftw3 -lm"
+      fi
 
     if test -n "$CRAY_FFTW_DIR"
     then
       FFTW_PATH_DEFAULT="$CRAY_FFTW_DIR/interlagos"
     else
-      FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4"
+      if test -n "$with_long_doubles"
+      then
+        FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.precision.pgi-13.4"
+      else
+        FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4"
+      fi
     fi
 
     # ->->-> BLAS
 
-    BLAS_H="gsl/gsl_blas.h"
+                 BLAS_H="gsl/gsl_blas.h"
     if test -n "$GSL_ROOT"
     then
       BLAS_PATH_DEFAULT="$GSL_ROOT"
@@ -2604,10 +2644,10 @@ _ACEOF
       BLAS_PATH_DEFAULT="/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3"
     fi
 
-    BLAS_LIBS="-lgsl -lgslcblas"
+              BLAS_LIBS="-lgsl -lgslcblas"
 
-    CRS_CXX="mpiCC CC"
-    CRS_CC="mpicc cc"
+                CRS_CXX="mpiCC CC"
+                 CRS_CC="mpicc cc"
 
 fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
@@ -2615,9 +2655,10 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
 # Checks for libraries.
 
+#AC_CHECK_FILE(config.h,[AC_MSG_RESULT([$ac_cv_file_config.h])],[AC_MSG_RESULT([$ac_cv_file_config.h])])
+#AC_LIB_LINKFLAGS(fftw3,[])
 
 # Checks for header files.
-
 
 # -> FFT:
 
@@ -2633,7 +2674,7 @@ $as_echo "$as_me: FFTW_PATH = $FFTW_PATH" >&6;}
   else
     { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
-    FFTW_PATH=$FFTW_PATH_DEFAULT
+              FFTW_PATH=$FFTW_PATH_DEFAULT
     { $as_echo "$as_me:$LINENO: WARNING: FFTW_PATH not set, using default: $FFTW_PATH" >&5
 $as_echo "$as_me: WARNING: FFTW_PATH not set, using default: $FFTW_PATH" >&2;}
   fi
@@ -4544,17 +4585,16 @@ $as_echo_n "checking whether BLAS_PATH is set... " >&6; }
 
 # -> -> BLAS headers
 
-
   if test -n "$BLAS_PATH"
   then
     { $as_echo "$as_me:$LINENO: result: yes" >&5
 $as_echo "yes" >&6; }
-    { $as_echo "$as_me:$LINENO: BLAS_PATH = $BLAS_PATH" >&5
-$as_echo "$as_me: BLAS_PATH = $BLAS_PATH" >&6;}
+    { $as_echo "$as_me:$LINENO: BLAS_PATH=$BLAS_PATH" >&5
+$as_echo "$as_me: BLAS_PATH=$BLAS_PATH" >&6;}
   else
     { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
-    BLAS_PATH=$BLAS_PATH_DEFAULT
+              BLAS_PATH=$BLAS_PATH_DEFAULT
     { $as_echo "$as_me:$LINENO: WARNING: BLAS_PATH not set, using default: $BLAS_PATH" >&5
 $as_echo "$as_me: WARNING: BLAS_PATH not set, using default: $BLAS_PATH" >&2;}
   fi
@@ -4721,55 +4761,50 @@ done
 
 # -> fft's
 
-
 # Wrap up
 
-FFTW_INC="$FFTW_PATH/include"
-BLAS_INC="$BLAS_PATH/include"
+               FFTW_INC="$FFTW_PATH/include"
+               BLAS_INC="$BLAS_PATH/include"
 
-CRS_INC_FLAGS=" -I$FFTW_INC -I$BLAS_INC"
+          CRS_INC_FLAGS=" -I.. -I$FFTW_INC -I$BLAS_INC"
 
 if test ! -n "$CUDA_PATH"
 then
-  CUDA_PATH=$CUDA_PATH_DEFAULT
+              CUDA_PATH=$CUDA_PATH_DEFAULT
 fi
 
 if test  -n "$CUDA_PATH"
 then
-  CUDA_INC="$CUDA_PATH/include"
-  CRS_INC_FLAGS="-I$CUDA_INC $CRS_INC_FLAGS"
-  CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
-  BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
-  FFTW_LDFLAGS="-L$FFTW_PATH/lib$SUFFIX"
+               CUDA_INC="$CUDA_PATH/include"
+          CRS_INC_FLAGS="-I$CUDA_INC $CRS_INC_FLAGS"
+           CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
+           BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
+           FFTW_LDFLAGS="-L$FFTW_PATH/lib$SUFFIX"
 else
-  CUDA_INC=""
-  CUDA_LDFLAGS=""
-  BLAS_LDFLAGS="-L$BLAS_PATH/lib"
-  FFTW_LDFLAGS="-L$FFTW_PATH/lib"
+               CUDA_INC=""
+           CUDA_LDFLAGS=""
+           BLAS_LDFLAGS="-L$BLAS_PATH/lib"
+           FFTW_LDFLAGS="-L$FFTW_PATH/lib"
 fi
 
-echo "CUDA_PATH:     " $CUDA_PATH
-echo "FFTW_PATH:     " $FFTW_PATH
-echo "BLAS_PATH:     " $BLAS_PATH
+               CRS_LIBS="$CUDA_LIBS $FFTW_LIBS $BLAS_LIBS"
+           CRS_CPPFLAGS="$CRS_INC_FLAGS"
+            CRS_LDFLAGS="$CUDA_LDFLAGS $FFTW_LDFLAGS $BLAS_LDFLAGS"
 
-echo "CUDA_LDFLAGS:  " $CUDA_LDFLAGS
-echo "FFTW_LDFLAGS:  " $FFTW_LDFLAGS
-echo "BLAS_LDFLAGS:  " $BLAS_LDFLAGS
+echo "CUDA_PATH:    " $CUDA_PATH
+echo "FFTW_PATH:    " $FFTW_PATH
+echo "BLAS_PATH:    " $BLAS_PATH
 
-CRS_LIBS="$CUDA_LIBS $FFTW_LIBS $BLAS_LIBS"
-echo "CRS_LIBS: " $CRS_LIBS
+echo "CUDA_LDFLAGS: " $CUDA_LDFLAGS
+echo "FFTW_LDFLAGS: " $FFTW_LDFLAGS
+echo "BLAS_LDFLAGS: " $BLAS_LDFLAGS
 
-CRS_CPPFLAGS="$CRS_INC_FLAGS"
+echo "CRS_LIBS:     " $CRS_LIBS
 echo "CRS_CPPFLAGS: " $CRS_CPPFLAGS
+echo "CRS_LDFLAGS:  " $CRS_LDFLAGS
 
-CRS_LDFLAGS="$CUDA_LDFLAGS $FFTW_LDFLAGS $BLAS_LDFLAGS"
-
-echo "CRS_LDFLAGS: " $CRS_LDFLAGS
-
-NVCC="nvcc"
-
-INCMPI="/opt/cray/mpt/5.6.5/gni/mpich2-cray/74/include"
-
+                   NVCC="nvcc"
+                 INCMPI="/opt/cray/mpt/5.6.5/gni/mpich2-cray/74/include"
 
 
 

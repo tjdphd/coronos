@@ -1,11 +1,11 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to one if not using cuda */
-#define DONT_HAVE_CUDA_H 1
-
 /* Define to one if using cuda */
 /* #undef HAVE_CUDA_H */
+
+/* Define to one if not using cuda */
+#define DONT_HAVE_CUDA_H 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -33,6 +33,12 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
+
+/* Define to one if using long double precision */
+#define LD_PRECISION_H 1
+
+/* Define to one if using ordinary double precision */
+/* #undef OD_PRECISION_H */
 
 /* Name of package */
 #define PACKAGE "coronos"

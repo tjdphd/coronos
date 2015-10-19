@@ -25,9 +25,9 @@
 #include<iomanip>
 
 #ifdef HAVE_CUDA_H
+
 #include "cls_lcsolve_cuda_ext.hpp"
-// #else
-// #include<fftw3.h>
+
 #endif
 
 using namespace constants;
@@ -76,7 +76,7 @@ class lcsolve
    void partialsInXandY(stack& run, redhallmhd& physics, ComplexArray& U, RealArray& Ux, RealArray& Uy);
    void bracket( stack& run, redhallmhd& physics, ComplexArray& BrKt, RealArray& dx1, RealArray& dy1, RealArray& dx2, RealArray& dy2);
 
-   double maxdU(RealArray& dx, RealArray&  dy);
+   RealVar maxdU(RealArray& dx, RealArray&  dy);
    void averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, RealArray&  dy);
 
 #endif
@@ -93,7 +93,7 @@ class lcsolve
    public:
 
 // lcsolve();                                    /* ~ Constructors                         ~ */
-//
+
    lcsolve( stack& run );
 
    void Loop(      stack& run );                /* ~ stepping and such                     ~ */

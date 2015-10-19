@@ -17,14 +17,22 @@ class fft {
 
 public:
 
-    double          * r_in;                                /* ~ input and output data arguments      ~ */
-    double          * r_out;                               /* ~ to FFT routines.                     ~ */
+    RealVar    * r_in;                                     /* ~ input and output data arguments      ~ */
+    RealVar    * r_out;                                    /* ~ to FFT routines.                     ~ */
 
-    std::complex<double> * cplx_in;
-    std::complex<double> * cplx_out;
+//    std::complex<long double> * cplx_in;
+//    std::complex<long double> * cplx_out;
 
-    fftw_plan      p_lay_for;                              /* ~ For establishing plans for forward   ~ */
-    fftw_plan      p_lay_rev;                              /* ~ reverse FFT's of layers              ~ */
+    ComplexVar * cplx_in;
+    ComplexVar * cplx_out;
+
+#ifdef LD_PRECISION_H
+    fftwl_plan     p_lay_for;                              /* ~ For establishing plans for forward   ~ */
+    fftwl_plan     p_lay_rev;                              /* ~ reverse FFT's of layers              ~ */
+#elif defined OD_PRECISION_H
+    fftw_plan     p_lay_for;                              /* ~ For establishing plans for forward   ~ */
+    fftw_plan     p_lay_rev;                              /* ~ reverse FFT's of layers              ~ */
+#endif
 
     void fftwInitialize( stack& run);                      /* ~ For allocating and deallocating "in" ~ */
     void fftwFinalize();                                   /* ~ and "out" arguments of FFT's, and    ~ */
