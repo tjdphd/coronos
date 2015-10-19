@@ -35,11 +35,12 @@ class parameter
 
   /* ~ Resetting  Functions  ~ */
 
-  bool resetValue(std::string str_val);
-  bool resetValue(int         int_val);
-  bool resetValue(float       flt_val);
-  bool resetValue(double      dbl_val);
-  bool resetValue(bool        log_val);
+  bool resetValue(std::string str_val );
+  bool resetValue(int         int_val );
+  bool resetValue(float       flt_val );
+  bool resetValue(double      dbl_val );
+  bool resetValue(long double ldbl_val);
+  bool resetValue(bool        log_val );
 
   public:
 
@@ -47,18 +48,19 @@ class parameter
 
   parameter();
 
-  parameter(std::string par_name, std::string par_val, std::string par_adj);
-  parameter(std::string par_name, int         par_val, std::string par_adj);
-  parameter(std::string par_name, float       par_val, std::string par_adj);
-  parameter(std::string par_name, double      par_val, std::string par_adj);
-  parameter(std::string par_name, bool        par_val, std::string par_adj);
+       parameter(std::string par_name, std::string par_val, std::string par_adj);
+       parameter(std::string par_name, int         par_val, std::string par_adj);
+       parameter(std::string par_name, float       par_val, std::string par_adj);
+       parameter(std::string par_name, double      par_val, std::string par_adj);
+       parameter(std::string par_name, long double par_val, std::string par_adj);
+       parameter(std::string par_name, bool        par_val, std::string par_adj);
 
-  void reAssign(std::string par_name, std::string par_val, std::string par_adj);
-  void reAssign(std::string par_name, int         par_val, std::string par_adj);
-  void reAssign(std::string par_name, float       par_val, std::string par_adj);
-  void reAssign(std::string par_name, double      par_val, std::string par_adj);
-  void reAssign(std::string par_name, bool        par_val, std::string par_adj);
-
+  void reAssign( std::string par_name, std::string par_val, std::string par_adj);
+  void reAssign( std::string par_name, int         par_val, std::string par_adj);
+  void reAssign( std::string par_name, float       par_val, std::string par_adj);
+  void reAssign( std::string par_name, double      par_val, std::string par_adj);
+  void reAssign( std::string par_name, long double par_val, std::string par_adj);
+  void reAssign( std::string par_name, bool        par_val, std::string par_adj);
 
   /* ~ Destructor (not implemented) ~ */
 

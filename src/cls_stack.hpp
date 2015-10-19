@@ -17,14 +17,6 @@
 #include "cls_canvas.hpp"
 #include "mpi.h"
 
-// #include <cmath>
-// #include <fstream>
-// #include<new>
-// #include<fftw3.h>
-// #include <assert.h>
-// #include "cls_lcsolve.hpp"
-// #include "nsp_utilities.hpp"
-
 using namespace constants;
 
 class stack : public canvas
@@ -63,18 +55,10 @@ class stack : public canvas
    ComplexArray tU2;
    ComplexArray tU3;
 
-//  RealArray rt;                               /* ~ Fourier Transform Related               ~ */
-
-//  void rtInit();
-//  void rtFree();
-
-  RealArray kx;
+  RealArray kx;                               /* ~ Fourier Space Related                   ~ */
   RealArray ky;
   RealArray k2;
   RealArray inv_k2;
-
-//  void kInit( );                              /* ~ their initializers and "disposers"     ~ */
-//  void kFree( );
 
 #endif
 

@@ -32,11 +32,6 @@ class redhallmhd
 
   private:
 
-
-
-
-
-
   ComplexArray roldlb;
   ComplexArray rnewlb;
 

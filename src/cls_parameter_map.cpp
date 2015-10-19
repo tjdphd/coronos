@@ -27,7 +27,7 @@ parameter_map::parameter_map(std::string parameter_file)
   std::string   field;                  //  holds a space-separated field from line
 
   const char *to_be_read;               //  infile requires a const char
-  to_be_read = parameter_file.c_str();
+  to_be_read        = parameter_file.c_str();
 
   infile.open(to_be_read, std::ios::in);
 
@@ -37,7 +37,7 @@ parameter_map::parameter_map(std::string parameter_file)
   size_t str_length;                    //  location of line end
 
   int field_count;                      //  tracks number of fields encountered in file line
-  int line_count    = 0;                //  counts number of file-lines read
+  int line_count       = 0;              //  counts number of file-lines read
 
   parameter   pmtr;
   std::string pmtr_key;
@@ -45,15 +45,15 @@ parameter_map::parameter_map(std::string parameter_file)
   while(getline(infile, file_line))     // Get next line from infile
   {
     ++line_count;
-    field_count     = 0;
-    str_length      = file_line.length();
-    non_blank       = file_line.find_first_not_of(" ");            // locate first non-blank character in line
-    blank           = file_line.find_first_of(" ", non_blank + 1); // locate first blank after beginning of first
+    field_count        = 0;
+    str_length         = file_line.length();
+    non_blank          = file_line.find_first_not_of(" ");            // locate first non-blank character in line
+    blank              = file_line.find_first_of(" ", non_blank + 1); // locate first blank after beginning of first
 
     while(blank <= str_length)
     {
-      field_length  = blank - non_blank;                           // Number of characters in first field
-      field         = file_line.substr(non_blank, field_length);   // The first field in the line
+      field_length     = blank - non_blank;                           // Number of characters in first field
+      field            = file_line.substr(non_blank, field_length);   // The first field in the line
       ++field_count;
 
       switch(field_count)
@@ -69,12 +69,12 @@ parameter_map::parameter_map(std::string parameter_file)
                  break;
       }
 
-      non_blank      = file_line.find_first_not_of(" ", blank + 1);  // location of the next field's first character
+      non_blank        = file_line.find_first_not_of(" ", blank + 1);  // location of the next field's first character
 
-      if (non_blank == file_line.npos) non_blank = str_length;       // if non_blank is location of 
+      if (non_blank   == file_line.npos) non_blank = str_length;       // if non_blank is location of 
                                                                      // last character of last field
          
-          if (blank != str_length && non_blank != str_length)        // we're not at the end of the line
+          if (blank   != str_length && non_blank != str_length)        // we're not at the end of the line
           {
             blank      = file_line.find_first_of(" ", non_blank + 1);// where the next field ends
             if (blank == file_line.npos) blank = str_length;         // in case there's a blank after the last
@@ -125,7 +125,13 @@ void parameter_map::emplace(std::string par_name, double      par_val, std::stri
   parameters.insert(std::pair<std::string,parameter>(par_name, pmtr));
 }
 
-void parameter_map::emplace(std::string par_name, bool        par_val, std::string par_adj) {
+void parameter_map::emplace(std::string par_name, long double  par_val, std::string par_adj) {
+
+  parameter pmtr(par_name, par_val, par_adj);
+  parameters.insert(std::pair<std::string,parameter>(par_name, pmtr));
+}
+
+void parameter_map::emplace(std::string par_name, bool         par_val, std::string par_adj) {
 
   parameter pmtr(par_name, par_val, par_adj);
   parameters.insert(std::pair<std::string,parameter>(par_name, pmtr));
@@ -164,8 +170,17 @@ bool parameter_map::reset(std::string str_key, float       flt_val) {
    
      return l_success;
 }
-
 bool parameter_map::reset(std::string str_key, double      dbl_val) {
+
+     bool          l_success         = false;
+     parameter     pmtr              = parameters[str_key];
+
+     l_success = parameters[str_key].resetValue(dbl_val);
+   
+     return l_success;
+}
+
+bool parameter_map::reset(std::string str_key, long double      dbl_val) {
 
      bool          l_success         = false;
      parameter     pmtr              = parameters[str_key];
@@ -223,8 +238,19 @@ bool parameter_map::fetch(std::string par_name, float       *val) {
      return true;
 
 }
-
 bool parameter_map::fetch(std::string par_name, double      *val) {
+
+     parameter       pmtr;
+     std::string  val_str;
+
+     pmtr    = parameters[par_name];
+     val_str = pmtr.value;
+     *val    = atof(val_str.c_str());
+
+     return true;
+}
+
+bool parameter_map::fetch(std::string par_name, long double      *val) {
 
      parameter       pmtr;
      std::string  val_str;
@@ -271,7 +297,7 @@ void parameter_map::report(std::string out_file_prefix, int srun) {
      std::string str_val;
      int         int_val;
      float       flt_val;
-     double      dbl_val;
+     long double dbl_val;
      bool        log_val;
 
      int         str_key_len;
@@ -379,7 +405,7 @@ void parameter_map::report(std::string out_file) {
      std::string str_val;
      int         int_val;
      float       flt_val;
-     double      dbl_val;
+     long double dbl_val;
      bool        log_val;
 
      int         str_key_len;
@@ -407,21 +433,6 @@ void parameter_map::report(std::string out_file) {
      }
      
      if (max_str_val_len < 24) max_str_val_len = 24;
-
-//     int rank;
-//     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//     std::string    str_srun               = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
-//     std::string    str_rank               = static_cast<std::ostringstream*>( &(std::ostringstream() << rank) ) -> str();
-//     int rnk_len                           = str_rank.length();
-//     switch(rnk_len) {
-//
-//     case(1) : str_rank = "0" + str_rank;
-//     case(2) : ;
-//     default : ;
-//
-//     }
-//     std::string    out_file               = out_file_prefix + "." + str_rank + ".ots" + str_srun;
 
      const char    *c_str_out_file         = out_file.c_str();
      std::fstream   ofs;

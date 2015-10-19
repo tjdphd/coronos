@@ -45,10 +45,10 @@ parameter::parameter(std::string par_name, int         par_val, std::string par_
 
   str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << par_val) ) -> str();
 
-           name.assign(par_name             );
-          value.assign(str_val              );
-           type.assign("int"                );
-  adjustability.assign(par_adj              );
+           name.assign(par_name);
+          value.assign(str_val );
+           type.assign("int"   );
+  adjustability.assign(par_adj );
 }
 
 parameter::parameter(std::string par_name, float       par_val, std::string par_adj) {
@@ -70,10 +70,23 @@ parameter::parameter(std::string par_name, double      par_val, std::string par_
 
   str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << par_val) ) -> str();
 
-           name.assign(par_name );
-           value.assign(str_val );
-           type.assign("dbl"    );
-  adjustability.assign(par_adj  );
+           name.assign(par_name);
+           value.assign(str_val);
+           type.assign("dbl"   );
+  adjustability.assign(par_adj );
+
+}
+
+parameter::parameter(std::string par_name, long double  par_val, std::string par_adj) {
+
+  std::string str_val;
+
+  str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << par_val) ) -> str();
+
+           name.assign(par_name);
+           value.assign(str_val);
+           type.assign("dbl"   );
+  adjustability.assign(par_adj );
 
 }
 
@@ -251,6 +264,31 @@ bool parameter::resetValue(double      dbl_val) {
      return l_reset;
 }
 
+bool parameter::resetValue(long double  dbl_val) {
+
+     bool l_reset = false;
+     std::string str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << dbl_val) ) -> str();
+
+     if (!adjustability.compare("rfx")       == 0)   {
+
+       if (adjustability.compare("sfx")      == 0) {
+
+         adjustability.assign("sfa");
+         l_reset  = true;
+       }
+       else if (adjustability.compare("adj") == 0) {
+
+         l_reset  = true;
+
+       }
+
+       if (l_reset) value.assign(str_val);
+
+     }
+
+     return l_reset;
+}
+
 bool parameter::resetValue(bool        log_val) {
 
      bool l_reset = false;
@@ -302,10 +340,10 @@ void parameter::reAssign(std::string par_name, int         par_val, std::string 
 
   str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << par_val) ) -> str();
 
-           name.assign(par_name             );
-          value.assign(str_val              );
-           type.assign("int"                );
-  adjustability.assign(par_adj              );
+           name.assign(par_name);
+          value.assign(str_val );
+           type.assign("int"   );
+  adjustability.assign(par_adj );
 
 }
 
@@ -328,10 +366,23 @@ void parameter::reAssign(std::string par_name, double      par_val, std::string 
 
   str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << par_val) ) -> str();
 
-           name.assign(par_name );
-           value.assign(str_val );
-           type.assign("dbl"    );
-  adjustability.assign(par_adj  );
+           name.assign(par_name);
+           value.assign(str_val);
+           type.assign("dbl"   );
+  adjustability.assign(par_adj );
+
+}
+
+void parameter::reAssign(std::string par_name, long double par_val, std::string par_adj) {
+
+  std::string str_val;
+
+  str_val = static_cast<std::ostringstream*>( &(std::ostringstream() << par_val) ) -> str();
+
+           name.assign(par_name);
+           value.assign(str_val);
+           type.assign("dbl"   );
+  adjustability.assign(par_adj );
 
 }
 

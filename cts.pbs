@@ -11,6 +11,6 @@ cd $PBS_O_WORKDIR
 module load ffmpeg
 module load idl
 
-./cts_idl.s p ts 31 0 1 64_16 1 8
+./cts_idl.s a ts 31 0 100 64_16 100 8
 
 idl
