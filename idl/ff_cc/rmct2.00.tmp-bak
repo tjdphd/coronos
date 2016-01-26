@@ -1,0 +1,55 @@
+Input file -- rmct2_12816-4.ofa0 --
+describtions: input file for the program rmct.f at t=0.
+tstart   0.e0
+ip1      6
+ip2      6
+n3       4
+mp       4
+nw       1 
+cnw      0.
+zl       1.
+nu       0.0005
+eta      0.0005
+esp      1.e-12
+dt       0.00001
+ndt      1  
+s1       .5
+s2       .5
+tta      0.55
+ilnr     0
+iptest   0
+ilt      1
+q1       0.05
+q2       0.4
+dtr      1.
+imain    1
+ss1      0.5
+qp       0.1
+ftpow    0.
+ediss1   0.
+kc       0.
+numold   0
+tauE     1.0e+30
+f        0.
+dtau     0.
+oldnum   0
+deng     0.
+tauC     0.1
+aveKE    0.
+aveME    0.
+AVEz     0.
+AVEpn    0.
+AVEpv    0.
+Beta     0.
+ptscl    0.
+atscl    0.
+igen     1
+bdrys    2
+rcount   0
+aveK2    0.
+nf       0
+AVEpe    0.
+actual <pn> = 0.
+actual <pv> = 0.
+actual <pf> = 0.
+actual <p?> (unaccounted for)= 0.

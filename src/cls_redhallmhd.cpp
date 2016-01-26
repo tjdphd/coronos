@@ -37,16 +37,15 @@ redhallmhd::redhallmhd(stack& run ) {
   int srun;
   run.palette.fetch("srun", &srun);
 
+  initBoundaries(    run         );   /* ~ initialization of quantities needed for     ~ */
+                                      /* ~ boundary value application.                 ~ */
   if (srun == 1) {
 
-  run.writeUData(              );     /* ~ initial conditions report                   ~ */
+  run.writeUData  (              );   /* ~ initial conditions report                   ~ */
 
   }
 
-  initBoundaries(    run       );     /* ~ initialization of quantities needed for     ~ */
-                                      /* ~ boundary value application.                 ~ */
-
-  initialize(        run       );     /* ~ not a good name, I'll probably revise this  ~ */
+  initialize(        run         );   /* ~ not a good name, I'll probably revise this  ~ */
                                       /* ~ it might be to let initialize do everything ~ */
                                       /* ~ here or, alternatively to do away with it   ~ */
 }
@@ -273,7 +272,7 @@ void redhallmhd::computeRealU( stack& run ) {
 
           idx             = (i_x * n1) + j_y;
 
-          U[idx][n3][i_f] = -half * 0.004L * ( cos(two_pi*x[i_x]) - cos(two_pi * y[j_y]) );
+          U[idx][n3][i_f] = - 0.0032L * ( cos(two_pi*x[i_x]) - cos(two_pi * y[j_y]) );
 
         }
       }
@@ -399,13 +398,29 @@ void redhallmhd::computeFourierU( stack& run ) {
 
   }
 
-  for (int i_f = 0; i_f < n_flds; ++i_f) {
+  for (  int i_f = 0; i_f < n_flds; ++i_f) {
+
     for (int i_l = 1; i_l < n_lyrs ; ++i_l) {
     
-    for (int k = 0; k< n1n2; ++k) { U[k][i_l][i_f] = U[k][n3][i_f]; }
+    for (int k   = 0; k< n1n2; ++k) { U[k][i_l][i_f] = U[k][n3][i_f]; }
 
     }
   }
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+//  if (rank == 3)  {
+//
+//
+//    for ( int k = 0; k < n1n2; ++k) {
+//
+//      std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << U[k][n3][0] << std::endl;
+//
+//    }
+//  }
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -768,6 +783,76 @@ void redhallmhd::initFootPointDriving( stack& run ) {
 
 void redhallmhd::initNoDrive( stack& run) {
 
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+  int srun;
+  run.palette.fetch(   "srun" ,  &srun );
+  int np;
+  run.palette.fetch(    "np"  ,  &np   );      /* ~ number of processes ~ */
+  int n1n2; 
+  run.stack_data.fetch( "n1n2",  &n1n2 );
+  int n3; 
+  run.stack_data.fetch( "n3"  ,  &n3   );      /* ~ number of layers    ~ */
+  int iu2; 
+  run.stack_data.fetch("iu2",    &iu2   );     /* ~ n3 + 2              ~ */
+  int iu3;
+  run.stack_data.fetch("iu3"  ,  &iu3   );     /* ~ number of fields    ~ */
+
+  InputOutputArray& U = run.U;
+
+  if ( rank == 0 || rank == np - 1) {
+
+    std::cout << "initNoDrive: initializing p for rank " << rank << std::endl;
+    std::cout << "initNoDrive: n3  = "                   << n3   << std::endl;
+    std::cout << "initNoDrive: iu2 = "                   << iu2  << std::endl;
+
+    if ( rank == 0 ) {
+      for (int k   = 0; k< n1n2; ++k) { U[k][0][0]      = zero; }
+      for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][1]   = zero; }  /* ~ atop is zero on rank 0                   ~ */
+                                                                   /* ~ NOTE: should only be done for first run! ~ */
+      if ( iu3  > 2) {
+        for (int k   = 0; k< n1n2; ++k) { U[k][0][2]    = zero; }
+        for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][3] = zero; }  /* ~ vztop is zero on rank 0                  ~ */
+                                                                   /* ~ NOTE: should only be done for first run! ~ */
+      }
+    }
+
+    if ( rank == np - 1 ) {
+      for (int k   = 0; k< n1n2; ++k) { U[k][n3][0]     = zero; }
+      for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][1]   = zero; }  /* ~ atop is zero on rank 0                   ~ */
+                                                                   /* ~ NOTE: should only be done for first run! ~ */
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+ //     for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][1]   = zero; }
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+      if ( iu3  > 2) {
+        for (int k   = 0; k< n1n2; ++k) { U[k][n3][2]   = zero; }
+        for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][3] = zero; }  /* ~ vztop is zero on rank 0                  ~ */
+                                                                   /* ~ NOTE: should only be done for first run! ~ */
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+//        for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][3]   = zero; }
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+      }
+    }
+
+  }
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+//  if (rank == 3)  {
+//
+//
+//    for ( int k = 0; k < n1n2; ++k) {
+//
+//      std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << U[k][n3][0] << std::endl;
+//
+//    }
+//  }
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -786,44 +871,57 @@ void redhallmhd::initialize (stack& run ) {
             std::string init;
             run.palette.fetch("initMode", &init);
             fftw.fftwForwardAll( run );
+
+
             OfromP(              run );
             HfromA(              run );
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 //  int rank;
-//  int np,  n1n2c, n_layers;
+//  int np,  n1n2c, n3;
 //  unsigned strt_idx, stop_idx;
 //
-//  MPI_Comm_rank(MPI_COMM_WORLD,   &rank  );
-//  run.stack_data.fetch("n1n2c", &n1n2c   );
-//  run.stack_data.fetch("n3"   , &n_layers);
-//  run.palette.fetch(   "np"   , &np      );
+//  MPI_Comm_rank(MPI_COMM_WORLD, &rank  );
+//  run.stack_data.fetch("n1n2c", &n1n2c );
+//  run.stack_data.fetch("n3"   , &n3    );
+//  run.palette.fetch(   "np"   , &np    );
+////
+//    ComplexArray& O            = run.U0;
 //
-//  ComplexArray& P = run.U0;
-////  ComplexArray& A = run.U1;
-
+//  ComplexArray& U0 = run.U0;
+//
 //  ComplexArray::size_type nc = n1n2c;
-//
-//  if (rank == 1) {
-//
-//    strt_idx  = nc;
+////
+//  if (rank == np - 1) {
+////
+//    strt_idx  = nc * n3;
 //    stop_idx  = strt_idx + nc;
 //
-//       for (unsigned k = strt_idx; k < stop_idx; k++) {
+//      std::cout << "initialize: strt_idx = " << strt_idx << std::endl;
+//      std::cout << "initialize: stop_idx = " << stop_idx << std::endl;
+////
+//    for (unsigned k = strt_idx; k < stop_idx; k++) {
 //
-//          if (abs(A[k].real()) >= 1.0e-12) {
-//          std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << A[k].real() << std::endl;
-//          }
-//          else {
-//          std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero        << std::endl;
-//          }
-//
-//       }
-//
-//    }
+//           assert( P[k] == czero );
+////
+////          if (abs(A[k].real()) >= 1.0e-12) {
+
+//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << P[k].real() << std::endl;
+//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << P[k].imag() << std::endl;
+
+////          }
+////          else {
+////          std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero        << std::endl;
+////          }
+////
+//     }
+////
+//  }
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+//            HfromA(              run );
 
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
@@ -1073,7 +1171,7 @@ void redhallmhd::AfromH( stack& run )  {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::applyBC(    stack& run ) {
+void redhallmhd::applyBC( std::string str_step, stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1085,8 +1183,8 @@ void redhallmhd::applyBC(    stack& run ) {
 
   if ( rank == 0 || rank == np - 1) {
 
-    if (bdrys > 0 ) { applyFootPointDrivingBC( run ); }
-    else            { applyLineTiedBC(         run ); }
+    if (bdrys > 0 ) { applyFootPointDrivingBC(   run ); }
+    else            { applyLineTiedBC( str_step, run ); }
 
   }
 }
@@ -1301,12 +1399,10 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::applyLineTiedBC( stack& run ) {
+void redhallmhd::applyLineTiedBC( std::string str_step, stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank    );  
-
-  std::cout << "applyLineTiedBC: WARNING! - I have not been tested! " << std::endl;
 
   int np;  
   run.palette.fetch(   "np"   , &np      );
@@ -1319,24 +1415,43 @@ void redhallmhd::applyLineTiedBC( stack& run ) {
 
   unsigned strt_idx, stop_idx;
 
-  if (     rank   == 0     ) { strt_idx = 0;                }
-  else if( rank   == np - 1) { strt_idx = (n_layers  * nc); }
+  if (     rank   == 0     ) { strt_idx = 0;                 }
+  else if( rank   == np - 1) { strt_idx = ( n_layers  * nc); }
 
-  stop_idx          = strt_idx + n1n2c;
+  stop_idx         = strt_idx + n1n2c;
 
   std::string model;
   run.palette.fetch("model", &model);
 
-  ComplexArray& O   = run.U0;
-  ComplexArray& Z   = run.U2;
+  ComplexArray& O  = run.U0;
+  ComplexArray& Z  = run.U2;
 
-  for (unsigned k   = strt_idx; k < stop_idx; k++) {
+  ComplexArray& tO = run.tU0;
+  ComplexArray& tZ = run.tU2;
 
-    O[k]            = czero;
-    if (model.compare("hall") == 0 ) {
-      Z[k]          = czero;
-    }
+  for (unsigned k  = strt_idx; k < stop_idx; k++) {
 
+      if (str_step.compare("predict") == 0 ) {
+        O[k]           = czero;
+      }
+      else if (str_step.compare("correct") == 0 ) {
+        tO[k]          = czero;
+      }
+      else {
+        std::cout << "applyLineTiedBC: WARNING - unknown str_step value " << std::endl;
+      }
+
+      if (model.compare("hall") == 0 ) {
+        if (str_step.compare("predict") == 0 ) {
+          Z[k]         = czero;
+        }
+        else if (str_step.compare("correct") == 0 ) {
+          tZ[k]        = czero;
+        }
+        else {
+          std::cout << "applyLineTiedBC: WARNING - unknown str_step value " << std::endl;
+        }
+      }
   }
 }
 
@@ -1429,6 +1544,19 @@ void redhallmhd::updateTimeInc( stack& run ) {
 
     dtvb        = zero;
 
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+//    if (rank == 0 ) {
+//       for (unsigned i_f = 0; i_f < maxU.size(); i_f++) {
+//
+//       if ( i_f == 0 ) { std::cout << "updateTimeInc: mv = " << maxU[i_f] << std::endl; }
+//       if ( i_f == 1 ) { std::cout << "updateTimeInc: mb = " << maxU[i_f] << std::endl; }
+//
+//       }
+//    }
+//
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
     for (unsigned i_f = 0; i_f < maxU.size(); i_f++) { dtvb = dtvb + sqrt(maxU[i_f]); }
 
     dtvb        = dtvb * sqrt( (RealVar) (n1n2) );
@@ -1447,6 +1575,15 @@ void redhallmhd::updateTimeInc( stack& run ) {
       run.palette.reset("dt", dt);
 
     }
+
+    
+  if ( rank == 0 ) {
+
+//    std::cout << "dtvb = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dtvb << std::endl;
+//    std::cout << "dtr  = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dtr  << std::endl;
+    std::cout << "dt   = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dt   << std::endl;
+
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

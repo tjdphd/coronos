@@ -35,10 +35,10 @@
 #define HAVE_UNISTD_H 1
 
 /* Define to one if using long double precision */
-#define LD_PRECISION_H 1
+/* #undef LD_PRECISION_H */
 
 /* Define to one if using ordinary double precision */
-/* #undef OD_PRECISION_H */
+#define OD_PRECISION_H 1
 
 /* Name of package */
 #define PACKAGE "coronos"

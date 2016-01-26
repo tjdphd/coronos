@@ -24,7 +24,6 @@ stack::stack() : canvas::canvas() {
 
 stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
-
   init_stack_data();
 
   int srun;
@@ -408,6 +407,9 @@ std::string stack::getLastDataFilename(int srun) {
   std::string prefix;
   palette.fetch(   "prefix" , &prefix );
 
+  std::string run_label;
+  palette.fetch("run_label",  &run_label);
+
   int rank; 
   run_data.fetch(  "rank"   , &rank   );
   std::string rnk_str;
@@ -433,7 +435,8 @@ std::string stack::getLastDataFilename(int srun) {
 
   }
 
-  data_file         = prefix + "_" + res_str + "." + rnk_str + ".ots" + srn_str;
+//  data_file         = prefix + "_" + res_str + "." + rnk_str + ".ots" + srn_str;
+  data_file         = prefix + "_" + res_str + "." + rnk_str + ".o" + run_label + srn_str;
 
   return data_file;
 
@@ -463,7 +466,10 @@ void stack::writeParameters(int srun) {
   std::string res_str;
   stack_data.fetch("res_str", &res_str);
 
-  if (rank == 0) {palette.report(prefix + '_' + res_str, srun ); }
+  std::string run_label;
+  palette.fetch("run_label",  &run_label);
+
+  if (rank == 0) {palette.report(prefix + '_' + res_str, run_label, srun ); }
 
 }
 

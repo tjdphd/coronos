@@ -52,26 +52,33 @@ void lcsolve::Loop( stack& run ) {
     /* ~ iptest conditional goes here              ~ */
     /* ~ mv, mb, etc.... initialization goes here  ~ */
 
-    
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
-// if (rank == 0) {
-//   for( unsigned k = n1n2c; k < 5*n1n2c; ++k ) {
+//  if (rank == 3) {
+//     for( unsigned k = 4*n1n2c; k < 5*n1n2c; ++k ) {
 //
 //    if (abs(run.U0[k].real()) > 1.0e-10 ) {
-//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << run.U0[k].real() << std::endl;
+//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << run.U1[k].real() << std::endl;
+//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << run.U1[k].imag() << std::endl;
+//  std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << physics.A[k].real() << std::endl;
+//  std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << physics.A[k].imag() << std::endl;
 //    }
 //    else {
 //    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
 //   }
-// }
-//}
+//   }
+//  }
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
   passAdjacentLayers("predict", run );
+  physics.applyBC(   "predict", run );
   physics.updatePAJ( "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
-  physics.applyBC(              run );
+
+
+
+//  physics.applyBC(              run );
+//  physics.updatePAJ( "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
   setS(              "predict", run, physics );   /* ~ set predictor S's                                       ~ */
   setB(              "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
@@ -80,10 +87,16 @@ void lcsolve::Loop( stack& run ) {
 //    Step(              "predict", run );            /* ~ execute predictor update                                ~ */
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
   Step(              "predict", run, physics );            /* ~ execute predictor update                                ~ */
+
+
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+  physics.applyBC( "correct",   run );
+
 
   passAdjacentLayers("correct", run );
   physics.updatePAJ( "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
+
 
   setS(              "correct", run, physics );   /* ~ set corrector S's                                       ~ */
   setB(              "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
@@ -94,7 +107,15 @@ void lcsolve::Loop( stack& run ) {
   Step(              "correct", run, physics );            /* ~ execute corrector update                                ~ */
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
+
   run.palette.fetch("dt", &dt);
+
+// if ( rank == 0 ) {
+
+//    std::cout << "dt = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dt << std::endl;
+
+//  }
+
   t_cur       = t_cur + dt;
 
   physics.updateTimeInc(        run );
@@ -153,9 +174,11 @@ void lcsolve::Loop( stack& run ) {
 //       
   }
 
-  physics.updatePAJ(  "predict", run        );   /* ~ P, A, and J contain final corrector-updated values ~ */
-
+  physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values ~ */
+  physics.applyBC(    "predict", run         );
   physics.PfromO ( run );
+
+
   physics.fftw.fftwReverseAll( run );
 
   run.palette.reset(   "tstart", t_cur      );
@@ -495,6 +518,12 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P        ~ */
 
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
+  maxU[0]          = maxdU(         d1x, d1y, -1, iu2);          /* ~                                                    ~ */
+
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+
 
 if (str_step.compare("predict"     ) == 0) {
   partialsInXandY( run, physics, O, d2x, d2y);              /* ~ d2x, d2y hold real-space partials in x and y of O  ~ */
@@ -520,7 +549,9 @@ if (str_step.compare("predict"     ) == 0) {
 
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
-  maxU[0]          = maxdU(         d2x, d2y);              /* ~                                                    ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+//  maxU[0]          = maxdU(         d2x, d2y, -1, iu2);          /* ~                                                    ~ */
+/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tO,     d2x, d2y);         /* ~ d2x, d2y hold real-space partials in x and y of tO ~ */
@@ -562,7 +593,7 @@ if (model.compare("hall") == 0 ) {
 
    if (str_step.compare("predict"     ) == 0) {
      partialsInXandY( run, physics, Z, d2x, d2y);           /* ~ d2x, d2y hold real-space partials in x and y of Z  ~ */
-     maxU[2]       = maxdU(        d2x, d2y);               /* ~                                                    ~ */
+     maxU[2]       = maxdU(        d2x, d2y, -1, iu2);      /* ~                                                    ~ */
    }
    else if (str_step.compare("correct") == 0) {
      partialsInXandY( run, physics, tZ, d2x, d2y);          /* ~ d2x, d2y hold real-space partials in x and y of tZ ~ */
@@ -618,7 +649,7 @@ if (str_step.compare("predict"     ) == 0) {
 /* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 
-  maxU[1]          = maxdU(         d3x, d3y);            /* ~                                                         ~ */
+  maxU[1]          = maxdU(         d3x, d3y, 1, iu2);    /* ~                                                         ~ */
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tH, d3x, d3y);           /* ~ d3x, d3y hold real-space partials in x and y of tH        ~ */
@@ -679,7 +710,7 @@ if (model.compare("hall") == 0 ) {
 
   if (str_step.compare("predict"     ) == 0) {
     partialsInXandY( run, physics, V, d3x, d3y);             /* ~ d3x, d3y hold real-space partials in x and y of V          ~ */
-    maxU[3]        = maxdU(             d3x, d3y);           /* ~                                                            ~ */
+    maxU[3]        = maxdU(             d3x, d3y, 1, iu2);   /* ~                                                            ~ */
   }
   else if (str_step.compare("correct") == 0) {
     partialsInXandY( run, physics, tV, d3x, d3y);            /* ~ d3x, d3y hold real-space partials in x and y of tV         ~ */
@@ -1145,20 +1176,37 @@ void lcsolve::bracket( stack& run, redhallmhd& physics, ComplexArray& BrKt, Real
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-RealVar lcsolve::maxdU( RealArray& dx, RealArray& dy) {
+RealVar lcsolve::maxdU( RealArray& dx, RealArray& dy, int i_grid, int i_layers) {
 
   unsigned dsize   = dx.capacity();
+  unsigned k_size, k_start, k_stop;
+  unsigned n3;
+
+  k_size           = dsize / i_layers;                               // should equal n1n2 (4096)
+  n3               =  i_layers - 2;                                  // should equal n3 (4)
+  
+  if ( i_grid == - 1)    {    k_start = 0;   }                       // lower grid
+  else if ( i_grid == 1) { k_start = k_size; }                       // upper grid
+  else {
+         std::cout << "maxdU: ERROR - invalid grid" << std::endl; 
+         k_start   =  dsize;
+       }                                                             // error
+
+  k_stop  = k_start + (n3 + 1) * k_size;
 
   RealVar test     = 0;
   RealVar max      = 0;
 
-   for (unsigned k = 0; k< dsize; k++ ) {
+   for (unsigned k = k_start; k < k_stop; k++ ) {
 
      test          = ((dx[k] * dx[k]) + (dy[k] * dy[k]));
+
      if ( test > max ) { max = test; }
+
   }
 
   return max;
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1285,25 +1333,31 @@ void lcsolve::Step( std::string str_step, stack& run, redhallmhd& physics ) {
 //       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 //       int n1n2;
 //       run.stack_data.fetch( "n1n2" ,&n1n2  );
+////       int n1n2c;
+////       run.stack_data.fetch( "n1n2c" ,&n1n2c  );
 //
-//       if (rank == 0 &&  str_step.compare("predict") == 0) { 
+//       if (rank == 3 &&  str_step.compare("correct") == 0) {
 //
-//        unsigned dsize = tU1.capacity();
-//        RealArray U_tmp(dsize, zero);
-//        physics.fftw.fftwReverseRaw( run, tU1, U_tmp);
-//        for (unsigned k = 1*n1n2; k < 2*n1n2; ++k) {
+//        unsigned dsize   = tU0.capacity();
+//        unsigned dsize_p = U0.capacity();
+//
+//        assert(dsize_p == dsize);
+//
+//        RealArray RU_tmp(n1n2*iu2, zero);
+//        physics.fftw.fftwReverseRaw( run, tU0, RU_tmp);
+//
+//        for (unsigned k = 4*n1n2; k < 5*n1n2; ++k) {
 //      
-//            if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
-//          if (abs(U_tmp[k]) > 1.0e-10) {
-//          std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << U_tmp[k] << std::endl;
+//          if (abs(RU_tmp[k]) > 1.0e-15) {
+//          std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << RU_tmp[k] << std::endl;
 //          }
 //          else {
-//          std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << zero  << std::endl;
+//          std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
 //          }
 //      
 //        }
 //      
-//        physics.fftw.fftwForwardRaw( run, U_tmp, tU1);
+//        physics.fftw.fftwForwardRaw( run, RU_tmp, tU0);
 //      
 //      }
 

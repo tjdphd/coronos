@@ -59,7 +59,7 @@ class redhallmhd
   void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
 
   void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
-  void applyLineTiedBC(                 stack& run );                 /* ~ pbot and p(:,n3) set to zero              ~ */
+  void applyLineTiedBC( std::string str_step, stack& run );                 /* ~ pbot and p(:,n3) set to zero              ~ */
 
 //  void finalizeFootPointDriving(        stack& run, lcsolve& solve);  /* ~                                         ~ */
 
@@ -76,7 +76,7 @@ class redhallmhd
   RealArray maxU;                                                     /* ~ for time-step determination          ~ */
 
   void updatePAJ( std::string str_step, stack& run );
-  void applyBC(                         stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
+  void applyBC(   std::string str_step, stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
   void updateTimeInc(                   stack& run                );
 //  void writeUData(                      stack& run);
   void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */

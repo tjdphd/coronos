@@ -145,24 +145,28 @@ void fft::fftwKInit(stack& run) {               /* ~ initialize the wave number 
 
 /* ~ save for debugging ~ */
 
-//int rank;
-//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+int rank;
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
  
-//if (rank == 0) {
- 
-//  std::cout << "kx: " << std::endl << std::endl;
- 
-//  for (int i = 0; i < n1; ++i) {
-//    for (int j = 0; j < n1/2 + 1; ++j) {
- 
-//      ndx = (i * n2h) + j;
-//      std::cout << "kx[" << i << "," << j << "] = "
-//      std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << kx[ndx]/two_pi << std::endl;
- 
-//    }
-//  }
-//}
-  
+// if (rank == 0) {
+//  
+// //  std::cout << "kx: " << std::endl << std::endl;
+//  
+//   for (int i = 0; i < n1; ++i) {
+//     for (int j = 0; j < n1/2 + 1; ++j) {
+//  
+//       ndx = (i * n2h) + j;
+//       std::cout << "kx[" << std::setw(2) << i << "," << std::setw(2) << j << "] = ";
+//       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << kx[ndx]/two_pi << " ";
+//       std::cout << "ky[" << std::setw(2) << i << "," << std::setw(2) << j << "] = ";
+//       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << ky[ndx]/two_pi << " ";
+//       std::cout << "k2[" << std::setw(2) << i << "," << std::setw(2) << j << "] = ";
+//       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << k2[ndx]/two_pi << " ";
+//       std::cout << std::endl;
+//  
+//     }
+//   }
+// }
 
 /* ~ save for debugging ~ */
 
@@ -293,14 +297,33 @@ void fft::fftwForwardAll( stack& run ) {
 
       for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = zero; }
       for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = U[k][i_l][i_f]; }
-//      for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (std::complex<long double>) zero; }
-      for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (ComplexVar) zero;}
+//    for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (std::complex<long double>) zero; }
+//    for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (ComplexVar) zero;}
+
 
 #ifdef LD_PRECISION_H
       fftwl_execute(p_lay_for);
 #elif defined OD_PRECISION_H
       fftw_execute(p_lay_for);
 #endif
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+//      int rank;
+//      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//      if (rank == 3) {
+
+//        if ( i_f == 0 && i_l == 4) {
+//          for (unsigned k = 0; k < n1n2c; k++) {
+
+//  std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << cplx_out[k].imag() << std::endl;
+
+//          }
+//        }
+//      }
+ 
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
 
       strt_idx = i_l * nc;
 
@@ -595,10 +618,10 @@ void fft::fftwReverseIC(ComplexArray& Cin, RealArray& Rout ) {
     RealVar scale      = ((RealVar) (n1n2));
     RealVar one_ov_scl = one / scale;
 
-  for (unsigned k = 0 ; k < n1n2c; k++) {cplx_in[k]  = czero; }
-  for (unsigned k = 0 ; k < n1n2 ; k++) {r_out[k]    =  zero; }
-  for (unsigned k = 0 ; k < n1n2c; k++) {cplx_in[k]  = Cin[k];}
-//  for (unsigned k = 0 ; k < n1n2c; k++) {cplx_in[k]  = scale*Cin[k];}
+  for (unsigned k = 0 ; k < n1n2c; k++) { cplx_in[k]  = czero;        }
+  for (unsigned k = 0 ; k < n1n2 ; k++) { r_out[k]    = zero;         }
+  for (unsigned k = 0 ; k < n1n2c; k++) { cplx_in[k]  = Cin[k];       }
+//  for (unsigned k = 0 ; k < n1n2c; k++) { cplx_in[k]  = scale*Cin[k]; }
 
 #ifdef LD_PRECISION_H
   fftwl_execute(p_lay_rev);

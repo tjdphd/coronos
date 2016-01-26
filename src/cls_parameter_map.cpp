@@ -287,7 +287,7 @@ bool parameter_map::fetch(std::string par_name, bool        *val) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void parameter_map::report(std::string out_file_prefix, int srun) {
+void parameter_map::report(std::string out_file_prefix, std::string out_file_run_label, int srun) {
 
      std::map<std::string, parameter>::iterator it;
 
@@ -339,7 +339,8 @@ void parameter_map::report(std::string out_file_prefix, int srun) {
      default : ;
 
      }
-     std::string    out_file               = out_file_prefix + "." + str_rank + ".ots" + str_srun;
+//     std::string    out_file               = out_file_prefix + "." + str_rank + ".ots" + str_srun;
+     std::string    out_file               = out_file_prefix + "." + str_rank + ".o" + out_file_run_label + str_srun;
      const char    *c_str_out_file         = out_file.c_str();
      std::fstream   ofs;
 

@@ -69,7 +69,7 @@ class parameter_map
   /* ~ reporting     ~ */
 
   void report(std::string out_file                 );
-  void report(std::string out_file_prefix, int srun);
+  void report(std::string out_file_prefix, std::string out_file_run_label, int srun);
 
   /* ~ Destructor (not implemented) ~ */
 

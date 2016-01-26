@@ -76,7 +76,7 @@ class lcsolve
    void partialsInXandY(stack& run, redhallmhd& physics, ComplexArray& U, RealArray& Ux, RealArray& Uy);
    void bracket( stack& run, redhallmhd& physics, ComplexArray& BrKt, RealArray& dx1, RealArray& dy1, RealArray& dx2, RealArray& dy2);
 
-   RealVar maxdU(RealArray& dx, RealArray&  dy);
+   RealVar maxdU(RealArray& dx, RealArray&  dy, int i_grid, int i_layers);
    void averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, RealArray&  dy);
 
 #endif
