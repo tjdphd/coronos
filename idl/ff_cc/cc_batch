@@ -3,4 +3,4 @@
 .run fetch_layer.pro
 .run max_diff.pro
 .run cross_check.pro
-cross_check, 'p', 0, 100, 1, 16 , '64_16', 'cr', 'ts', 1.00e-14
+cross_check, 'a', 0, 10, 1, 16 , '64_16', 'cr', 'ts', 1.00e-06

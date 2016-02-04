@@ -38,10 +38,9 @@ void fft::fftwInitialize( stack& run ) {
   cplx_out  = (ComplexVar *) fftw_malloc(sizeof(ComplexVar) * nc_out );
   p_lay_for = fftw_plan_dft_r2c_2d(n1, n2, r_in, reinterpret_cast<fftw_complex*>(cplx_out), FFTW_MEASURE);
 #endif
-//  cplx_out  = (std::complex<long double> *) fftwl_malloc(sizeof(std::complex<long double>) * nc_out );
-//  p_lay_for = fftwl_plan_dft_r2c_2d(n1, n2, r_in, reinterpret_cast<fftwl_complex*>(cplx_out), FFTW_MEASURE);
 
-//  /* ~ Reverse field/layer transforms: ~ */
+/* ~ Reverse field/layer transforms: ~ */
+
 #ifdef LD_PRECISION_H
   cplx_in   = (ComplexVar *) fftwl_malloc(sizeof(ComplexVar) * nc_out );
   r_out     = (RealVar *)    fftwl_malloc(sizeof(RealVar)    * nr_in  );
@@ -51,10 +50,6 @@ void fft::fftwInitialize( stack& run ) {
   r_out     = (RealVar *)    fftw_malloc(sizeof(RealVar)    * nr_in  );
   p_lay_rev = fftw_plan_dft_c2r_2d(n1, n2, reinterpret_cast<fftw_complex*>(cplx_in), r_out, FFTW_MEASURE);
 #endif
-
-//  cplx_in   = (std::complex<long double> *) fftwl_malloc(sizeof(std::complex<long double>) * nc_out );
-//  r_out     = (long double *)               fftwl_malloc(sizeof(long double)               * nr_in  );
-//  p_lay_rev = fftwl_plan_dft_c2r_2d(n1, n2, reinterpret_cast<fftwl_complex*>(cplx_in), r_out, FFTW_MEASURE);
 
 }
 
@@ -142,34 +137,6 @@ void fft::fftwKInit(stack& run) {               /* ~ initialize the wave number 
 
     }
   }
-
-/* ~ save for debugging ~ */
-
-int rank;
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
- 
-// if (rank == 0) {
-//  
-// //  std::cout << "kx: " << std::endl << std::endl;
-//  
-//   for (int i = 0; i < n1; ++i) {
-//     for (int j = 0; j < n1/2 + 1; ++j) {
-//  
-//       ndx = (i * n2h) + j;
-//       std::cout << "kx[" << std::setw(2) << i << "," << std::setw(2) << j << "] = ";
-//       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << kx[ndx]/two_pi << " ";
-//       std::cout << "ky[" << std::setw(2) << i << "," << std::setw(2) << j << "] = ";
-//       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << ky[ndx]/two_pi << " ";
-//       std::cout << "k2[" << std::setw(2) << i << "," << std::setw(2) << j << "] = ";
-//       std::cout << std::setw(10) << std::right << std::setprecision(4) << std::scientific << k2[ndx]/two_pi << " ";
-//       std::cout << std::endl;
-//  
-//     }
-//   }
-// }
-
-/* ~ save for debugging ~ */
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -219,13 +186,6 @@ void fft::fftwrtInit(stack& run) {             /* ~ initialize de-aliasing array
 
   RealVar threshold = two_thirds * k_max;
 
-//  std::cout << "rtInit: kx_max  = "   << kx_max /two_pi    << std::endl;
-//  std::cout << "rtInit: ky_max  = "   << ky_max /two_pi    << std::endl;
-//  std::cout << "rtInit: k_max   = "   << k_max /two_pi     << std::endl;
-//  std::cout << "rtInit: threshold = " << threshold /two_pi << std::endl;
-
-//; std::cout << "rtInit: threshold = " << threshold / (two_pi*two_pi) << std::endl;
-
   rt.reserve(nc);                                /* ~ create space in rt                        ~ */
 
   RealArray::size_type ndx;
@@ -262,6 +222,7 @@ void fft::fftwrtFree() {
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 void fft::fftwForwardAll( stack& run ) {
 
   InputOutputArray& U = run.U;               /* ~ raw input array                         ~ */
@@ -270,8 +231,6 @@ void fft::fftwForwardAll( stack& run ) {
   ComplexArray& U1 = run.U1;
   ComplexArray& U2 = run.U2;
   ComplexArray& U3 = run.U3;
-
-//  RealArray&    rt = run.rt;
 
   int n1; 
   run.stack_data.fetch("n1"   , &n1      );
@@ -297,33 +256,12 @@ void fft::fftwForwardAll( stack& run ) {
 
       for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = zero; }
       for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = U[k][i_l][i_f]; }
-//    for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (std::complex<long double>) zero; }
-//    for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (ComplexVar) zero;}
-
 
 #ifdef LD_PRECISION_H
       fftwl_execute(p_lay_for);
 #elif defined OD_PRECISION_H
       fftw_execute(p_lay_for);
 #endif
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
-//      int rank;
-//      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//      if (rank == 3) {
-
-//        if ( i_f == 0 && i_l == 4) {
-//          for (unsigned k = 0; k < n1n2c; k++) {
-
-//  std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << cplx_out[k].imag() << std::endl;
-
-//          }
-//        }
-//      }
- 
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
 
       strt_idx = i_l * nc;
 
@@ -371,8 +309,6 @@ void fft::fftwReverseAll( stack& run ) {
 
   ComplexArray::size_type nc = n1n2c;
 
-//  double scale = (double) one/((double) (n1n2));
-  
   unsigned strt_idx;
 
   for (int i_f = 0; i_f < n_flds; i_f++)  {
@@ -380,7 +316,6 @@ void fft::fftwReverseAll( stack& run ) {
       
       strt_idx = (i_l * nc);
 
-//    for (unsigned   k = 0; k < nc; k++) { cplx_in[k] = (std::complex<long double>) zero; }
       for (unsigned   k = 0; k < nc; k++) { cplx_in[k] = (ComplexVar) zero; }
       switch(i_f) {
       case(0) :
@@ -404,7 +339,6 @@ void fft::fftwReverseAll( stack& run ) {
       fftw_execute(p_lay_rev);
 #endif
 
-//      for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] = (scale * r_out[k]); }
       for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] =  r_out[k]; }
 
     }
@@ -421,8 +355,6 @@ void fft::fftwForwardLayerofField ( stack& run, int i_l, int i_f ) {
   ComplexArray& U1 = run.U1;
   ComplexArray& U2 = run.U2;
   ComplexArray& U3 = run.U3;
-
-//  RealArray&    rt = run.rt;
 
   int n1; 
   run.stack_data.fetch("n1"   , &n1      );
@@ -443,7 +375,6 @@ void fft::fftwForwardLayerofField ( stack& run, int i_l, int i_f ) {
 
   for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = zero; }
   for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = U[k][i_l][i_f]; }
-//  for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (std::complex<long double>) zero; }
   for (unsigned k = 0; k < nc;   k++) { cplx_out[k] = (ComplexVar) zero; }
 
 #ifdef LD_PRECISION_H
@@ -496,8 +427,6 @@ void fft::fftwReverseLayerofField ( stack& run, int i_l, int i_f) {
 
   ComplexArray::size_type nc = n1n2c;
 
-//  double scale      = (double) one/((double) (n1n2));
-  
   unsigned strt_idx = (i_l * nc);
 
   for (unsigned   k = 0; k < nc; k++) { cplx_in[k] = czero; }
@@ -517,21 +446,19 @@ void fft::fftwReverseLayerofField ( stack& run, int i_l, int i_f) {
   }
 
   for (int k = 0; k < n1n2; k++) { r_out[k] = zero; }
+
 #ifdef LD_PRECISION_H
   fftwl_execute(p_lay_rev);
 #elif defined OD_PRECISION_H
   fftw_execute(p_lay_rev);
 #endif
 
-//  for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] = (scale * r_out[k]); }
   for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] = r_out[k]; }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void fft::fftwForwardRaw( stack& run, RealArray& Rin, ComplexArray& Cout) {
-
-//  RealArray& rt = run.rt;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c   );
@@ -575,8 +502,6 @@ void fft::fftwReverseRaw( stack& run, ComplexArray& Cin, RealArray& Rout) {
   int iu2;
   run.stack_data.fetch("iu2"  , &iu2     );
 
-//  double scale        = (double) one/((double) (n1n2));
-  
   unsigned c_strt_idx = 0;
   unsigned r_strt_idx = 0;
 
@@ -588,13 +513,13 @@ void fft::fftwReverseRaw( stack& run, ComplexArray& Cin, RealArray& Rout) {
   for (unsigned k     = 0 ; k < n1n2c; k++) { cplx_in[k]           = czero;               }
   for (unsigned k     = 0 ; k < n1n2 ; k++) { r_out[k]             =  zero;               }
   for (unsigned k     = 0 ; k < n1n2c; k++) { cplx_in[k]           = Cin[c_strt_idx + k]; }
+
 #ifdef LD_PRECISION_H
   fftwl_execute(p_lay_rev);
 #elif defined OD_PRECISION_H
   fftw_execute(p_lay_rev);
 #endif
 
-//  for (unsigned k     = 0 ; k < n1n2 ; k++) { Rout[r_strt_idx + k] = (scale * r_out[k]);  }
   for (unsigned k     = 0 ; k < n1n2 ; k++) { Rout[r_strt_idx + k] = r_out[k];  }
   
   }
@@ -614,23 +539,19 @@ void fft::fftwReverseIC(ComplexArray& Cin, RealArray& Rout ) {
 
   assert(n1n2    != 0);
 
-//  double scale    = (double) one/((double) (n1n2));
     RealVar scale      = ((RealVar) (n1n2));
     RealVar one_ov_scl = one / scale;
 
   for (unsigned k = 0 ; k < n1n2c; k++) { cplx_in[k]  = czero;        }
   for (unsigned k = 0 ; k < n1n2 ; k++) { r_out[k]    = zero;         }
   for (unsigned k = 0 ; k < n1n2c; k++) { cplx_in[k]  = Cin[k];       }
-//  for (unsigned k = 0 ; k < n1n2c; k++) { cplx_in[k]  = scale*Cin[k]; }
 
 #ifdef LD_PRECISION_H
   fftwl_execute(p_lay_rev);
 #elif defined OD_PRECISION_H
   fftw_execute(p_lay_rev);
 #endif
-//  for (unsigned k = 0 ; k < n1n2 ; k++) {Rout[k]     = (one_ov_scl * r_out[k]);}
 
-//  for (unsigned k = 0 ; k < n1n2 ; k++) {Rout[k]     = (scale * r_out[k]);}
   for (unsigned k = 0 ; k < n1n2 ; k++) {Rout[k]     = (r_out[k]);}
 
 }
@@ -638,9 +559,6 @@ void fft::fftwReverseIC(ComplexArray& Cin, RealArray& Rout ) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void fft::fftwForwardIC( RealArray& Rin, ComplexArray& Cout) {
-
-
-/* note: this can't be de-aliased because run is missing from argument list */
 
   int n1n2c;
   n1n2c           = Cout.size();
@@ -651,12 +569,13 @@ void fft::fftwForwardIC( RealArray& Rin, ComplexArray& Cout) {
   for (unsigned k = 0 ; k < n1n2 ; k++) {r_in[k]     =  zero;       }
   for (unsigned k = 0 ; k < n1n2c; k++) {cplx_out[k] = czero;       }
   for (unsigned k = 0 ; k < n1n2 ; k++) {r_in[k]     = Rin[k];      }
+
 #ifdef LD_PRECISION_H
   fftwl_execute(p_lay_for);
 #elif defined OD_PRECISION_H
   fftw_execute(p_lay_for);
 #endif
-//  for (unsigned k = 0 ; k < n1n2c; k++) {Cout[k]     = cplx_out[k]; }
+
   for (unsigned k = 0 ; k < n1n2c; k++) {Cout[k]     = scale * cplx_out[k]*rt[k]; }
 
 }

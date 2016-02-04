@@ -22,9 +22,6 @@ canvas::canvas() {
 
 canvas::canvas(std::string coronos_in) {
 
-  std::cout << "creating canvas"  << endl;
-  std::cout << "reading: "        << coronos_in << endl;
-
   parameter_map cv_map(coronos_in);
 
   palette = cv_map;

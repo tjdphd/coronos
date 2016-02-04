@@ -14,7 +14,6 @@
 
 run_instance::run_instance() {
 
-  std::cout << "creating run instance" << std::endl;
   int is_init;
   int mpi_stat;
 

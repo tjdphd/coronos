@@ -25,9 +25,7 @@
 #include<iomanip>
 
 #ifdef HAVE_CUDA_H
-
-#include "cls_lcsolve_cuda_ext.hpp"
-
+  #include "cls_lcsolve_cuda_ext.hpp"
 #endif
 
 using namespace constants;
@@ -38,7 +36,6 @@ class lcsolve
    private:
 
 #ifndef HAVE_CUDA_H
-
 
    RealArray    SE0; /* ~ same for different layers of U's      ~ */
    RealArray    SE1;
@@ -79,26 +76,23 @@ class lcsolve
    RealVar maxdU(RealArray& dx, RealArray&  dy, int i_grid, int i_layers);
    void averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, RealArray&  dy);
 
+
+   void Step( std::string str_step, stack& run );
+
 #endif
 
-
-//   void Step( std::string str_step, stack& run );
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
- void Step( std::string str_step, stack& run, redhallmhd& physics );
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-     
    public:
 
 // lcsolve();                                    /* ~ Constructors                         ~ */
 
    lcsolve( stack& run );
 
-   void Loop(      stack& run );                /* ~ stepping and such                     ~ */
+#ifndef HAVE_CUDA_H
 
+   void Loop(      stack& run );                /* ~ stepping and such                     ~ */
    void passAdjacentLayers( std::string str_step, stack& run);
+
+#endif
 
    ~lcsolve();                                   /* ~ Destructor                           ~ */
 

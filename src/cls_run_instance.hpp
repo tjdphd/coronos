@@ -16,9 +16,6 @@
  #include <ctime>
  #include <unistd.h>
 
-// #include "mpi.h"
-// #include <stdlib.h>
-//
  #ifdef HAVE_CUDA_H
    #include "cls_run_instance_cuda_ext.hpp"
  #endif

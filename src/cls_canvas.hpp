@@ -16,6 +16,10 @@
 
 #include "cls_run_instance.hpp"
 
+#ifdef HAVE_CUDA_H
+  #include "cls_canvas_cuda_ext.hpp"
+#endif
+
 class canvas : public run_instance
 {
    private:

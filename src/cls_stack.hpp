@@ -17,6 +17,10 @@
 #include "cls_canvas.hpp"
 #include "mpi.h"
 
+#ifdef HAVE_CUDA_H
+  #include "cls_stack_cuda_ext.hpp"
+#endif
+
 using namespace constants;
 
 class stack : public canvas
@@ -33,7 +37,8 @@ class stack : public canvas
 
   parameter_map stack_data;
 
-  InputOutputArray U;                         /* ~ raw input array                         ~ */
+  InputOutputArray U;                         /* ~ raw input/output array                  ~ */
+  InputOutputArray AUX;                       /* ~ raw output array for auxiliary fields   ~ */
 
   RealArray x;                                /* ~ For holding x-coordinates               ~ */
   RealArray y;                                /* ~ For holding y-coordinates               ~ */
@@ -41,6 +46,10 @@ class stack : public canvas
 
   void   allocUi();                           /* ~ Allocators/De-allocators                ~ */
   void deallocUi();
+
+  void   allocAUX();                          /* ~ Allocators/De-allocators                ~ */
+  void deallocAUX();
+
   void     zeroU();                           /* ~ a convenience function                  ~ */
 
 #ifndef HAVE_CUDA_H
@@ -62,7 +71,11 @@ class stack : public canvas
 
 #endif
 
+  void initAUX();                             /* ~ for containing auxiliary field data     ~ */
+
   void writeUData();                          /* ~ Input/Output                            ~ */
+
+
   std::string getLastDataFilename(int srun);
   std::string getNextDataFilename();
   void writeParameters();

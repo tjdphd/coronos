@@ -1,135 +1,54 @@
 
-0.) At this point it's time to start doing some scut work in more or less the following order. 
+LAST UPDATED: 26 January 2016
 
+0.) Scut work ( Low Priority )
 
-    Been working my way out of some confusion regarding initial conditions. The current
-    problem is that while restarts seem to work and the code "behaves" it doesn't seem
-    to evolve much and I'm not clear why. I'm afraid though that I have been comparing apples
-    and oranges up to know because of the IC problems. So first one more multi-subrun test
-    and if that doesn't pan out I'll have to go through step-by-step.
+    a.) beautification
 
-    a.) generate a magnetic reconnection test-case with rmct2_np at a resolution of 64 X 16.
-        Figure out how far you need to go in order to see the system evolve and relax.
-        Then do a high cadence run to get a cts-animation. This means you have to get cts up
-        and running again.
-
-    b.) In the meantime I need to start working on a job-chain script for coronos for testing
-        purposes. But this means I should probably cut the rmc2_np umbilical so to speak. 
-        I.e. coronos needs its own way of naming data files and its version of tomo etc. 
-        Question: do I really need to do this before the job-chain business? Maybe not. 
-
-        Notes: have made a lot of progress on this but there are some issues:
-
-        i.) I want to revise things so that coronos.in is reported to <prefix>_<res_label>.00.o<desc_label><srun>
-            as soon as it's read. Then, after the end of the run and parameters have been adjusted
-            I want coronos.in over-written with the new values in the palette. This way each
-            sub-run knows what file to read and gets the correct information and the original coronos.in
-            is still preserved.
-
-            TENTATIVELY RESOLVED*
-
-        ii.)One problem with i: Currently for one-time adjustable parameters like srun,
-            resetting srun changes sfx to sfa as a precaution against multiple resets.
-            However this shows up in the output of report and will be read at the beginning
-            of the next sub-run making it impossible for that sub-run to adjust the value 
-            again. I have to do something about this.
-
-            RESOLVED
-
-         iii.) job-chain/restarts are mostly done, but there's one problem: there's something
-               wrong with readUData/writeUdata. Because writeUData seems to work when comparing
-               with rmct2_np I think the problem is with the read. In any case, if I start with
-               data and use the from_data initMode, and then rewrite the UData after the read
-               the results don't match. This obviously a problem for restarts since in that
-               case I'm depending on the read to get the last sub-run data frame into U
-               correctly. This is TOP PRIORITY.
-
-               I think I've figure this out: two things - I'm not writing the initial conditions
-               until after applying the linear envelope. This was fooling me into thinking that
-               the read was bad. The read is good its just that I'm comparing unmodified
-               data to modified data. It's fair to say that the application of ilnr is probably
-               never likely to be wanted when reading data. This is an easy fix.
-
-               The other thing is that double precision in C++ appears to be good only out to
-               approximately 15 decimal places. When it's not 15 it's 14. So even when
-               ilnr is set to 0 I still get small differences. I don't like this, but what can
-               I do? Go to long doubles?
-
-               RESOLVED (up to those small ~10^-14 inconsistencies)
-   
-        NOTE: just one "last" job-chain issue - right now I'm not building archiving pbs
-              scripts, but these need to be mocked up at least so that I can put in the
-              qsub lines for the next sub-run job. Then I'll have a job-chain going -though
-              no archiving until I get around to building the archiving script.
-
-
-    c.) I have to make a decision about how fields are going to be stored. Currently
-        rmct2_np puts the vorticity and the current in the 3rd and 4th fields of the record
-        respectively, but fourfields puts  Z and V_z there. This is a confict which effects
-        the operations of IDL scripts. I have to resolve this for the future somehow.
-        Seems to me that since both versions generate vorticity and current
-        information, these should have priority. On the other hand, this is going to effect
-        restarts when doing RHMHD so this must be taken into account.
-        Should I make U big enough to hold every damn thing? I suppose I could start by 
-        adding on Vorticity.
-
-    d.) There's a lot of commented out crap in various places in the files, would be nice to
-        get rid of it.
-
-    e.) I'd really like to disassociate fftw from physics. Seems to me the only way to do this
+    b.) I'd really like to disassociate fftw from physics. Seems to me the only way to do this
         is to turn fftw into a namespace instead of a class which physics and solve can "use."
         I feel like I tried something like this once before and ran into trouble though, so
         I'm not sure...
 
+    c.) rename redhallmhd to rhmhd.
 
+    d.) simplication (ie elimination of run_instance in favor of just a canvas with stack)
 
-   
-    added in a PfromO call at the end of the loop so that P is what gets recorded 
-    when writeUData is called. Also, I'd forgotten to to fftwReverseAll which resulted
-    in writeUData recording the initial conditions instead of the updated results. 
-    This means that my previous claim that the time-stepping was working was actually
-    erroneous in the sense that I was comparing the wrong numbers. But as it turns out
-    it still works out so far as  I can tell.
+1.) Priority Development Work
 
-    However, as I increase ndt things start to diverge - though the manner in which they
-    diverge is not necessarily a bad thing. It seems like rmct2_np is starting to go
-    unstable, while coronos is evolving more slowly but at least looks stable. So maybe
-    I've improved things. Here are some things to try next:
+    a.) start documentation
+    b.) upload to github
+    c.) complete CPU RMHD reproduction including:
 
-    a.) consider running rmct2_np and coronos at the same resolution but with larger eta and nu.
-        see if rmct2_np appears more stable, and make the usual comparisions.
+        i.) Longcope boundary conditions (based on LiWei's cuda port)
+       ii.) energy, evsz, spectral et al calculations
+      iii.) recording of vorticity and current density in output
+       iv.) Parker heating test
 
-        Note: think I may be on to something here. when double eta and nu for rmct2_np
-              the results look more stable/symmetric.
+    d.) CPU Hall RMHD including:
 
-    b.) get restarts going on coronos, and get some kind of job-chain script going as well.
-        In this way get coronos to go through several sub-runs to watch the evolution.
-        compare with rmct2_np.
+        i.) double check current infrastructure
+       ii.) update electron inertia portion to reflect correction
+      iii.) compare runs neglecting electron inertia against CPU "fourfield" code.
 
-        Note: as of this writing, this isn't happening. Something is wrong with readUData.
-        I suspect it has to do with scaling after the forward FFTW.
+    e.) commence gpu implementation where possible given progress on other fronts.
 
-    c.) start looking at somewhat higher resolutions. 64_16 in particular.
+    f.) profiling / optimizing
+ 
+    g.) portability to other platforms
 
-    d.) depending on how these things turn out you may have to spend more time going 
-        step-by-step through the algorithm to check on intermediate quantities.
-   
+2.) Related priority Theoretical Work
 
+    a.) Reproduce Hazeltine 85 and 87 (and 86 if necessary).
+    b.) Use results of a to check current form of four-field model
+    c.) check model against Morrison(?) 2010.
 
-1.) Review everything
+3.) Wish List
 
-    notes: have gotten to the point where I can get initial conditions correctly whether using
-           the calculated mode or the "programmed" mode. Other modes should be disposed of
-           and the remaining modes renamed to more intelligent choices.
-
-2.) test kInit. make sure it behaves like rmct2_np for the k's
-
-3.) rename redhallmhd to rhmhd.
-
-4.) simplication (ie elimination of run_instance and canvas in favor of just a stack)
-
-5.) gpu implementation
-
-
-
-
+    a.) (non-?)optional Binary - possibly hdf5 output for all data.
+    b.) more comprehensive output such as B-field components etc
+    c.) the option to output datafiles without having to compete a run first
+    d.) an IDL widget application analogous to what I've put together for 
+        the hybrid code.
+    e.) possible provisions for other graphical post-processing options, particularly
+        with Vapor(?) in mind.

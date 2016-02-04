@@ -12,7 +12,7 @@ FUNCTION fetch_layer, layer, step, label
     PRINT, "fetch_layer: ERROR - cannot open file for layer ", layer, " of step ", step
     A             = DBLARR(1,1)
   ENDIF ELSE BEGIN
-    PRINT, "fetch_layer: opening file ", datafile, "..."
+;   PRINT, "fetch_layer: opening file ", datafile, "..."
     IF (STRMATCH(datafile, '*.gz', /FOLD_CASE) EQ 1) THEN BEGIN
       OPENR, data_unit, datafile, /COMPRESS, /GET_LUN, ERROR = op_err
       n_lines     = FILE_LINES(datafile, /COMPRESS)

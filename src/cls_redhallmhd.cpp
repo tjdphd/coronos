@@ -24,13 +24,13 @@
 
 redhallmhd::redhallmhd() {
 
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 redhallmhd::redhallmhd(stack& run ) {
 
+#ifndef HAVE_CUDA_H
     init_physics_data( run       );    /* ~ physics - specific parameters              ~ */
     initU(             run       );    /* ~ initialization of layers 1 - n3 of U       ~ */
 
@@ -48,9 +48,12 @@ redhallmhd::redhallmhd(stack& run ) {
   initialize(        run         );   /* ~ not a good name, I'll probably revise this  ~ */
                                       /* ~ it might be to let initialize do everything ~ */
                                       /* ~ here or, alternatively to do away with it   ~ */
+#endif
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#ifndef HAVE_CUDA_H
 
 void redhallmhd::initTimeInc( stack& run ){
 
@@ -72,55 +75,6 @@ void redhallmhd::initU( stack& run ) {
   fftw.fftwInitialize( run );
 
   MPI_Barrier(MPI_COMM_WORLD);
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  RealArray& kx = run.kx;
-//  RealArray& ky = run.ky;
-//  RealArray& k2 = run.k2;
-//  RealArray& rt = fftw.rt;
-//
-//  int rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//
-//  if (rank == 0) {
-//
-//  int n1;                                        /* ~ number of coordinates in x                               ~ */
-//  run.stack_data.fetch("n1",    &n1);
-//  int n2; 
-//  run.stack_data.fetch("n2",    &n2);                /* ~ number of coordinates in y                               ~ */
-//  int n2h    = (((int)(half*n2)) + 1);
-//  int ndx;
-//
-//   std::cout << "kx: " << std::endl << std::endl;
-//
-//    for (int i = 0; i < n1; ++i) {
-//      for (int j = 0; j < n2/2 + 1; ++j) {
-// 
-//        ndx = (i * n2h) + j;
-//        if (rt[ndx] == zero){
-//
-//          std::cout << std::setw(3)  << std::right  << "kx(" << std::setw(4) << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std::right  << j     << std::setw(4) << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << kx[ndx]/two_pi << " ";
-//
-//          std::cout << std::setw(3)  << std::right  << "ky(" << std::setw(4) << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std:: right << j     << std::setw(4) << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << ky[ndx]/two_pi << " ";
-//
-//          std::cout << std::setw(3)  << std::right << "k2(" << std::setw(4)  << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << k2[ndx]/(two_pi*two_pi) << " ";
-//
-//          std::cout << std::setw(3)  << std::right << "rt(" << std::setw(4)  << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << rt[ndx] << std::endl;
-//       }
-// 
-//      }
-//    }
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
   run.palette.fetch("srun", &srun);
 
@@ -406,21 +360,6 @@ void redhallmhd::computeFourierU( stack& run ) {
 
     }
   }
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
-//  if (rank == 3)  {
-//
-//
-//    for ( int k = 0; k < n1n2; ++k) {
-//
-//      std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << U[k][n3][0] << std::endl;
-//
-//    }
-//  }
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -822,37 +761,13 @@ void redhallmhd::initNoDrive( stack& run) {
       for (int k   = 0; k< n1n2; ++k) { U[k][n3][0]     = zero; }
       for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][1]   = zero; }  /* ~ atop is zero on rank 0                   ~ */
                                                                    /* ~ NOTE: should only be done for first run! ~ */
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
- //     for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][1]   = zero; }
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
       if ( iu3  > 2) {
         for (int k   = 0; k< n1n2; ++k) { U[k][n3][2]   = zero; }
         for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][3] = zero; }  /* ~ vztop is zero on rank 0                  ~ */
                                                                    /* ~ NOTE: should only be done for first run! ~ */
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-//        for (int k   = 0; k< n1n2; ++k) { U[k][n3+1][3]   = zero; }
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
       }
     }
-
   }
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
-//  if (rank == 3)  {
-//
-//
-//    for ( int k = 0; k < n1n2; ++k) {
-//
-//      std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << U[k][n3][0] << std::endl;
-//
-//    }
-//  }
-
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -875,94 +790,6 @@ void redhallmhd::initialize (stack& run ) {
 
             OfromP(              run );
             HfromA(              run );
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  int rank;
-//  int np,  n1n2c, n3;
-//  unsigned strt_idx, stop_idx;
-//
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank  );
-//  run.stack_data.fetch("n1n2c", &n1n2c );
-//  run.stack_data.fetch("n3"   , &n3    );
-//  run.palette.fetch(   "np"   , &np    );
-////
-//    ComplexArray& O            = run.U0;
-//
-//  ComplexArray& U0 = run.U0;
-//
-//  ComplexArray::size_type nc = n1n2c;
-////
-//  if (rank == np - 1) {
-////
-//    strt_idx  = nc * n3;
-//    stop_idx  = strt_idx + nc;
-//
-//      std::cout << "initialize: strt_idx = " << strt_idx << std::endl;
-//      std::cout << "initialize: stop_idx = " << stop_idx << std::endl;
-////
-//    for (unsigned k = strt_idx; k < stop_idx; k++) {
-//
-//           assert( P[k] == czero );
-////
-////          if (abs(A[k].real()) >= 1.0e-12) {
-
-//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << P[k].real() << std::endl;
-//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << P[k].imag() << std::endl;
-
-////          }
-////          else {
-////          std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero        << std::endl;
-////          }
-////
-//     }
-////
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//            HfromA(              run );
-
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//   int rank;
-//   int np,  n1n2c, n_layers;
-//   unsigned strt_idx, stop_idx;
-// 
-//   MPI_Comm_rank(MPI_COMM_WORLD,   &rank);
-// 
-//   run.stack_data.fetch("n1n2c", &n1n2c   );
-//   run.stack_data.fetch("n3"   , &n_layers);
-//   run.palette.fetch(   "np"   , &np      );
-// 
-//   ComplexArray& O            = solve.U1;
-//   ComplexArray::size_type nc = n1n2c;
-// 
-//   if (rank == 1) {
-// 
-//     strt_idx = nc;
-// 
-//   }
-//   else if (rank == 0) {
-// 
-//     strt_idx = (n_layers + 1) * nc;
-// 
-//   }
-//   stop_idx   = strt_idx + n1n2c;
-// 
-//   if (rank == 1) {
-// 
-//     for (unsigned k = strt_idx; k < stop_idx; k++) {
-// 
-//       O[k] = cone;
-   
-   //      std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << O[k].real() << std::endl;
-   
-//       }
-//     }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 #endif
 
@@ -1039,23 +866,7 @@ void redhallmhd::HfromA( stack& run )  {
     std::string model;
     run.palette.fetch("model", &model);
   
-
     for (unsigned k = 0; k < usize; k++) {A[k] = U1[k];} /* ~ preserve flux function in A                ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-// if (rank == 0) {
-//   for( unsigned k = n1n2c; k < 2*n1n2c; ++k ) {
-//    if (abs(A[k].real()) >= 1.0e-10) {
-//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << A[k].real() << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
-//    }
-//   }
-// }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
     unsigned idx     = 0;                                /* ~ index for k2                               ~ */
     for (unsigned k  = 0; k < usize; k++) {
@@ -1103,7 +914,8 @@ void redhallmhd::PfromO( stack& run )  {
   for (unsigned k = 0; k <usize; k++) {O[k] = U0[k];} /* ~ not necessary. Could use U0 directly        ~ */
 
   unsigned idx         = 0;                           /* ~ index for inv_k2                            ~ */
-  for (unsigned k = 0; k < usize; k++) { 
+
+  for (unsigned k = 0; k < usize; k++) {
 
     if ( k % n1n2c == 0) { idx = 0; }                 /* ~ reset idx when starting new layer           ~ */
     P[k] = inv_k2[idx] * O[k];                        /* ~ Omega = - delperp^2 P                       ~ */
@@ -1112,9 +924,9 @@ void redhallmhd::PfromO( stack& run )  {
 
   }
 
-  for (unsigned k = 0; k <usize; k++) {U0[k] = P[k];} /* ~ U0 now holds Fourier transform of P          ~ */
+  for (unsigned k = 0; k <usize; k++) {U0[k] = P[k];} /* ~ U0 now holds Fourier transform of P         ~ */
 
-  O.resize(0);                                        /* ~ vorticity is discarded here                  ~ */
+//  O.resize(0);                                      /* ~ vorticity is discarded here                 ~ */
 
 }
 
@@ -1165,7 +977,7 @@ void redhallmhd::AfromH( stack& run )  {
 
   for (unsigned k = 0; k < usize; k++) {U1[k] = A[k];} /* ~  U1 now holds Fourier transform of A       ~ */
 
-  H.resize(0);                                         /* ~ H is discarded                             ~ */
+//  H.resize(0);                                         /* ~ H is discarded                             ~ */
 
 }
 
@@ -1544,19 +1356,6 @@ void redhallmhd::updateTimeInc( stack& run ) {
 
     dtvb        = zero;
 
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
-//    if (rank == 0 ) {
-//       for (unsigned i_f = 0; i_f < maxU.size(); i_f++) {
-//
-//       if ( i_f == 0 ) { std::cout << "updateTimeInc: mv = " << maxU[i_f] << std::endl; }
-//       if ( i_f == 1 ) { std::cout << "updateTimeInc: mb = " << maxU[i_f] << std::endl; }
-//
-//       }
-//    }
-//
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
     for (unsigned i_f = 0; i_f < maxU.size(); i_f++) { dtvb = dtvb + sqrt(maxU[i_f]); }
 
     dtvb        = dtvb * sqrt( (RealVar) (n1n2) );
@@ -1575,15 +1374,16 @@ void redhallmhd::updateTimeInc( stack& run ) {
       run.palette.reset("dt", dt);
 
     }
+}
 
-    
-  if ( rank == 0 ) {
+#endif
 
-//    std::cout << "dtvb = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dtvb << std::endl;
-//    std::cout << "dtr  = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dtr  << std::endl;
-    std::cout << "dt   = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dt   << std::endl;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-  }
+void redhallmhd::physicsFinalize ( stack& run) {
+
+/* ~ currently a stub, but eventually intended to replace the stuff at end of Loop in lcsolve ~ */
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -27,6 +27,10 @@
 #include <cstddef>
 #include<iomanip>
 
+#ifdef HAVE_CUDA_H
+  #include "cls_redhallmhd_cuda_ext.hpp"
+#endif
+
 class redhallmhd
 {
 
@@ -56,10 +60,9 @@ class redhallmhd
   void OfromP(                          stack& run );                 /* ~ Obtain vorticity from P                   ~ */
   void HfromA(                          stack& run );                 /* ~ Obtain H from A                           ~ */
 
-  void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
 
   void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
-  void applyLineTiedBC( std::string str_step, stack& run );                 /* ~ pbot and p(:,n3) set to zero              ~ */
+  void applyLineTiedBC( std::string str_step, stack& run );           /* ~ pbot and p(:,n3) set to zero              ~ */
 
 //  void finalizeFootPointDriving(        stack& run, lcsolve& solve);  /* ~                                         ~ */
 
@@ -69,23 +72,26 @@ class redhallmhd
 
   fft fftw;
 
-  ComplexArray P;                                                     /* ~ Stream function Phi in Fourier Space ~ */
-  ComplexArray A;                                                     /* ~ flux function A in Fourier Space     ~ */
-  ComplexArray J;                                                     /* ~ current density in Fourier Space     ~ */
+  ComplexArray P;                                                     /* ~ Stream function Phi in Fourier Space      ~ */
+  ComplexArray A;                                                     /* ~ flux function A in Fourier Space          ~ */
+  ComplexArray J;                                                     /* ~ current density in Fourier Space          ~ */
 
-  RealArray maxU;                                                     /* ~ for time-step determination          ~ */
+  RealArray maxU;                                                     /* ~ for time-step determination               ~ */
 
   void updatePAJ( std::string str_step, stack& run );
   void applyBC(   std::string str_step, stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
-  void updateTimeInc(                   stack& run                );
-//  void writeUData(                      stack& run);
+  void updateTimeInc(                   stack& run );
+
   void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
+  void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
 
-//  void finalize(                        stack& run, lcsolve& solve);
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  void physicsFinalize(                 stack& run );                 /* ~ end of subrun bookkeeping                 ~ */
+                                                                      /* ~ this is just a stub right now, but will   ~ */
+                                                                      /* ~ eventually make it possible to privatize  ~ */
+                                                                      /* ~ some of the currently public procedures   ~ */
 
   redhallmhd();                                                       /* ~ Constructor (default)                     ~ */
+
   redhallmhd(                           stack& run );                 /* ~ Constructor                               ~ */
 
   ~redhallmhd();                                                      /* ~ Destructor                                ~ */

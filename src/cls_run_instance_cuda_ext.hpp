@@ -1,3 +1,11 @@
+/* CUDA extension for run_instance class (definition)
+ *
+ * Timothy J. Dennis
+ * tdennis10@alaska.edu
+ * copyright 2016
+ *
+ */
+
 #include <cuda.h>
 
 class run_instance_cuda_ext

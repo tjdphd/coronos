@@ -21,11 +21,15 @@
 
 lcsolve::lcsolve( stack& run ) {
 
+#ifndef HAVE_CUDA_H
     createFields( run );
+#endif
 
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#ifndef HAVE_CUDA_H
 
 void lcsolve::Loop( stack& run ) {
 
@@ -52,145 +56,51 @@ void lcsolve::Loop( stack& run ) {
     /* ~ iptest conditional goes here              ~ */
     /* ~ mv, mb, etc.... initialization goes here  ~ */
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  if (rank == 3) {
-//     for( unsigned k = 4*n1n2c; k < 5*n1n2c; ++k ) {
-//
-//    if (abs(run.U0[k].real()) > 1.0e-10 ) {
-//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << run.U1[k].real() << std::endl;
-//    std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << run.U1[k].imag() << std::endl;
-//  std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << physics.A[k].real() << std::endl;
-//  std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << physics.A[k].imag() << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(12) << std::right << std::setprecision(4) << std::scientific << zero  << std::endl;
-//   }
-//   }
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
   passAdjacentLayers("predict", run );
   physics.applyBC(   "predict", run );
   physics.updatePAJ( "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
-
-
-
-//  physics.applyBC(              run );
-//  physics.updatePAJ( "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
   setS(              "predict", run, physics );   /* ~ set predictor S's                                       ~ */
   setB(              "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
   setD(              "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
   setAi(                        run, physics );   /* ~ set predictor A's                                       ~ */
-//    Step(              "predict", run );            /* ~ execute predictor update                                ~ */
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-  Step(              "predict", run, physics );            /* ~ execute predictor update                                ~ */
-
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+  Step(              "predict", run );            /* ~ execute predictor update                                ~ */
 
   physics.applyBC( "correct",   run );
-
-
   passAdjacentLayers("correct", run );
   physics.updatePAJ( "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
-
 
   setS(              "correct", run, physics );   /* ~ set corrector S's                                       ~ */
   setB(              "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
   setD(              "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
   setAi(                        run, physics );   /* ~ set corrector A's                                       ~ */
-//    Step(              "correct", run );            /* ~ execute corrector update                                ~ */
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-  Step(              "correct", run, physics );            /* ~ execute corrector update                                ~ */
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
+  Step(              "correct", run );            /* ~ execute corrector update                                ~ */
 
   run.palette.fetch("dt", &dt);
-
-// if ( rank == 0 ) {
-
-//    std::cout << "dt = " << std::setw(10) << std::right << std::setprecision(4) << std::scientific << dt << std::endl;
-
-//  }
-
   t_cur       = t_cur + dt;
 
   physics.updateTimeInc(        run );
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+  /* ~ bookkeeping goes here                     ~ */
 
-//    if (rank == 1) {
-//                     std::cout << "mv = " << physics.maxU[0] << std::endl;
-//                     std::cout << "mb = " << physics.maxU[1] << std::endl;
-//    }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-
-///* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-//
-////  int rank;
-////  int mp,  n1n2c, n_layers;
-////  unsigned strt_idx, stop_idx;
-////
-////  MPI_Comm_rank(MPI_COMM_WORLD,   &rank);
-////
-////  run.stack_data.fetch("n1n2c", &n1n2c   );
-////  run.stack_data.fetch("n3"   , &n_layers);
-////  run.palette.fetch("mp"    ,   &mp      );
-////
-////  ComplexArray& O            = solve.tU1;
-////  ComplexArray::size_type nc = n1n2c;
-////
-////  if (rank == 1) {
-////
-////    strt_idx = nc;
-////
-////  }
-////  else if (rank == 0) {
-////
-////    strt_idx = (n_layers + 1) * nc;
-////
-////  }
-////  stop_idx   = strt_idx + n1n2c;
-////
-////  if (rank == 0) {
-////
-////    for (unsigned k = strt_idx; k < stop_idx; k++) {
-////
-////      std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << O[k].real() << std::endl;
-////
-////    }
-////  }
-//
-///* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-//
-//    /* ~ bookkeeping goes here                     ~ */
-//    /* ~ time-step determination goes here         ~ */
-//
-//       
   }
 
-  physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values ~ */
+  physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
   physics.applyBC(    "predict", run         );
-  physics.PfromO ( run );
 
+  physics.PfromO (               run         );   /* ~ O still in U0. Replacing with P for Primary data output ~ */
+  physics.AfromH (               run         );   /* ~ H still in U1. Replacing with A for Primary data output ~ */
 
-  physics.fftw.fftwReverseAll( run );
+  physics.fftw.fftwReverseAll(   run         );
 
-  run.palette.reset(   "tstart", t_cur      );
-
-
+  run.palette.reset(   "tstart", t_cur       );
   int srun;
-  run.palette.fetch(   "srun"   , &srun     );
+  run.palette.fetch(   "srun"   , &srun      );
   ++srun;
-  run.palette.reset(   "srun"   , srun      );
+  run.palette.reset(   "srun"   , srun       );
 
-  run.writeUData();
-  run.writeParameters();
+  run.writeUData(                            );
+  run.writeParameters(                       );
 
 }
 
@@ -414,53 +324,10 @@ void lcsolve::setS( std::string str_step, stack& run, redhallmhd& physics ) {
 
     }
   }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  if (str_step.compare("correct") == 0 && rank == 1) {
-
-//  unsigned kstart = n1n2c;
-//  unsigned kstop  = (2 * kstart) - 1;
-
-//   std::cout << "setS: one   = " << one    << "\n\n";
-
-//   std::cout << "setS: dt    = " << dt     << "\n\n";
-//   std::cout << "setS: pfrac = " << pfrac  << "\n\n";
-
-//   std::cout << "setS: s0    = " << s0     << "\n\n";
-//   std::cout << "setS: s1    = " << s1     << "\n\n";
-
-//   std::cout << "setS: qs0   = " << qs0    << "\n\n";
-//   std::cout << "setS: qs1   = " << qs1    << "\n\n";
-
-//   std::cout << "setS: gi0   = " << gi0    << "\n\n";
-//   std::cout << "setS: gi1   = " << gi1    << "\n\n";
-
-//   unsigned kstart = 0;
-//   unsigned kstop  = kstart + n1n2c;
-//    
-//   for (unsigned k = kstart; k < kstop; k++) {
-
-//     std::cout << std::setw(24) << std::right << std::setprecision(16) << std::scientific << SI1[k] << std::endl;
-
- //   }
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  SE0.assign(nc, one);                         /* ~ retained for testing                             ~ */
-//  SE1.assign(nc, one);
-//  SE2.assign(nc, one);
-//  SE3.assign(nc, one);
-//
-//  SI0.assign(nc, one);
-//  SI1.assign(nc, one);
-//  SI2.assign(nc, one);
-//  SI3.assign(nc, one);
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   int rank;
@@ -518,74 +385,16 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P        ~ */
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-  maxU[0]          = maxdU(         d1x, d1y, -1, iu2);          /* ~                                                    ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
+  maxU[0]          = maxdU(         d1x, d1y, -1, iu2);
 
 if (str_step.compare("predict"     ) == 0) {
   partialsInXandY( run, physics, O, d2x, d2y);              /* ~ d2x, d2y hold real-space partials in x and y of O  ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-/* ~ Note - for top rank these are not required. efficiency would be enhanced if this were accounted for                  ~ */
-/* ~        also, from the debugging point of view it's worth double checking that O(n3) for the top rank is getting its  ~ */
-/* ~        value from the boundary conditions on P(n3)                                                                   ~ */
-
-//if (rank == 3) {
-//  for( unsigned k = 4*n1n2; k < 5*n1n2; ++k ) {
-
-//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
-//
-//   if (abs(d2x[k]) > 1.0e-10) {
-//   std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d2x[k] << std::endl;
-//   }
-//   else {
-//   std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//   }
-//  }
-//}
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-//  maxU[0]          = maxdU(         d2x, d2y, -1, iu2);          /* ~                                                    ~ */
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tO,     d2x, d2y);         /* ~ d2x, d2y hold real-space partials in x and y of tO ~ */
 }
+
 bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);           /* ~ calculate [phi, Omega]                             ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  if (str_step.compare("predict") == 0 && rank == 2) {
-//  
-//    unsigned dsize = d2x.capacity();
-//    unsigned bsize = BrKt.capacity();
-//  
-//    RealArray B_tmp(dsize, zero);
-//  
-//    physics.fftw.fftwReverseRaw( run, BrKt, B_tmp);
-//  
-//    for (unsigned k = 4*n1n2; k < 5*n1n2; ++k) {
-//  
-//      if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
-//      if (abs(B_tmp[k]) > 1.0e-10) {
-//      std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << B_tmp[k] << std::endl;
-//      }
-//      else {
-//      std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//      }
-//  
-//    }
-//  
-//    physics.fftw.fftwForwardRaw( run, B_tmp, BrKt);
-//  
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 
 for (unsigned k = 0; k < kstop; k++) { B0[k] = - BrKt[k]; } /* ~ place result in B0                                 ~ */
 
@@ -604,106 +413,17 @@ if (model.compare("hall") == 0 ) {
 
 averageAcrossLayers( run, -1, d1x, d1y );                   /* ~ calculate averages of phi_x & phi_y across adj't layers ~ */
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-// if (str_step.compare("predict"     ) == 0) {
-// 
-//  if (rank == 3) {
-//    for( unsigned k = 4*n1n2; k < 5*n1n2; ++k ) {
-//
-//       if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
-// 
-//     if (abs(d1y[k]) > 1.0e-10) {
-//     std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d1y[k] << std::endl;
-//     }
-//     else {
-//     std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//     }
-//    }
-//  }
-// 
-// }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
 if (str_step.compare("predict"     ) == 0) {
 
   partialsInXandY( run, physics, H, d3x, d3y);              /* ~ d3x, d3y hold real-space partials in x and y of H       ~ */
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-// if (rank == 2) {
-//   for( unsigned k = 5*n1n2; k < 6*n1n2; ++k ) {
-//
-//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
-
-//    if (abs(d3y[k]) > 1.0e-10) {
-//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d3y[k] << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//    }
-//   }
-// }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-
-  maxU[1]          = maxdU(         d3x, d3y, 1, iu2);    /* ~                                                         ~ */
+  maxU[1]          = maxdU(         d3x, d3y, 1, iu2);
 }
 else if (str_step.compare("correct") == 0) {
   partialsInXandY( run, physics, tH, d3x, d3y);           /* ~ d3x, d3y hold real-space partials in x and y of tH        ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-// if (rank == 0) {
-//   for( unsigned k = 1*n1n2; k < 2*n1n2; ++k ) {
-//
-//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
-
-//    if (abs(d3x[k]) > 1.0e-10) {
-//    std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << d3x[k] << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << zero  << std::endl;
-//    }
-//   }
-// }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
 }
 
 bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);                       /* ~ calculate [phibar, H]                                     ~ */
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//if (str_step.compare("predict") == 0 && rank == 0) {
-//
-//  unsigned dsize = d1x.capacity();
-//  unsigned bsize = BrKt.capacity();
-//
-//  RealArray B_tmp(dsize, zero);
-//
-//  physics.fftw.fftwReverseRaw( run, BrKt, B_tmp);
-//
-//  for (unsigned k = 1*n1n2; k < 4*n1n2; ++k) {
-//
-//    if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
-//    if (abs(B_tmp[k]) > 1.0e-14) {
-//    std::cout << std::setw(17) << std::right << std::setprecision(9) << std::scientific << B_tmp[k] << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(17) << std::right << std::setprecision(9) << std::scientific << zero  << std::endl;
-//    }
-//
-//  }
-//
-//  physics.fftw.fftwForwardRaw( run, B_tmp, BrKt);
-//
-//}
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
 for (unsigned k = 0; k < kstop; k++) { B1[k] = - BrKt[k]; }  /* ~ place result in B1                                        ~ */
 
 if (model.compare("hall") == 0 ) {
@@ -736,25 +456,6 @@ else if(model.compare("rmhd") == 0 ) {
   partialsInXandY( run, physics, A, d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
 }
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  if (str_step.compare("correct"     ) == 0) {
-//   if (rank == 0) {
-//     for( unsigned k = 1*n1n2; k < 2*n1n2; ++k ) {
-//  
-//     if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
-//
-//      if (abs(d1x[k]) > 1.0e-10) {
-//      std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << d1x[k] << std::endl;
-//      }
-//      else {
-//      std::cout << std::setw(13) << std::right << std::setprecision(5) << std::scientific << zero  << std::endl;
-//      }
-//     }
-//   }
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
 averageAcrossLayers( run,  +1, d1x, d1y );             /* ~ calculate averages of A_x & A_y across adjacent layers       ~ */
 
 if (model.compare("hall") == 0 ) { 
@@ -769,58 +470,9 @@ if (model.compare("hall") == 0 ) {
 partialsInXandY( run, physics, J, d3x, d3y );          /* ~ d3x, d3y hold real-space partials in x and y of J          ~ */
 averageAcrossLayers( run,  +1, d3x, d3y );             /* ~ calculate averages of J_x & J_y across adjacent layers     ~ */
 
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+bracket( run, physics, BrKt, d1x, d1y,  d3x, d3y );    /* ~ calculate [Abar, Jbar]                                     ~ */
 
-//if (str_step.compare("predict"     ) == 0) {
-// if (rank == 2) {
-//   for( unsigned k = 5*n1n2; k < 6*n1n2; ++k ) {
-//
-//   if (k % n1n2 == 0) {std::cout << "i = " << k/n1n2 << std::endl; }
-
-//    if (abs(d3y[k]) > 1.0e-10) {
-//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << d3y[k] << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//    }
-//   }
-// }
-//}
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-bracket( run, physics, BrKt, d1x, d1y,  d3x, d3y );             /* ~ calculate [Abar, Jbar]                               ~ */
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//if (str_step.compare("predict") == 0 && rank == 2) {
-//
-//  unsigned dsize = d1x.capacity();
-//  unsigned bsize = BrKt.capacity();
-//
-//  RealArray B_tmp(dsize, zero);
-//
-//  physics.fftw.fftwReverseRaw( run, BrKt, B_tmp);
-//
-//  for (unsigned k = 4*n1n2; k < 5*n1n2; ++k) {
-//
-//    if (k % n1n2 == 0) { std::cout<< "i = " << k << std::endl;}
-//    if (abs(B_tmp[k]) > 1.0e-09) {
-//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << B_tmp[k] << std::endl;
-//    }
-//    else {
-//    std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//    }
-//
-//  }
-//
-//  physics.fftw.fftwForwardRaw( run, B_tmp, BrKt);
-//
-//}
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-for (unsigned k = 0; k < kstop; k++) {                      /* ~ B0 = -[phi, Omega] + [Abar, Jbar]                          ~ */
+for (unsigned k = 0; k < kstop; k++) {                 /* ~ B0 = -[phi, Omega] + [Abar, Jbar]                          ~ */
   B0[k] = B0[k] + BrKt[k];
 }
 
@@ -853,7 +505,6 @@ d3y.resize(0);
   /* ~ -> [Abar, Vbar] ( for Z equation    - B2    ) ... done with V containers     ~ ( 2 - 1    ) [2]  (A      |  V    ) */ 
 
   /* ~ -> [Abar, Jbar] ( for O equation    - B0    ) ... done with all containers   ~ ( 1 + 1 - 2) [2]  (       |  A, J ) */ 
- 
 
   /* ~ Sequence: ~ */
 
@@ -890,13 +541,6 @@ d3y.resize(0);
   /* ~ b2.) then inverse transform result            ~ */
   /* ~ c1.) for f_y multiply result a by ky          ~ */
   /* ~ c2.) then inverse transform result            ~ */
-
-/* ~ retain for testing                              ~ */
-
-// B0.assign(n1n2c, czero);
-// B1.assign(n1n2c, czero);
-// B2.assign(n1n2c, czero);
-// B3.assign(n1n2c, czero);
 
 }
 
@@ -982,23 +626,7 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
       D3[kdx]      =                      (half * rtbeta * deltaZ  )  * dzm1;  /* ~ i.e. 1/2 * sqrt{beta} * Delta Z delta z     ~ */
 
     }
-
-/* ~ retained for testing ~ */
-
-//  D0[kdx] =                 (J[kdxp1] - J[kdx  ] ) * dzm1;
-//  D1[kdx] = (               (P[kdx  ] - P[kdxm1] ) -       rho * ( Z[kdx  ] - Z[kdxm1] ) ) * dzm1;  /* ~ F = phi - rhobar * Z  ~*/
-//  D2[kdx] = (      rtbeta * (V[kdxp1] - V[kdx  ] ) - two * rho * ( J[kdxp1] - J[kdx  ] ) ) * dzm1;  /* ~ G = rtbeta * V - 2rhobar J ~ */
-//  D3[kdx] = half * rtbeta * (Z[kdx  ] - Z[kdxm1] ) * dzm1;
-
   }
-  
-/* ~ retained for testing ~ */
-
-//  D0.assign(nc, czero);
-//  D1.assign(nc, czero);
-//  D2.assign(nc, czero);
-//  D3.assign(nc, czero);
-
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1182,15 +810,15 @@ RealVar lcsolve::maxdU( RealArray& dx, RealArray& dy, int i_grid, int i_layers) 
   unsigned k_size, k_start, k_stop;
   unsigned n3;
 
-  k_size           = dsize / i_layers;                               // should equal n1n2 (4096)
-  n3               =  i_layers - 2;                                  // should equal n3 (4)
+  k_size           = dsize / i_layers;
+  n3               =  i_layers - 2;
   
-  if ( i_grid == - 1)    {    k_start = 0;   }                       // lower grid
-  else if ( i_grid == 1) { k_start = k_size; }                       // upper grid
+  if ( i_grid == - 1)    {    k_start = 0;   }                       /* ~ lower grid ~ */
+  else if ( i_grid == 1) { k_start = k_size; }                       /* ~ upper grid ~ */
   else {
          std::cout << "maxdU: ERROR - invalid grid" << std::endl; 
          k_start   =  dsize;
-       }                                                             // error
+       }                                                             /* ~ error      ~ */
 
   k_stop  = k_start + (n3 + 1) * k_size;
 
@@ -1254,10 +882,7 @@ void lcsolve::averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, Re
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-//void lcsolve::Step( std::string str_step, stack& run ) {
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-void lcsolve::Step( std::string str_step, stack& run, redhallmhd& physics ) {
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
+void lcsolve::Step( std::string str_step, stack& run ) {
 
   std::string model;
   run.palette.fetch(   "model", &model );          /* ~ either "hall" or "rmhd"                     ~ */
@@ -1326,51 +951,19 @@ void lcsolve::Step( std::string str_step, stack& run, redhallmhd& physics ) {
     ++idx;
 
   }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//       int rank;
-//       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//       int n1n2;
-//       run.stack_data.fetch( "n1n2" ,&n1n2  );
-////       int n1n2c;
-////       run.stack_data.fetch( "n1n2c" ,&n1n2c  );
-//
-//       if (rank == 3 &&  str_step.compare("correct") == 0) {
-//
-//        unsigned dsize   = tU0.capacity();
-//        unsigned dsize_p = U0.capacity();
-//
-//        assert(dsize_p == dsize);
-//
-//        RealArray RU_tmp(n1n2*iu2, zero);
-//        physics.fftw.fftwReverseRaw( run, tU0, RU_tmp);
-//
-//        for (unsigned k = 4*n1n2; k < 5*n1n2; ++k) {
-//      
-//          if (abs(RU_tmp[k]) > 1.0e-15) {
-//          std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << RU_tmp[k] << std::endl;
-//          }
-//          else {
-//          std::cout << std::setw(16) << std::right << std::setprecision(8) << std::scientific << zero  << std::endl;
-//          }
-//      
-//        }
-//      
-//        physics.fftw.fftwForwardRaw( run, RU_tmp, tU0);
-//      
-//      }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
 }
 
+#endif
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
    /* ~ Destructor  ~ */
 
   lcsolve::~lcsolve( ) {
 
+#ifndef HAVE_CUDA_H
+
      destroyFields();
+
+#endif
 
   }

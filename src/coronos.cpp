@@ -16,7 +16,9 @@ int main(void) {
 
   stack       run(     "coronos.in");
   lcsolve     solve(   run         );
+#ifndef HAVE_CUDA_H
   solve.Loop (         run         );
+#endif
 
   MPI::Finalize();
 

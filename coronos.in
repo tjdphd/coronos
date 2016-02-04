@@ -7,13 +7,13 @@ epratio    0.000000000000000e+00     dbl rfx
 eta        5.000000000000000e-04     dbl rfx 
 ffp        0.000000000000000e+00     dbl sfx 
 igen       1                         int rfx 
-ilnr       0                         int rfx 
+ilnr       1                         int rfx 
 initMode   fourierspace              str rfx 
 iptest     0                         int rfx 
 kappa      5.000000000000000e-03     dbl rfx 
 kc         0.000000000000000e+00     dbl rfx 
 model      rmhd                      str rfx 
-ndt        50                        int rfx 
+ndt        100                       int rfx 
 nf         0                         int sfx 
 nnodes     1                         int rfx 
 np         4                         int rfx 
@@ -34,8 +34,8 @@ s0         5.000000000000000e-01     dbl rfx
 s1         5.000000000000000e-01     dbl rfx 
 s2         5.000000000000000e-01     dbl rfx 
 s3         5.000000000000000e-01     dbl rfx 
-srun       152                       int sfx 
+srun       101                       int sfx 
 tauC       1.000000000000000e-01     dbl rfx 
 tauE       1.000000000000000e+30     dbl rfx 
-tstart     2.414710000000000e+00     dbl sfx 
+tstart     3.198710000000000e+00     dbl sfx 
 zl         1.000000000000000e+00     dbl rfx 

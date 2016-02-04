@@ -339,7 +339,7 @@ void parameter_map::report(std::string out_file_prefix, std::string out_file_run
      default : ;
 
      }
-//     std::string    out_file               = out_file_prefix + "." + str_rank + ".ots" + str_srun;
+
      std::string    out_file               = out_file_prefix + "." + str_rank + ".o" + out_file_run_label + str_srun;
      const char    *c_str_out_file         = out_file.c_str();
      std::fstream   ofs;
@@ -401,7 +401,6 @@ void parameter_map::report(std::string out_file) {
      std::map<std::string, parameter>::iterator it;
 
      parameter   pmtr;
-
 
      std::string str_val;
      int         int_val;

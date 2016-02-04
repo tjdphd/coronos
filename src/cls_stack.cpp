@@ -28,55 +28,12 @@ stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
   int srun;
   palette.fetch("srun", &srun);
+#ifndef HAVE_CUDA_H
   writeParameters(srun - 1);
 
   allocUi();
   initxyz();
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
-//  int rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-//  if (rank == 0) {
-
-//  int n1;                                        /* ~ number of coordinates in x                               ~ */
-//  stack_data.fetch("n1",    &n1);
-//  int n2; 
-//  stack_data.fetch("n2",    &n2);                /* ~ number of coordinates in y                               ~ */
-//  int n2h    = (((int)(half*n2)) + 1);
-//  int ndx;
- 
-//   std::cout << "kx: " << std::endl << std::endl;
- 
-//    for (int i = 0; i < n1; ++i) {
-//      for (int j = 0; j < n2/2 + 1; ++j) {
-// 
-//        ndx = (i * n2h) + j;
-//        if (rt[ndx] == zero){
-//          std::cout << std::setw(3)  << std::right  << "kx(" << std::setw(4) << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std::right  << j     << std::setw(4) << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << kx[ndx]/two_pi << " ";
-//
-//          std::cout << std::setw(3)  << std::right  << "ky(" << std::setw(4) << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std:: right << j     << std::setw(4) << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << ky[ndx]/two_pi << " ";
-//
-//          std::cout << std::setw(3)  << std::right << "k2(" << std::setw(4)  << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << k2[ndx]/(two_pi*two_pi) << " ";
-//
-//          std::cout << std::setw(3)  << std::right << "rt(" << std::setw(4)  << std::right << i << ","; 
-//          std::cout << std::setw(4)  << std::right << j     << std::setw(4)  << std::right << ") = ";
-//          std::cout << std::setw(10) << std::setprecision(4)                 << rt[ndx] << std::endl;
-//       }
-// 
-//      }
-//    }
-//  }
-
-/* ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ TEST ~ */
-
+#endif
 }
 
 /* ~~~~~~~~~~~~~~~~ */
@@ -172,6 +129,8 @@ void stack::init_stack_data() {                     /* ~ gather/infer informatio
 
 }
 
+#ifndef HAVE_CUDA_H
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -207,6 +166,32 @@ void stack::allocUi() {              /* ~ U is the input/output array for the fi
   if (model.compare("hall") == 0) { 
     U2.reserve(n1n2c * iu2);
     U3.reserve(n1n2c * iu2);
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::allocAUX() {              /* ~ AUX is the input/output array for auxiliary fields ~ */
+
+  int iu1, iu2, iu3;
+
+  stack_data.fetch("iu1", &iu1);      /* ~ coordinates per layer                              ~ */
+  stack_data.fetch("iu2", &iu2);      /* ~ layers including bots and tops                     ~ */
+  stack_data.fetch("iu3", &iu3);      /* ~ number of fields                                   ~ */
+
+  int iaux1, iaux2, iaux3;
+
+  iaux1 = iu1;
+  iaux2 = iu2;
+  iaux3 = 3;
+
+  AUX   = new RealVar**[iaux1];
+
+  for ( int i = 0; i < iu1; ++i) {
+    AUX[i] = new RealVar*[iaux1]; 
+    for ( int j = 0; j < iaux2; ++j) {
+      AUX[i][j] = new RealVar[iaux3];
+    }
   }
 }
 
@@ -250,6 +235,36 @@ void stack::deallocUi() {
     for (int j = 0; j < iu2; ++j) delete [] U[i][j];
     delete [] U[i];
   }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::deallocAUX() {
+
+  int iu1, iu2;
+
+  stack_data.fetch("iu1", &iu1);
+  stack_data.fetch("iu2", &iu2);
+
+  int iaux1, iaux2;
+
+  iaux1 = iu1;
+  iaux2 = iu2;
+
+  for (int i = 0; i< iaux1; ++i) {
+
+    for (int j = 0; j < iaux2; ++j) delete [] AUX[i][j];
+    delete [] AUX[i];
+
+  }
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::initAUX() {
+
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -435,7 +450,6 @@ std::string stack::getLastDataFilename(int srun) {
 
   }
 
-//  data_file         = prefix + "_" + res_str + "." + rnk_str + ".ots" + srn_str;
   data_file         = prefix + "_" + res_str + "." + rnk_str + ".o" + run_label + srn_str;
 
   return data_file;
@@ -542,8 +556,10 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-stack::~stack() {
+#endif
 
+stack::~stack() {
+#ifndef HAVE_CUDA_H
     x.resize(0);
     y.resize(0);
     z.resize(0);
@@ -559,5 +575,6 @@ stack::~stack() {
   tU3.resize(0);
 
   deallocUi();
-
+#endif
 }
+
