@@ -43,84 +43,84 @@ PATH: /usr/local/pgi/bin
 ## Core tests. ##
 ## ----------- ##
 
-configure:1896: checking for a BSD-compatible install
-configure:1964: result: /usr/bin/install -c
-configure:1975: checking whether build environment is sane
-configure:2018: result: yes
-configure:2043: checking for a thread-safe mkdir -p
-configure:2082: result: /bin/mkdir -p
-configure:2095: checking for gawk
-configure:2111: found /bin/gawk
-configure:2122: result: gawk
-configure:2133: checking whether make sets $(MAKE)
-configure:2155: result: yes
-configure:2345: checking architecture
-configure:2357: result: x86_64
-configure:2632: checking whether FFTW_PATH is set
-configure:2642: result: no
-configure:2645: WARNING: FFTW_PATH not set, using default: /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4
-configure:2649: checking header fftw3.h 
-configure:2663: checking for style of include used by make
-configure:2691: result: GNU
-configure:2761: checking for gcc
-configure:2777: found /usr/bin/gcc
-configure:2788: result: gcc
-configure:3020: checking for C compiler version
-configure:3028: gcc --version >&5
+configure:1898: checking for a BSD-compatible install
+configure:1966: result: /usr/bin/install -c
+configure:1977: checking whether build environment is sane
+configure:2037: result: yes
+configure:2178: checking for a thread-safe mkdir -p
+configure:2217: result: /bin/mkdir -p
+configure:2230: checking for gawk
+configure:2246: found /bin/gawk
+configure:2257: result: gawk
+configure:2268: checking whether make sets $(MAKE)
+configure:2290: result: yes
+configure:2378: checking architecture
+configure:2390: result: x86_64
+configure:2667: checking whether FFTW_PATH is set
+configure:2677: result: no
+configure:2680: WARNING: FFTW_PATH not set, using default: /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4
+configure:2684: checking header fftw3.h 
+configure:2698: checking for style of include used by make
+configure:2726: result: GNU
+configure:2796: checking for gcc
+configure:2812: found /usr/bin/gcc
+configure:2823: result: gcc
+configure:3055: checking for C compiler version
+configure:3063: gcc --version >&5
 gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
 Copyright (C) 2010 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-configure:3032: $? = 0
-configure:3039: gcc -v >&5
+configure:3067: $? = 0
+configure:3074: gcc -v >&5
 Using built-in specs.
 Target: x86_64-redhat-linux
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-bootstrap --enable-shared --enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-languages=c,c++,objc,obj-c++,java,fortran,ada --enable-java-awt=gtk --disable-dssi --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre --enable-libgcj-multifile --enable-java-maintainer-mode --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --disable-libjava-multilib --with-ppl --with-cloog --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux
 Thread model: posix
 gcc version 4.4.7 20120313 (Red Hat 4.4.7-11) (GCC) 
-configure:3043: $? = 0
-configure:3050: gcc -V >&5
+configure:3078: $? = 0
+configure:3085: gcc -V >&5
 gcc: '-V' option must have argument
-configure:3054: $? = 1
-configure:3077: checking for C compiler default output file name
-configure:3099: gcc    conftest.c  >&5
-configure:3103: $? = 0
-configure:3141: result: a.out
-configure:3160: checking whether the C compiler works
-configure:3170: ./a.out
-configure:3174: $? = 0
-configure:3193: result: yes
-configure:3200: checking whether we are cross compiling
-configure:3202: result: no
-configure:3205: checking for suffix of executables
-configure:3212: gcc -o conftest    conftest.c  >&5
-configure:3216: $? = 0
-configure:3242: result: 
-configure:3248: checking for suffix of object files
-configure:3274: gcc -c   conftest.c >&5
-configure:3278: $? = 0
-configure:3303: result: o
-configure:3307: checking whether we are using the GNU C compiler
-configure:3336: gcc -c   conftest.c >&5
-configure:3343: $? = 0
-configure:3360: result: yes
-configure:3369: checking whether gcc accepts -g
-configure:3399: gcc -c -g  conftest.c >&5
-configure:3406: $? = 0
-configure:3507: result: yes
-configure:3524: checking for gcc option to accept ISO C89
-configure:3598: gcc  -c -g -O2  conftest.c >&5
-configure:3605: $? = 0
-configure:3628: result: none needed
-configure:3648: checking dependency style of gcc
-configure:3739: result: gcc3
-configure:3760: checking how to run the C preprocessor
-configure:3800: gcc -E  conftest.c
-configure:3807: $? = 0
-configure:3838: gcc -E  conftest.c
+configure:3089: $? = 1
+configure:3112: checking for C compiler default output file name
+configure:3134: gcc    conftest.c  >&5
+configure:3138: $? = 0
+configure:3176: result: a.out
+configure:3195: checking whether the C compiler works
+configure:3205: ./a.out
+configure:3209: $? = 0
+configure:3228: result: yes
+configure:3235: checking whether we are cross compiling
+configure:3237: result: no
+configure:3240: checking for suffix of executables
+configure:3247: gcc -o conftest    conftest.c  >&5
+configure:3251: $? = 0
+configure:3277: result: 
+configure:3283: checking for suffix of object files
+configure:3309: gcc -c   conftest.c >&5
+configure:3313: $? = 0
+configure:3338: result: o
+configure:3342: checking whether we are using the GNU C compiler
+configure:3371: gcc -c   conftest.c >&5
+configure:3378: $? = 0
+configure:3395: result: yes
+configure:3404: checking whether gcc accepts -g
+configure:3434: gcc -c -g  conftest.c >&5
+configure:3441: $? = 0
+configure:3542: result: yes
+configure:3559: checking for gcc option to accept ISO C89
+configure:3633: gcc  -c -g -O2  conftest.c >&5
+configure:3640: $? = 0
+configure:3663: result: none needed
+configure:3683: checking dependency style of gcc
+configure:3793: result: gcc3
+configure:3814: checking how to run the C preprocessor
+configure:3854: gcc -E  conftest.c
+configure:3861: $? = 0
+configure:3892: gcc -E  conftest.c
 conftest.c:12:28: error: ac_nonexistent.h: No such file or directory
-configure:3845: $? = 1
+configure:3899: $? = 1
 configure: failed program was:
 | /* confdefs.h.  */
 | #define PACKAGE_NAME "coronos"
@@ -134,12 +134,12 @@ configure: failed program was:
 | #define DONT_HAVE_CUDA_H 1
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3878: result: gcc -E
-configure:3907: gcc -E  conftest.c
-configure:3914: $? = 0
-configure:3945: gcc -E  conftest.c
+configure:3932: result: gcc -E
+configure:3961: gcc -E  conftest.c
+configure:3968: $? = 0
+configure:3999: gcc -E  conftest.c
 conftest.c:12:28: error: ac_nonexistent.h: No such file or directory
-configure:3952: $? = 1
+configure:4006: $? = 1
 configure: failed program was:
 | /* confdefs.h.  */
 | #define PACKAGE_NAME "coronos"
@@ -153,105 +153,199 @@ configure: failed program was:
 | #define DONT_HAVE_CUDA_H 1
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3992: checking for grep that handles long lines and -e
-configure:4052: result: /bin/grep
-configure:4057: checking for egrep
-configure:4121: result: /bin/grep -E
-configure:4126: checking for ANSI C header files
-configure:4156: gcc -c -g -O2  conftest.c >&5
-configure:4163: $? = 0
-configure:4262: gcc -o conftest -g -O2   conftest.c  >&5
-configure:4266: $? = 0
-configure:4272: ./conftest
-configure:4276: $? = 0
-configure:4294: result: yes
-configure:4318: checking for sys/types.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for sys/stat.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for stdlib.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for string.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for memory.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for strings.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for inttypes.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for stdint.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4318: checking for unistd.h
-configure:4339: gcc -c -g -O2  conftest.c >&5
-configure:4346: $? = 0
-configure:4363: result: yes
-configure:4393: checking /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/fftw3.h usability
-configure:4410: gcc -c -g -O2  conftest.c >&5
-configure:4417: $? = 0
-configure:4431: result: yes
-configure:4435: checking /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/fftw3.h presence
-configure:4450: gcc -E  conftest.c
-configure:4457: $? = 0
-configure:4471: result: yes
-configure:4504: checking for /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/fftw3.h
-configure:4513: result: yes
-configure:4531: checking whether BLAS_PATH is set
-configure:4543: result: no
-configure:4546: WARNING: BLAS_PATH not set, using default: /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3
-configure:4566: checking /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include/gsl/gsl_blas.h usability
-configure:4583: gcc -c -g -O2  conftest.c >&5
-configure:4590: $? = 0
-configure:4604: result: yes
-configure:4608: checking /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include/gsl/gsl_blas.h presence
-configure:4623: gcc -E  conftest.c
-configure:4630: $? = 0
-configure:4644: result: yes
-configure:4677: checking for /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include/gsl/gsl_blas.h
-configure:4686: result: yes
-configure:4821: checking for mpiCC
-configure:4837: found /usr/local/pkg/openmpi/openmpi-1.4.3.pgi-13.4/bin/mpiCC
-configure:4848: result: mpiCC
-configure:4875: checking for C++ compiler version
-configure:4883: mpiCC --version >&5
+configure:4046: checking for grep that handles long lines and -e
+configure:4106: result: /bin/grep
+configure:4111: checking for egrep
+configure:4175: result: /bin/grep -E
+configure:4180: checking for ANSI C header files
+configure:4210: gcc -c -g -O2  conftest.c >&5
+configure:4217: $? = 0
+configure:4316: gcc -o conftest -g -O2   conftest.c  >&5
+configure:4320: $? = 0
+configure:4326: ./conftest
+configure:4330: $? = 0
+configure:4348: result: yes
+configure:4372: checking for sys/types.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for sys/stat.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for stdlib.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for string.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for memory.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for strings.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for inttypes.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for stdint.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4372: checking for unistd.h
+configure:4393: gcc -c -g -O2  conftest.c >&5
+configure:4400: $? = 0
+configure:4417: result: yes
+configure:4447: checking /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/fftw3.h usability
+configure:4464: gcc -c -g -O2  conftest.c >&5
+configure:4471: $? = 0
+configure:4485: result: yes
+configure:4489: checking /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/fftw3.h presence
+configure:4504: gcc -E  conftest.c
+configure:4511: $? = 0
+configure:4525: result: yes
+configure:4558: checking for /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/fftw3.h
+configure:4567: result: yes
+configure:4582: checking header  
+configure:4600: checking /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/ usability
+configure:4617: gcc -c -g -O2  conftest.c >&5
+conftest.c:56:60: error: /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/: No such file or directory
+configure:4624: $? = 1
+configure: failed program was:
+| /* confdefs.h.  */
+| #define PACKAGE_NAME "coronos"
+| #define PACKAGE_TARNAME "coronos"
+| #define PACKAGE_VERSION "0.01"
+| #define PACKAGE_STRING "coronos 0.01"
+| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE "coronos"
+| #define VERSION "0.01"
+| #define OD_PRECISION_H 1
+| #define DONT_HAVE_CUDA_H 1
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE__USR_LOCAL_PKG_FFTW_FFTW_3_3_3_PGI_13_4_INCLUDE_FFTW3_H 1
+| /* end confdefs.h.  */
+| #include <stdio.h>
+| #ifdef HAVE_SYS_TYPES_H
+| # include <sys/types.h>
+| #endif
+| #ifdef HAVE_SYS_STAT_H
+| # include <sys/stat.h>
+| #endif
+| #ifdef STDC_HEADERS
+| # include <stdlib.h>
+| # include <stddef.h>
+| #else
+| # ifdef HAVE_STDLIB_H
+| #  include <stdlib.h>
+| # endif
+| #endif
+| #ifdef HAVE_STRING_H
+| # if !defined STDC_HEADERS && defined HAVE_MEMORY_H
+| #  include <memory.h>
+| # endif
+| # include <string.h>
+| #endif
+| #ifdef HAVE_STRINGS_H
+| # include <strings.h>
+| #endif
+| #ifdef HAVE_INTTYPES_H
+| # include <inttypes.h>
+| #endif
+| #ifdef HAVE_STDINT_H
+| # include <stdint.h>
+| #endif
+| #ifdef HAVE_UNISTD_H
+| # include <unistd.h>
+| #endif
+| #include </usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/>
+configure:4638: result: no
+configure:4642: checking /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/ presence
+configure:4657: gcc -E  conftest.c
+conftest.c:23:60: error: /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/: No such file or directory
+configure:4664: $? = 1
+configure: failed program was:
+| /* confdefs.h.  */
+| #define PACKAGE_NAME "coronos"
+| #define PACKAGE_TARNAME "coronos"
+| #define PACKAGE_VERSION "0.01"
+| #define PACKAGE_STRING "coronos 0.01"
+| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE "coronos"
+| #define VERSION "0.01"
+| #define OD_PRECISION_H 1
+| #define DONT_HAVE_CUDA_H 1
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE__USR_LOCAL_PKG_FFTW_FFTW_3_3_3_PGI_13_4_INCLUDE_FFTW3_H 1
+| /* end confdefs.h.  */
+| #include </usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/>
+configure:4678: result: no
+configure:4711: checking for /usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include/
+configure:4720: result: no
+configure:4738: checking whether BLAS_PATH is set
+configure:4750: result: no
+configure:4753: WARNING: BLAS_PATH not set, using default: /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3
+configure:4773: checking /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include/gsl/gsl_blas.h usability
+configure:4790: gcc -c -g -O2  conftest.c >&5
+configure:4797: $? = 0
+configure:4811: result: yes
+configure:4815: checking /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include/gsl/gsl_blas.h presence
+configure:4830: gcc -E  conftest.c
+configure:4837: $? = 0
+configure:4851: result: yes
+configure:4884: checking for /usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include/gsl/gsl_blas.h
+configure:4893: result: yes
+configure:5029: checking for mpiCC
+configure:5045: found /usr/local/pkg/openmpi/openmpi-1.4.3.pgi-13.4/bin/mpiCC
+configure:5056: result: mpiCC
+configure:5083: checking for C++ compiler version
+configure:5091: mpiCC --version >&5
 
 pgCC 13.4-0 64-bit target on x86-64 Linux -tp istanbul 
 Copyright 1989-2000, The Portland Group, Inc.  All Rights Reserved.
 Copyright 2000-2013, STMicroelectronics, Inc.  All Rights Reserved.
-configure:4887: $? = 0
-configure:4894: mpiCC -v >&5
+configure:5095: $? = 0
+configure:5102: mpiCC -v >&5
 pgCC-Warning-No files to process
 
-configure:4898: $? = 0
-configure:4905: mpiCC -V >&5
+configure:5106: $? = 0
+configure:5113: mpiCC -V >&5
 
 pgCC 13.4-0 64-bit target on x86-64 Linux -tp istanbul 
 Copyright 1989-2000, The Portland Group, Inc.  All Rights Reserved.
 Copyright 2000-2013, STMicroelectronics, Inc.  All Rights Reserved.
-configure:4909: $? = 0
-configure:4912: checking whether we are using the GNU C++ compiler
-configure:4941: mpiCC -c   conftest.cpp >&5
+configure:5117: $? = 0
+configure:5120: checking whether we are using the GNU C++ compiler
+configure:5149: mpiCC -c   conftest.cpp >&5
 "conftest.cpp", line 29: error: identifier "choke" is undefined
          choke me
          ^
 
 1 error detected in the compilation of "conftest.cpp".
-configure:4948: $? = 2
+configure:5156: $? = 2
 configure: failed program was:
 | /* confdefs.h.  */
 | #define PACKAGE_NAME "coronos"
@@ -287,40 +381,40 @@ configure: failed program was:
 |   ;
 |   return 0;
 | }
-configure:4965: result: no
-configure:4974: checking whether mpiCC accepts -g
-configure:5004: mpiCC -c -g  conftest.cpp >&5
-configure:5011: $? = 0
-configure:5112: result: yes
-configure:5137: checking dependency style of mpiCC
-configure:5228: result: none
-configure:5358: checking for C compiler version
-configure:5366: gcc --version >&5
+configure:5173: result: no
+configure:5182: checking whether mpiCC accepts -g
+configure:5212: mpiCC -c -g  conftest.cpp >&5
+configure:5219: $? = 0
+configure:5320: result: yes
+configure:5345: checking dependency style of mpiCC
+configure:5455: result: none
+configure:5585: checking for C compiler version
+configure:5593: gcc --version >&5
 gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
 Copyright (C) 2010 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-configure:5370: $? = 0
-configure:5377: gcc -v >&5
+configure:5597: $? = 0
+configure:5604: gcc -v >&5
 Using built-in specs.
 Target: x86_64-redhat-linux
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-bootstrap --enable-shared --enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-languages=c,c++,objc,obj-c++,java,fortran,ada --enable-java-awt=gtk --disable-dssi --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre --enable-libgcj-multifile --enable-java-maintainer-mode --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --disable-libjava-multilib --with-ppl --with-cloog --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux
 Thread model: posix
 gcc version 4.4.7 20120313 (Red Hat 4.4.7-11) (GCC) 
-configure:5381: $? = 0
-configure:5388: gcc -V >&5
+configure:5608: $? = 0
+configure:5615: gcc -V >&5
 gcc: '-V' option must have argument
-configure:5392: $? = 1
-configure:5395: checking whether we are using the GNU C compiler
-configure:5448: result: yes
-configure:5457: checking whether gcc accepts -g
-configure:5595: result: yes
-configure:5612: checking for gcc option to accept ISO C89
-configure:5716: result: none needed
-configure:5736: checking dependency style of gcc
-configure:5827: result: gcc3
-configure:5991: creating ./config.status
+configure:5619: $? = 1
+configure:5622: checking whether we are using the GNU C compiler
+configure:5675: result: yes
+configure:5684: checking whether gcc accepts -g
+configure:5822: result: yes
+configure:5839: checking for gcc option to accept ISO C89
+configure:5943: result: none needed
+configure:5963: checking dependency style of gcc
+configure:6073: result: gcc3
+configure:6245: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -337,10 +431,11 @@ generated by GNU Autoconf 2.63.  Invocation command line was
 
 on pacman3
 
-config.status:788: creating Makefile
-config.status:788: creating src/Makefile
-config.status:788: creating config.h
-config.status:1062: executing depfiles commands
+config.status:790: creating Makefile
+config.status:790: creating src/Makefile
+config.status:790: creating config.h
+config.status:1012: config.h is unchanged
+config.status:1064: executing depfiles commands
 
 ## ---------------- ##
 ## Cache variables. ##
@@ -372,6 +467,7 @@ ac_cv_env_host_alias_set=
 ac_cv_env_host_alias_value=
 ac_cv_env_target_alias_set=
 ac_cv_env_target_alias_value=
+ac_cv_header__usr_local_pkg_fftw_fftw_3_3_3_pgi_13_4_include_=no
 ac_cv_header__usr_local_pkg_fftw_fftw_3_3_3_pgi_13_4_include_fftw3_h=yes
 ac_cv_header__usr_local_pkg_gsl_gsl_1_15_gnu_4_7_3_include_gsl_gsl_blas_h=yes
 ac_cv_header_inttypes_h=yes
@@ -404,14 +500,14 @@ am_cv_CXX_dependencies_compiler_type=none
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /center/w/tdennis10/dev/coronos/missing --run aclocal-1.10'
+ACLOCAL='${SHELL} /center/w/tdennis10/dev/coronos/missing --run aclocal-1.11'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
 AMTAR='${SHELL} /center/w/tdennis10/dev/coronos/missing --run tar'
 AUTOCONF='${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoconf'
 AUTOHEADER='${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoheader'
-AUTOMAKE='${SHELL} /center/w/tdennis10/dev/coronos/missing --run automake-1.10'
+AUTOMAKE='${SHELL} /center/w/tdennis10/dev/coronos/missing --run automake-1.11'
 AWK='gawk'
 CC='gcc'
 CCDEPMODE='depmode=gcc3'
@@ -436,7 +532,7 @@ ECHO_T=''
 EGREP='/bin/grep -E'
 EXEEXT=''
 GREP='/bin/grep'
-INCMPI='/opt/cray/mpt/5.6.5/gni/mpich2-cray/74/include'
+INCMPI=''
 INSTALL_DATA='${INSTALL} -m 644'
 INSTALL_PROGRAM='${INSTALL}'
 INSTALL_SCRIPT='${INSTALL}'
@@ -447,7 +543,7 @@ LIBS=''
 LTLIBOBJS=''
 MAKEINFO='${SHELL} /center/w/tdennis10/dev/coronos/missing --run makeinfo'
 MKDIR_P='/bin/mkdir -p'
-NVCC='nvcc'
+NVCC=''
 OBJEXT='o'
 PACKAGE='coronos'
 PACKAGE_BUGREPORT='tdennis@gi.alaska.edu'
@@ -462,6 +558,8 @@ STRIP=''
 VERSION='0.01'
 ac_ct_CC='gcc'
 ac_ct_CXX='mpiCC'
+am__EXEEXT_FALSE=''
+am__EXEEXT_TRUE='#'
 am__fastdepCC_FALSE='#'
 am__fastdepCC_TRUE=''
 am__fastdepCXX_FALSE=''
@@ -483,7 +581,7 @@ host_alias=''
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='$(SHELL) /center/w/tdennis10/dev/coronos/install-sh'
+install_sh='${SHELL} /center/w/tdennis10/dev/coronos/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'

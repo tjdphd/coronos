@@ -1,14 +1,39 @@
-/* class stack (definition)
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
  *
- * Timothy J. Dennis
- * tdennis@gi.alaska.edu
- * copyright 2014
+ * CORONOS||SONOROC - Version 0.1
  *
- * child class of canvas contains conmplete information about problem
- * and solution in its parameter maps and defines the primary data
- * members 
+ * (S)ynthesized  (O)bject-based (N)umerical (O)bservatory for (R)HMHD [also RMHD and IRHMD] with (O)ptional (C)UDA-acceleration
  *
- */
+ * AUTHOR: Timothy J. Dennis
+ *         tdennis10@alaska.edu
+ *
+ * CONTRIBUTORS:
+ *
+ *         C. S. Ng
+ *         LiWei Lin
+ *         Others to be included prior to public release
+ *
+ * copyright 2014-2016 
+ *
+ * Space Physics and Aeronomy
+ * Geophysical Institute
+ * University of Alaska, Fairbanks
+ *
+ * All Rights Reserved.
+ *
+ * This version of the code is pre-public release.
+ * Please contact the author if you are not certain
+ * you have an up-to-date working copy.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* 
+ *        FILE: definition of class "stack"
+ *
+ * DESCRIPTION: child class of canvas contains conmplete information about 
+ *              problem and solution in its parameter maps and defines the 
+ *              primary data members 
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #ifndef CLS_STACK
 #define CLS_STACK

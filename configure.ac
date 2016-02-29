@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([coronos], [0.01], [tdennis@gi.alaska.edu])
+AC_INIT([coronos], [0.01], [tdennis10@alaska.edu])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/coronos.cpp])
 AC_CONFIG_HEADERS([config.h])
@@ -112,8 +112,6 @@ then
 
   # ->-> FFT:
 
-                 FFTW_H="cufft.h"
-              FFTW_LIBS=" -lcufft"
 
   if test -n "$CRAY_CUDATOOLKIT_DIR"
   then
@@ -125,6 +123,10 @@ then
       FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
       BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
   fi  
+
+                 FFTW_H="cufft.h"
+               CUFFTW_H="cufftw.h"
+              FFTW_LIBS=" -lcufft -lcufftw"
 
  # ->-> BLAS:
 
@@ -210,6 +212,8 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
   AC_MSG_CHECKING([header $FFTW_H ])
   AC_CHECK_HEADERS([$FFTW_PATH/include/$FFTW_H],[],[],[])
+  AC_MSG_CHECKING([header $CUFFTW_H ])
+  AC_CHECK_HEADERS([$FFTW_PATH/include/$CUFFTW_H],[],[],[])
 
 # -> BLAS:
 
@@ -253,8 +257,11 @@ fi
 
 if test  -n "$CUDA_PATH"
 then
+                   NVCC="nvcc"
+                 INCMPI="/opt/cray/mpt/5.6.5/gni/mpich2-cray/74/include"
+
                CUDA_INC="$CUDA_PATH/include"
-          CRS_INC_FLAGS="-I$CUDA_INC $CRS_INC_FLAGS"
+          CRS_INC_FLAGS="-I$CUDA_INC -I$INCMPI $CRS_INC_FLAGS"
            CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
            BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
            FFTW_LDFLAGS="-L$FFTW_PATH/lib$SUFFIX"
@@ -281,8 +288,6 @@ echo "CRS_LIBS:     " $CRS_LIBS
 echo "CRS_CPPFLAGS: " $CRS_CPPFLAGS
 echo "CRS_LDFLAGS:  " $CRS_LDFLAGS
 
-                   NVCC="nvcc"
-                 INCMPI="/opt/cray/mpt/5.6.5/gni/mpich2-cray/74/include"
 
 AC_SUBST(INCMPI)
 AC_SUBST(CRS_CPPFLAGS)

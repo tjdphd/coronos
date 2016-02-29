@@ -1,16 +1,41 @@
-/* class redhallmhd (definition)
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
  *
- * Timothy J. Dennis
- * tdennis@gi.alaska.edu
- * copyright 2014
+ * CORONOS||SONOROC - Version 0.1
  *
- * For defining and implementing the reduced mhd Hall physics for coronos.
- * this class is responsible for "filling" lcsolve's data structures with the 
- * appropriate values - based on its "knowledge" of the physical model of
- * the plasma. These values are needed by lcsolve so that lcsolve can update 
- * its stack.
+ * (S)ynthesized  (O)bject-based (N)umerical (O)bservatory for (R)HMHD [also RMHD and IRHMD] with (O)ptional (C)UDA-acceleration
  *
- */
+ * AUTHOR: Timothy J. Dennis
+ *         tdennis10@alaska.edu
+ *
+ * CONTRIBUTORS:
+ *
+ *         C. S. Ng
+ *         LiWei Lin
+ *         Others to be included prior to public release
+ *
+ * copyright 2014-2016 
+ *
+ * Space Physics and Aeronomy
+ * Geophysical Institute
+ * University of Alaska, Fairbanks
+ *
+ * All Rights Reserved.
+ *
+ * This version of the code is pre-public release.
+ * Please contact the author if you are not certain
+ * you have an up-to-date working copy.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* 
+ * FILE: Definition of class "redhallmhd"
+ *
+ * DESCRIPTION: For defining and implementing the reduced mhd Hall physics for
+ *              coronos. this class is responsible for "filling" lcsolve's data
+ *              structures with the appropriate values - based on its
+ *              "knowledge" of the physical model of * the plasma. These values
+ *              are needed by lcsolve so that lcsolve can update its stack.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #ifndef CLS_REDHALLMHD
 #define CLS_REDHALLMHD

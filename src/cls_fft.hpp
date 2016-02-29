@@ -1,16 +1,50 @@
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+ *
+ * CORONOS||SONOROC - Version 0.1
+ *
+ * (S)ynthesized  (O)bject-based (N)umerical (O)bservatory for (R)HMHD [also RMHD and IRHMD] with (O)ptional (C)UDA-acceleration
+ *
+ * AUTHOR: Timothy J. Dennis
+ *         tdennis10@alaska.edu
+ *
+ * CONTRIBUTORS:
+ *
+ *         C. S. Ng
+ *         LiWei Lin
+ *         Others to be included prior to public release
+ *
+ * copyright 2014-2016 
+ *
+ * Space Physics and Aeronomy
+ * Geophysical Institute
+ * University of Alaska, Fairbanks
+ *
+ * All Rights Reserved.
+ *
+ * This version of the code is pre-public release.
+ * Please contact the author if you are not certain
+ * you have an up-to-date working copy.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*
+ *        FILE: Definition of class "fft"
+ *
+ * DESCRIPTION: To be added prior to public release
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 #ifndef UTIL_FFT
 #define UTIL_FFT
 
 #include "nsp_constants.hpp"
-#include "cls_stack.hpp"
 #include <assert.h>
-//#include "cls_lcsolve.hpp"
-//#include "cls_redhallmhd.hpp"
+#include "cls_stack.hpp"
 
 #ifdef HAVE_CUDA_H
-#include "cls_fft_cuda_ext.hpp"
+  #include "cls_fft_cuda_ext.hpp"
+  #include<cuda.h>
 #else
-#include<fftw3.h>
+  #include<fftw3.h>
 #endif
 
 class fft {

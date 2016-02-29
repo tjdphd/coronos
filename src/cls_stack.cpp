@@ -1,12 +1,37 @@
-/* class stack (implementation)
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
  *
- * Timothy J. Dennis
- * tdennis@gi.alaska.edu
- * copyright 2014
+ * CORONOS||SONOROC - Version 0.1
  *
- * Longcope-type staggered stack of slabs
+ * (S)ynthesized  (O)bject-based (N)umerical (O)bservatory for (R)HMHD [also RMHD and IRHMD] with (O)ptional (C)UDA-acceleration
  *
- */
+ * AUTHOR: Timothy J. Dennis
+ *         tdennis10@alaska.edu
+ *
+ * CONTRIBUTORS:
+ *
+ *         C. S. Ng
+ *         LiWei Lin
+ *         Others to be included prior to public release
+ *
+ * copyright 2014-2016 
+ *
+ * Space Physics and Aeronomy
+ * Geophysical Institute
+ * University of Alaska, Fairbanks
+ *
+ * All Rights Reserved.
+ *
+ * This version of the code is pre-public release.
+ * Please contact the author if you are not certain
+ * you have an up-to-date working copy.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*
+ *        FILE: Implementation of class "stack"
+ *
+ * DESCRIPTION: Longcope-type staggered stack of slabs
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "cls_stack.hpp"
 
@@ -28,11 +53,13 @@ stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
   int srun;
   palette.fetch("srun", &srun);
-#ifndef HAVE_CUDA_H
   writeParameters(srun - 1);
+
+#ifndef HAVE_CUDA_H
 
   allocUi();
   initxyz();
+
 #endif
 }
 
@@ -181,14 +208,14 @@ void stack::allocAUX() {              /* ~ AUX is the input/output array for aux
 
   int iaux1, iaux2, iaux3;
 
-  iaux1 = iu1;
-  iaux2 = iu2;
-  iaux3 = 3;
+  iaux1         = iu1;
+  iaux2         = iu2;
+  iaux3         = 3;
 
-  AUX   = new RealVar**[iaux1];
+  AUX           = new RealVar**[iaux1];
 
   for ( int i = 0; i < iu1; ++i) {
-    AUX[i] = new RealVar*[iaux1]; 
+    AUX[i]      = new RealVar*[iaux1]; 
     for ( int j = 0; j < iaux2; ++j) {
       AUX[i][j] = new RealVar[iaux3];
     }
@@ -307,9 +334,9 @@ void stack::writeUData() {
     int i                  = 0;
     int j                  = 0;
 
-    RealVar next_p; 
-    RealVar next_a; 
-    RealVar next_bz; 
+    RealVar next_p;
+    RealVar next_a;
+    RealVar next_bz;
     RealVar next_vz;
     
     while ( slab_index < n3 + 1 ) {
@@ -458,37 +485,6 @@ std::string stack::getLastDataFilename(int srun) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void stack::writeParameters() {
-
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
-
-  if (rank == 0) {palette.report("coronos.in"); }
-
-}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-void stack::writeParameters(int srun) {
-
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
-
-  std::string prefix;
-  palette.fetch(   "prefix",  &prefix );
-
-  std::string res_str;
-  stack_data.fetch("res_str", &res_str);
-
-  std::string run_label;
-  palette.fetch("run_label",  &run_label);
-
-  if (rank == 0) {palette.report(prefix + '_' + res_str, run_label, srun ); }
-
-}
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates of layers ~ */
 
   int rank;
@@ -548,6 +544,39 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
   }
 }
 
+#endif
+
+void stack::writeParameters() {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+  if (rank == 0) {palette.report("coronos.in"); }
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::writeParameters(int srun) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+  std::string prefix;
+  palette.fetch(   "prefix",  &prefix );
+
+  std::string res_str;
+  stack_data.fetch("res_str", &res_str);
+
+  std::string run_label;
+  palette.fetch("run_label",  &run_label);
+
+  if (rank == 0) {palette.report(prefix + '_' + res_str, run_label, srun ); }
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ~~~~~~~~~~~~~~~ */
@@ -555,8 +584,6 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 /* ~~~~~~~~~~~~~~~ */
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#endif
 
 stack::~stack() {
 #ifndef HAVE_CUDA_H

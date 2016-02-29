@@ -1,14 +1,39 @@
-
-/* class parameter_map (implementation)
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
  *
- * Timothy J. Dennis
- * tdennis@gi.alaska.edu
- * copyright 2014
+ * CORONOS||SONOROC - Version 0.1
  *
- * For the initialization and maintainance of a set of elements of type 
- * parameter. Parameter type is defined in the file 'cls_parameter.h'
+ * (S)ynthesized  (O)bject-based (N)umerical (O)bservatory for (R)HMHD [also RMHD and IRHMD] with (O)ptional (C)UDA-acceleration
  *
- */
+ * AUTHOR: Timothy J. Dennis
+ *         tdennis10@alaska.edu
+ *
+ * CONTRIBUTORS:
+ *
+ *         C. S. Ng
+ *         LiWei Lin
+ *         Others to be included prior to public release
+ *
+ * copyright 2014-2016 
+ *
+ * Space Physics and Aeronomy
+ * Geophysical Institute
+ * University of Alaska, Fairbanks
+ *
+ * All Rights Reserved.
+ *
+ * This version of the code is pre-public release.
+ * Please contact the author if you are not certain
+ * you have an up-to-date working copy.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* 
+ *        FILE: Implementation of class "parameter_map"
+ *
+ * DESCRIPTION: For the initialization and maintainance of a set of elements 
+ *              of type parameter. Parameter type is defined in the file 
+ *              'cls_parameter.h'
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "cls_parameter_map.hpp"
 
