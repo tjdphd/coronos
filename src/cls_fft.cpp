@@ -47,7 +47,7 @@
 
 void fft::fftwInitialize( stack& run ) {
 
-   std::cout << "Initializing fftw..." << std::endl;
+//   std::cout << "Initializing fftw..." << std::endl;
 
    fftwKInit(  run );
    fftwrtInit( run );
@@ -118,7 +118,7 @@ void fft::fftwFinalize() {
 
 void fft::fftwKInit(stack& run) {               /* ~ initialize the wave number arrays kx, ky, k2, and inv_k2 ~ */
 
-  std::cout << "specifying kx, ky, and k2" << std::endl;
+//  std::cout << "specifying kx, ky, and k2" << std::endl;
 
   RealArray& kx     = run.kx; 
   RealArray& ky     = run.ky; 
@@ -194,7 +194,7 @@ void fft::fftwKFree(stack& run ) {                            /* ~ also possibly
 
 void fft::fftwrtInit(stack& run) {             /* ~ initialize de-aliasing array              ~ */
 
-  std::cout << "initializing de-aliasing array" << std::endl;
+//  std::cout << "initializing de-aliasing array" << std::endl;
 
   RealArray& kx = run.kx;
   RealArray& ky = run.ky;
@@ -260,12 +260,12 @@ void fft::fftwrtFree() {
 
 void fft::fftwForwardAll( stack& run ) {
 
-  InputOutputArray& U = run.U;               /* ~ raw input array                         ~ */
+  InputOutputArray& U   = run.U;               /* ~ raw input array                         ~ */
 
-  ComplexArray& U0 = run.U0;
-  ComplexArray& U1 = run.U1;
-  ComplexArray& U2 = run.U2;
-  ComplexArray& U3 = run.U3;
+  ComplexArray& U0      = run.U0;
+  ComplexArray& U1      = run.U1;
+  ComplexArray& U2      = run.U2;
+  ComplexArray& U3      = run.U3;
 
   int n1; 
   run.stack_data.fetch("n1"   , &n1      );
@@ -375,6 +375,123 @@ void fft::fftwReverseAll( stack& run ) {
 #endif
 
       for (int k = 0; k < n1n2; k++) { U[k][i_l][i_f] =  r_out[k]; }
+
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void fft::fftwForwardAll( stack& run, ComplexArray& Jout ) {
+
+  InputOutputArray& AUX  = run.AUX;             /* ~ raw input array                         ~ */
+  ComplexArray&     Oout = run.U0;
+
+  int n1; 
+  run.stack_data.fetch("n1"   , &n1      );
+  int n2; 
+  run.stack_data.fetch("n2"   , &n2      );
+  int n1n2c;
+  run.stack_data.fetch("n1n2c", &n1n2c   );
+  int n1n2; 
+  run.stack_data.fetch("n1n2" , &n1n2    );
+  int n_layers; 
+  run.stack_data.fetch("iu2"  , &n_layers);
+//  int n_flds;
+//  run.stack_data.fetch("iu3"  , &n_flds  );
+
+  RealVar scale    = (RealVar) one/((RealVar) (n1n2));
+
+  ComplexArray::size_type nc = n1n2c;
+
+  unsigned strt_idx;
+
+  for (int i_f = 0; i_f < 2; i_f++)  {
+    for ( int i_l = 0; i_l < n_layers; i_l++) {
+
+      for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = zero; }
+      for (unsigned k = 0; k < n1n2; k++) { r_in[k]     = AUX[k][i_l][i_f]; }
+
+#ifdef LD_PRECISION_H
+      fftwl_execute(p_lay_for);
+#elif defined OD_PRECISION_H
+      fftw_execute(p_lay_for);
+#endif
+
+      strt_idx = i_l * nc;
+
+      switch(i_f) {
+      case(0) :
+        for (unsigned k = 0; k < nc;   k++) { Oout[(strt_idx + k)] = scale*cplx_out[k]*rt[k]; }
+        break;
+      case(1) :  
+        for (unsigned k = 0; k < nc;   k++) { Jout[(strt_idx + k)] = scale*cplx_out[k]*rt[k]; }
+        break;
+//    case(2) :  
+//      for (unsigned k = 0; k < nc;   k++) { U2[(strt_idx + k)] = scale*cplx_out[k]*rt[k]; }
+//      break;
+//    case(3) :  
+//      for (unsigned k = 0; k < nc;   k++) { U3[(strt_idx + k)] = scale*cplx_out[k]*rt[k]; }
+//      break;
+      }
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void fft::fftwReverseAll( stack& run, ComplexArray& Jin ) {
+
+  InputOutputArray& AUX = run.AUX;               /* ~ raw input array                         ~ */
+  ComplexArray&     Oin = run.U0;
+
+  int n1; 
+  run.stack_data.fetch("n1"   , &n1      );
+  int n2; 
+  run.stack_data.fetch("n2"   , &n2      );
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c   );
+  int n1n2; 
+  run.stack_data.fetch("n1n2" , &n1n2    );
+  int n_layers; 
+  run.stack_data.fetch("iu2"  , &n_layers);
+
+//  int n_flds;
+//  run.stack_data.fetch("iu3"  , &n_flds  );
+
+  ComplexArray::size_type nc = n1n2c;
+
+  unsigned strt_idx;
+
+  for (int i_f = 0; i_f < 2; i_f++)  {
+    for ( int i_l = 0; i_l < n_layers; i_l++) {
+      
+      strt_idx = (i_l * nc);
+
+      for (unsigned   k = 0; k < nc; k++) { cplx_in[k] = (ComplexVar) zero; }
+      switch(i_f) {
+      case(0) :
+        for (unsigned k = 0; k < nc; k++) { cplx_in[k] = Oin[strt_idx + k];  }
+        break;
+      case(1) :
+        for (unsigned k = 0; k < nc; k++) { cplx_in[k] = Jin[strt_idx + k];  }
+        break;
+//    case(2) :
+//      for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U2[strt_idx + k];  }
+//      break;
+//    case(3) :
+//      for (unsigned k = 0; k < nc; k++) { cplx_in[k] = U3[strt_idx + k];  }
+//      break;
+      }
+
+      for (int k = 0; k < n1n2; k++) { r_out[k] = zero; }
+#ifdef LD_PRECISION_H
+      fftwl_execute(p_lay_rev);
+#elif defined OD_PRECISION_H
+      fftw_execute(p_lay_rev);
+#endif
+
+      for (int k = 0; k < n1n2; k++) { AUX[k][i_l][i_f] =  r_out[k]; }
 
     }
   }

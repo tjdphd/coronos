@@ -13,6 +13,10 @@ iptest     0                         int rfx
 kappa      5.000000000000000e-03     dbl rfx 
 kc         0.000000000000000e+00     dbl rfx 
 model      rmhd                      str rfx 
+nprofile   flat                      str rfx 
+uprofile   noflow                    str rfx 
+ninf       0.09                      dbl rfx
+n0         5.0e+01                   dbl rfx
 ndt        1                         int rfx 
 nf         0                         int sfx 
 nnodes     1                         int rfx 

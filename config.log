@@ -127,7 +127,7 @@ configure: failed program was:
 | #define PACKAGE_TARNAME "coronos"
 | #define PACKAGE_VERSION "0.01"
 | #define PACKAGE_STRING "coronos 0.01"
-| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 | #define PACKAGE "coronos"
 | #define VERSION "0.01"
 | #define OD_PRECISION_H 1
@@ -146,7 +146,7 @@ configure: failed program was:
 | #define PACKAGE_TARNAME "coronos"
 | #define PACKAGE_VERSION "0.01"
 | #define PACKAGE_STRING "coronos 0.01"
-| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 | #define PACKAGE "coronos"
 | #define VERSION "0.01"
 | #define OD_PRECISION_H 1
@@ -222,7 +222,7 @@ configure: failed program was:
 | #define PACKAGE_TARNAME "coronos"
 | #define PACKAGE_VERSION "0.01"
 | #define PACKAGE_STRING "coronos 0.01"
-| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 | #define PACKAGE "coronos"
 | #define VERSION "0.01"
 | #define OD_PRECISION_H 1
@@ -284,7 +284,7 @@ configure: failed program was:
 | #define PACKAGE_TARNAME "coronos"
 | #define PACKAGE_VERSION "0.01"
 | #define PACKAGE_STRING "coronos 0.01"
-| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 | #define PACKAGE "coronos"
 | #define VERSION "0.01"
 | #define OD_PRECISION_H 1
@@ -352,7 +352,7 @@ configure: failed program was:
 | #define PACKAGE_TARNAME "coronos"
 | #define PACKAGE_VERSION "0.01"
 | #define PACKAGE_STRING "coronos 0.01"
-| #define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+| #define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 | #define PACKAGE "coronos"
 | #define VERSION "0.01"
 | #define OD_PRECISION_H 1
@@ -546,7 +546,7 @@ MKDIR_P='/bin/mkdir -p'
 NVCC=''
 OBJEXT='o'
 PACKAGE='coronos'
-PACKAGE_BUGREPORT='tdennis@gi.alaska.edu'
+PACKAGE_BUGREPORT='tdennis10@alaska.edu'
 PACKAGE_NAME='coronos'
 PACKAGE_STRING='coronos 0.01'
 PACKAGE_TARNAME='coronos'
@@ -606,7 +606,7 @@ target_alias=''
 #define PACKAGE_TARNAME "coronos"
 #define PACKAGE_VERSION "0.01"
 #define PACKAGE_STRING "coronos 0.01"
-#define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+#define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 #define PACKAGE "coronos"
 #define VERSION "0.01"
 #define OD_PRECISION_H 1

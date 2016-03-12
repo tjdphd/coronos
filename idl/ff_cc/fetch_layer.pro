@@ -51,9 +51,10 @@ FUNCTION fetch_layer, layer, step, label
 
     A             = TRANSPOSE(A)
 
-;   PRINT, "size of A", SIZE(A)
+;   PRINT, "fetch_layer: size of A", SIZE(A)
 
 ;   PRINT, 'fetch_layer: n_lines         = ', n_lines
+;   PRINT, 'fetch_layer: n3              = ', n3
 ;   PRINT, 'fetch_layer: cols            = ', cols    
 ;   PRINT, 'fetch_layer: lines_per_layer = ', lines_per_layer
 ;   PRINT, 'fetch_layer: l_start         = ', l_start

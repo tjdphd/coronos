@@ -57,10 +57,12 @@ stack::stack(std::string coronos_in) : canvas::canvas(coronos_in) {
 
 #ifndef HAVE_CUDA_H
 
-  allocUi();
-  initxyz();
+  allocUi( );
+  allocAUX();
+  initxyz( );
 
 #endif
+
 }
 
 /* ~~~~~~~~~~~~~~~~ */
@@ -114,7 +116,9 @@ void stack::init_stack_data() {                     /* ~ gather/infer informatio
 
   int iu3;                                          /* ~ dimension of third index of U             ~ */
                                                     /* ~ counts number of fields in plasma model   ~ */
+
   if (model.compare("rmhd") == 0) iu3 = 2;          /* ~ fix number of field variables             ~ */
+  if (model.compare("inhm") == 0) iu3 = 2;
   if (model.compare("hall") == 0) iu3 = 4;
 
   RealVar dz       = zl/((RealVar)(n3*np));         /* ~ layer separation in z                     ~ */
@@ -210,7 +214,7 @@ void stack::allocAUX() {              /* ~ AUX is the input/output array for aux
 
   iaux1         = iu1;
   iaux2         = iu2;
-  iaux3         = 3;
+  iaux3         = iu3;
 
   AUX           = new RealVar**[iaux1];
 
@@ -301,13 +305,13 @@ void stack::writeUData() {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
 
-  int    srun;
+  int srun;
   palette.fetch("srun",    &srun  );
 
   std::string data_file;
   data_file                = getLastDataFilename(srun-1);
 
-  const char  *c_data_file;
+  const char *c_data_file;
   c_data_file              = data_file.c_str();
 
   std::ofstream ofs;
@@ -316,13 +320,13 @@ void stack::writeUData() {
   if ( ofs.good() ) {
 
     int iu3; 
-    stack_data.fetch("iu3",  &iu3);
+    stack_data.fetch("iu3" , &iu3 );
     int n1; 
-    stack_data.fetch("n1",   &n1);
+    stack_data.fetch("n1"  , &n1  );
     int n2; 
-    stack_data.fetch("n2",   &n2);
+    stack_data.fetch("n2"  , &n2  );
     int n3; 
-    stack_data.fetch("n3",   &n3);
+    stack_data.fetch("n3"  , &n3  );
     int n1n2;
     stack_data.fetch("n1n2", &n1n2);
 
@@ -338,30 +342,41 @@ void stack::writeUData() {
     RealVar next_a;
     RealVar next_bz;
     RealVar next_vz;
+
+    RealVar next_o;
+    RealVar next_j;
     
     while ( slab_index < n3 + 1 ) {
 
       ++point_count;
-      next_p               = U[to_row_maj_idx][slab_index][0];
+      next_p               =   U[to_row_maj_idx][slab_index][0];
+      next_o               = AUX[to_row_maj_idx][slab_index][0];
       ++point_count;
-      next_a               = U[to_row_maj_idx][slab_index][1];
+      next_a               =   U[to_row_maj_idx][slab_index][1];
+      next_j               = AUX[to_row_maj_idx][slab_index][1];
 
       if(iu3 > 2) {
 
         ++point_count;
-        next_bz            = U[to_row_maj_idx][slab_index][2];
+        next_bz            =   U[to_row_maj_idx][slab_index][2];
         ++point_count;
-        next_vz            = U[to_row_maj_idx][slab_index][3];
+        next_vz            =   U[to_row_maj_idx][slab_index][3];
 
       }
 
       ofs   << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_p << " ";
       ofs   << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_a << " ";
+      if (iu3 < 3)  {
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_o << " ";
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_j << " ";
+      }
 
       if (iu3 > 2)  {
 
         ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_bz << " ";
         ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_vz << " ";
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_o  << " ";
+        ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_j  << " ";
 
       }
 
@@ -525,6 +540,8 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
   int np;
   palette.fetch(   "np"  , &np );
 
+  int p3;
+  palette.fetch(   "p3"  , &p3 );
   int    iu2;
   stack_data.fetch("iu2" , &iu2 );
   RealVar dz;
@@ -532,11 +549,12 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
   RealVar zl;
   palette.fetch(   "zl"  , &zl );
 
-  z.reserve(iu2);
+//  z.reserve(iu2);
+  z.reserve(p3);
 
   RealVar next_z;
 
-  for (int i = 0; i < iu2 - 1; ++i) {
+  for (int i = 0; i < p3-1; ++i) {
 
     next_z   =  ((RealVar) (rank)) * (zl / ((RealVar) (np))) + (((RealVar) i) * dz);
     z.push_back(next_z);

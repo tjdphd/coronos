@@ -78,28 +78,27 @@ void lcsolve::Loop( stack& run ) {
 
   for (l = 0; l < ndt;l++) {
 
-    /* ~ iptest conditional goes here              ~ */
-    /* ~ mv, mb, etc.... initialization goes here  ~ */
+  /* ~ iptest conditional goes here              ~ */
 
-  passAdjacentLayers("predict", run );
-  physics.applyBC(   "predict", run );
-  physics.updatePAJ( "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
+  passAdjacentLayers( "predict", run );
+  physics.applyBC(    "predict", run );
+  physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
-  setS(              "predict", run, physics );   /* ~ set predictor S's                                       ~ */
-  setB(              "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
-  setD(              "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
-  setAi(                        run, physics );   /* ~ set predictor A's                                       ~ */
-  Step(              "predict", run );            /* ~ execute predictor update                                ~ */
+  setS(               "predict", run, physics );   /* ~ set predictor S's                                       ~ */
+  setB(               "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
+  setD(               "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
+  setAi(                         run, physics );   /* ~ set predictor A's                                       ~ */
+  Step(               "predict", run );            /* ~ execute predictor update                                ~ */
 
-  physics.applyBC( "correct",   run );
-  passAdjacentLayers("correct", run );
-  physics.updatePAJ( "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
+  physics.applyBC(    "correct", run );
+  passAdjacentLayers( "correct", run );
+  physics.updatePAJ(  "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
 
-  setS(              "correct", run, physics );   /* ~ set corrector S's                                       ~ */
-  setB(              "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
-  setD(              "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
-  setAi(                        run, physics );   /* ~ set corrector A's                                       ~ */
-  Step(              "correct", run );            /* ~ execute corrector update                                ~ */
+  setS(               "correct", run, physics );   /* ~ set corrector S's                                       ~ */
+  setB(               "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
+  setD(               "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
+  setAi(                         run, physics );   /* ~ set corrector A's                                       ~ */
+  Step(               "correct", run );            /* ~ execute corrector update                                ~ */
 
   run.palette.fetch("dt", &dt);
   t_cur       = t_cur + dt;
@@ -112,6 +111,8 @@ void lcsolve::Loop( stack& run ) {
 
   physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
   physics.applyBC(    "predict", run         );
+
+  physics.fftw.fftwReverseAll(run, physics.J );
 
   physics.PfromO (               run         );   /* ~ O still in U0. Replacing with P for Primary data output ~ */
   physics.AfromH (               run         );   /* ~ H still in U1. Replacing with A for Primary data output ~ */
@@ -477,7 +478,7 @@ if (model.compare("hall") == 0 ) {
   }                                                          /* ~ B3 = - [phibar, V] - (1/2) * sqrt{beta} * [A, Zbar]        ~ */
 
 }
-else if(model.compare("rmhd") == 0 ) {
+else if(model.compare("rmhd") == 0 || model.compare("inhm") == 0) {
   partialsInXandY( run, physics, A, d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
 }
 
@@ -595,8 +596,15 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   ComplexArray& P  = physics.P;
   ComplexArray& J  = physics.J;
 
-  ComplexVar deltaZ, deltaV, deltaJ, deltaP;                                   /* ~ to aid in differentiating between the       ~ */
-                                                                               /* ~ predictor and corrector cases               ~ */
+//  ComplexArray& O  = run.U0;
+//  ComplexArray& A  = run.U1;
+
+// ComplexArray& tO = run.tU0;
+// ComplexArray& tA = run.tU1;
+
+  ComplexVar deltaJ, deltaP;                                                   /* ~ to aid in differentiating between the       ~ */
+//  ComplexVar deltaO, deltaA;                                                 /* ~ predictor and corrector cases               ~ */
+  ComplexVar deltaZ, deltaV;
 
   unsigned kdxp1,  kdxm1;                                                      /* ~ neighbor - layer indices                    ~ */
   unsigned kstart, kstop;                                                      /* ~ limits on k looop                           ~ */
@@ -606,19 +614,39 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   int iu2;
   run.stack_data.fetch( "iu2"     , &iu2   );                                  /* ~ number of layers                            ~ */
 
+  int l_idx        = -1;
   kstart           = n1n2c;                                                    /* ~ D's are calculated for layers 1,2,3,..n3    ~ */
   kstop            = n1n2c * (iu2 - 1);                                        /* ~ layer 1 needs layer 0 and layer n3          ~ */
                                                                                /* ~ needs layer iu2 - 1                         ~ */
   std::string model;
   run.palette.fetch("model"       , &model );
 
-  for (unsigned kdx = kstart; kdx < kstop; kdx++) {                            
+  RealArray& valfven = physics.valfven;
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++) {
+
+    if ( kdx % n1n2c  == 0 ) { ++l_idx; }                                      /* ~ next layer                                  ~ */
 
     kdxm1          = kdx - n1n2c;                                              /* ~ adjacent lower layer index                  ~ */
     kdxp1          = kdx + n1n2c;                                              /* ~ adjacent upper layer index                  ~ */
 
-    deltaJ         = J[ kdxp1 ] - J[ kdx   ];                                  /* ~ P's and J's are updated every half-step     ~ */
-    deltaP         = P[ kdx   ] - P[ kdxm1 ];                                  /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.   ~ */
+    deltaJ         = valfven[l_idx] * (J[ kdxp1 ] - J[ kdx   ]);               /* ~ P's and J's are updated every half-step     ~ */
+    deltaP         = valfven[l_idx] * (P[ kdx   ] - P[ kdxm1 ]);               /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.   ~ */
+
+//   if ( model.compare("inhm") == 0) { 
+//     if (     str_step.compare("predict") == 0) {
+
+//       deltaO     = O[kdxp1]  - O[kdxm1]
+//       deltaA     = A[kdxp1]  - A[kdxm1] /*~ WARNING - must deal with lowest kdxm1 ~*/
+
+//     }
+//     else if (str_step.compare("correct") == 0) {
+
+//       deltaO     = tO[kdxp1] - tO[kdxm1]
+//       deltaA     = tA[kdxp1] - tA[kdxm1]/*~ WARNING - must deal with lowest kdxm1 ~*/
+
+//     }
+//   }
     
     if ( model.compare("hall") == 0) {
       if (     str_step.compare("predict") == 0) {
@@ -634,7 +662,7 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
 
       }
     }
-    else if( model.compare("rmhd") == 0 ) {
+    else if(model.compare("rmhd") == 0 || model.compare("inhm") == 0) {
 
         deltaZ     = czero;
         deltaV     = czero;
@@ -652,6 +680,7 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
 
     }
   }
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -666,15 +695,54 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
   int iu2;
   run.stack_data.fetch( "iu2",   &iu2 );           /* ~ number of layers                                     ~ */
 
-  ComplexArray& J   = physics.J;
+  unsigned usize    = n1n2c * iu2;
+
+  ComplexArray& J   = physics.J;                   /* ~ required for all models                              ~ */
+
+  ComplexArray& P   = physics.P;                   /* ~ required for inhm                                    ~ */
+
+  ComplexArray Jbar;
+  ComplexArray Pbar;
+
+  RealArray& h11    = physics.h11;
+  RealArray& h12    = physics.h12;
+  RealArray& h21    = physics.h21;
+  RealArray& h22    = physics.h22;
 
   std::string model;
   run.palette.fetch("model", &model);
 
-  A0.assign((n1n2c * iu2), czero);
-  A1.assign((n1n2c * iu2), czero);                 /* ~ to be set to  -eta * ssqd * k2 * A = -eta * ssqd * J ~ */
-  A2.assign((n1n2c * iu2), czero);
-  A3.assign((n1n2c * iu2), czero);
+  A0.assign((usize), czero);
+  A1.assign((usize), czero);                 /* ~ to be set to  -eta * ssqd * k2 * A = -eta * ssqd * J ~ */
+
+  if (model.compare("inhm") == 0 ) {
+    
+    Jbar.assign(usize, czero);
+    Pbar.assign(usize, czero);
+
+    for (unsigned k = 0; k < usize; k++) {Jbar[k]  = J[k];}
+    for (unsigned k = 0; k < usize; k++) {Pbar[k]  = P[k];}
+
+    averageAcrossLayers( run, -1, Pbar );
+    averageAcrossLayers( run, +1, Jbar );
+
+    int l_idx       = -1;
+    unsigned kstart = n1n2c;
+    unsigned kstop  = n1n2c * (iu2 - 1);
+
+    for (unsigned kdx = kstart; kdx < kstop; kdx++) {
+   
+      if (kdx % n1n2c == 0 ) { ++l_idx; }
+
+      A0[ kdx ]    = h12[l_idx] * Jbar[kdx]; /* ~ A0 - L1 = h11(z) * Omega + h12(z)*jbar                       ~ */
+      A1[ kdx ]    = h21[l_idx] * Pbar[kdx]; /* ~ A1 - L2 = h21(z)*phibar  + h22(z)*A                          ~ */
+
+    }
+
+     Jbar.erase(Jbar.begin(),Jbar.end());
+     Pbar.erase(Pbar.begin(),Pbar.end());
+
+  }
 
   if (model.compare("hall") == 0 ) {
 
@@ -689,12 +757,10 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
     unsigned kstart = 0;
     unsigned kstop  = n1n2c * iu2;
   
-    for (unsigned k = kstart; k < kstop; k++) {
-  
-      A1[k]         = -( eta * ssqd * J[k] );
-  
-    }
+    for (unsigned k = kstart; k < kstop; k++) { A1[k]         = -( eta * ssqd * J[k] ); }
+
   }
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -904,13 +970,51 @@ void lcsolve::averageAcrossLayers( stack& run, int shift_sign, RealArray& dx, Re
     }
 }
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void lcsolve::averageAcrossLayers( stack& run, int shift_sign, ComplexArray& dx ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  int n1n2c;
+  run.stack_data.fetch("n1n2c",  &n1n2c );       /* ~ number of complex elements in a layer    ~ */
+  int iu2;
+  run.stack_data.fetch("iu2"  , &iu2  );         /* ~ number of layers in stack                ~ */
+
+  int dsize          = dx.capacity();
+
+  assert(dsize       == n1n2c * iu2);
+
+  ComplexArray d_tmp_x(dsize, czero);
+
+  unsigned kstart    = n1n2c;
+  unsigned kstop     = n1n2c * (iu2 - 1);
+  unsigned kshift    = shift_sign * n1n2c;
+
+  unsigned idx       = 0;
+
+    for (unsigned k  = kstart; k < kstop; k++) {
+
+          idx        =  k + kshift;
+
+        d_tmp_x[k]   = half * (dx[k] + dx[idx]) ;
+
+    }
+
+    for (unsigned k  = kstart; k < kstop; k++) {
+
+      dx[k]          = d_tmp_x[k];
+
+    }
+}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void lcsolve::Step( std::string str_step, stack& run ) {
 
   std::string model;
-  run.palette.fetch(   "model", &model );          /* ~ either "hall" or "rmhd"                     ~ */
+  run.palette.fetch(   "model", &model );          /* ~ one of "hall" or "rmhd", or "inhm"          ~ */
 
   int n1n2c;
   run.stack_data.fetch("n1n2c" ,&n1n2c );          /* ~ number of complex elements per layer        ~ */

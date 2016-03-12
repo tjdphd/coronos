@@ -81,9 +81,12 @@ class redhallmhd
   void initFootPointDriving(            stack& run);
   void initNoDrive(                     stack& run);
 
+  void initIRMHD(                       stack& run);
+ 
   void initialize(                      stack& run );
   void OfromP(                          stack& run );                 /* ~ Obtain vorticity from P                   ~ */
   void HfromA(                          stack& run );                 /* ~ Obtain H from A                           ~ */
+  void JfromA(                          stack& run );                 /* ~ Obtain J from A                           ~ */
 
 
   void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
@@ -101,6 +104,19 @@ class redhallmhd
   ComplexArray A;                                                     /* ~ flux function A in Fourier Space          ~ */
   ComplexArray J;                                                     /* ~ current density in Fourier Space          ~ */
 
+  RealArray valfven;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
+  RealArray dvalfdz;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
+  RealArray umean;
+
+  RealArray Elln;
+  RealArray EllA;
+  RealArray EllB;
+
+  RealArray h11;
+  RealArray h12;
+  RealArray h21;
+  RealArray h22;
+
   RealArray maxU;                                                     /* ~ for time-step determination               ~ */
 
   void updatePAJ( std::string str_step, stack& run );
@@ -109,6 +125,10 @@ class redhallmhd
 
   void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
   void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
+
+  void evalElls(                        stack& run );                 /* ~ calculate l's and h's at each layer       ~ */
+  void evalValf(                        stack& run );                 /* ~ calculate Va at each layer                ~ */
+  void evalUmean(                       stack& run );                 /* ~ calculate Va at each layer                ~ */
 
   void physicsFinalize(                 stack& run );                 /* ~ end of subrun bookkeeping                 ~ */
                                                                       /* ~ this is just a stub right now, but will   ~ */

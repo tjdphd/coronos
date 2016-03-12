@@ -44,7 +44,7 @@
 #define PACKAGE "coronos"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "tdennis@gi.alaska.edu"
+#define PACKAGE_BUGREPORT "tdennis10@alaska.edu"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "coronos"

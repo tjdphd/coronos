@@ -82,6 +82,9 @@ public:
     void fftwForwardAll( stack& run);                      /* ~ Forward FFT all fields all layers    ~ */
     void fftwReverseAll( stack& run);                      /* ~ Reverst FFT all fields all layers    ~ */
 
+    void fftwForwardAll( stack& run,  ComplexArray& Jout); /* ~ Forward FFT all fields all layers    ~ */
+    void fftwReverseAll( stack& run,  ComplexArray& Jin);  /* ~ Forward FFT all fields all layers    ~ */
+
     void fftwForwardLayerofField ( stack& run, int layer, int field );
     void fftwReverseLayerofField ( stack& run, int layer, int field );
 

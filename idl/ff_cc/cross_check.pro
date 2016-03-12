@@ -17,9 +17,15 @@ FOR I = first_step, last_step DO BEGIN
 
 ; IF (MDF_OUT.df_count NE 0) THEN BEGIN
 
-  PRINT, "glb_max_df = ", glb_max_df
-  PRINT, "glb_min_df = ", glb_min_df
-  PRINT, "count      = ", MDF_OUT.df_count
+  PRINT, " "
+  PRINT, " ************************************************** "
+  PRINT, " "
+  PRINT, "glb_max_df                = ", glb_max_df
+  PRINT, "glb_min_df                = ", glb_min_df
+  PRINT, "count                     = ", MDF_OUT.df_count
+  PRINT, " "
+  PRINT, " ************************************************** "
+  PRINT, " "
 
 ; ENDIF
 

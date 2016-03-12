@@ -56,24 +56,33 @@ redhallmhd::redhallmhd() {
 redhallmhd::redhallmhd(stack& run ) {
 
 #ifndef HAVE_CUDA_H
-    init_physics_data( run       );    /* ~ physics - specific parameters              ~ */
-    initU(             run       );    /* ~ initialization of layers 1 - n3 of U       ~ */
 
-  int srun;
-  run.palette.fetch("srun", &srun);
-
+  init_physics_data( run         );   /* ~ physics - specific parameters               ~ */
+  initU(             run         );   /* ~ initialization of layers 1 - n3 of U        ~ */
   initBoundaries(    run         );   /* ~ initialization of quantities needed for     ~ */
                                       /* ~ boundary value application.                 ~ */
-  if (srun == 1) {
-
-  run.writeUData  (              );   /* ~ initial conditions report                   ~ */
-
-  }
 
   initialize(        run         );   /* ~ not a good name, I'll probably revise this  ~ */
                                       /* ~ it might be to let initialize do everything ~ */
                                       /* ~ here or, alternatively to do away with it   ~ */
+  int srun;
+  run.palette.fetch("srun", &srun);
+  if (srun == 1) {
+
+    fftw.fftwReverseAll( run,   J);
+    run.writeUData  (            );   /* ~ initial conditions report                   ~ */
+
+  }
+  else {
+
+    /* ~ NOTE! AUX should be read from data file here!                                 ~ */
+   
+  }
+
+  initIRMHD(         run         );   /* ~ checks for inhomegeneous conditions         ~ */
+
 #endif
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -767,9 +776,9 @@ void redhallmhd::initNoDrive( stack& run) {
 
   if ( rank == 0 || rank == np - 1) {
 
-    std::cout << "initNoDrive: initializing p for rank " << rank << std::endl;
-    std::cout << "initNoDrive: n3  = "                   << n3   << std::endl;
-    std::cout << "initNoDrive: iu2 = "                   << iu2  << std::endl;
+//    std::cout << "initNoDrive: initializing p for rank " << rank << std::endl;
+//    std::cout << "initNoDrive: n3  = "                   << n3   << std::endl;
+//    std::cout << "initNoDrive: iu2 = "                   << iu2  << std::endl;
 
     if ( rank == 0 ) {
       for (int k   = 0; k< n1n2; ++k) { U[k][0][0]      = zero; }
@@ -797,6 +806,16 @@ void redhallmhd::initNoDrive( stack& run) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+void redhallmhd::initIRMHD (stack& run ) {
+
+  evalValf(  run );
+  evalUmean( run );
+  evalElls(  run );
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 void redhallmhd::initialize (stack& run ) {
 
     std::string model;
@@ -807,11 +826,7 @@ void redhallmhd::initialize (stack& run ) {
 #else
 
             initTimeInc(         run );
- 
-            std::string init;
-            run.palette.fetch("initMode", &init);
             fftw.fftwForwardAll( run );
-
 
             OfromP(              run );
             HfromA(              run );
@@ -902,7 +917,7 @@ void redhallmhd::HfromA( stack& run )  {
       if (model.compare("hall") == 0 ) {
         H[k]         = A[k] + ssqd * J[k];               /* ~ H = A + sigma^2 J                          ~ */
       }
-      else if(model.compare("rmhd") == 0 ) {
+      else if (model.compare("rmhd") == 0 || model.compare("inhm") == 0) {
         H[k]         = A[k];                             /* ~ H = A for reduced-MHD                      ~ */
       }
       ++idx;
@@ -992,7 +1007,7 @@ void redhallmhd::AfromH( stack& run )  {
     if (model.compare("hall") == 0 ) {
       A[k]         = H[k] / (one + ssqd*k2[idx]);      /* ~ NOTE: why not use known values?            ~ */
     }
-    else if(model.compare("rmhd") == 0) {
+    else if(model.compare("rmhd") == 0 || model.compare("inhm") == 0 ) {
       A[k]         = H[k];                             /* ~ NOTE: why not use known values?            ~ */
     }
 
@@ -1006,6 +1021,157 @@ void redhallmhd::AfromH( stack& run )  {
 
 }
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalElls(    stack& run ) {
+
+  std::string nprofile;
+  run.palette.fetch("nprofile", &nprofile);
+  int p3;
+  run.palette.fetch("p3", &p3);
+
+  Elln.assign(p3,zero);
+  EllA.assign(p3,zero);
+  EllB.assign(p3,zero);
+
+   h11.assign(p3,zero);
+   h12.assign(p3,zero);
+   h21.assign(p3,zero);
+   h22.assign(p3,zero);
+
+  int i_profile;
+
+  if      (nprofile.compare("flat")   == 0) { i_profile =  0; }
+  else if (nprofile.compare("torus")  == 0) { i_profile =  1; }
+  else if (nprofile.compare("cloop")  == 0) { i_profile =  2; }
+  else                                      { i_profile = -1; }
+
+  switch(i_profile) {
+
+  case(0) : Elln.assign(p3, zero); 
+            EllA.assign(p3, zero);
+            EllB.assign(p3, zero);
+            break;
+  case(1) : for ( int k = 0; k <  p3;  ++k) {
+              EllA[k] = abs(half * (one / valfven[k]) * dvalfdz[k]);
+              Elln[k] = EllA[k];
+            }
+            EllB.assign(p3, zero);
+            break;
+  case(2) : Elln.assign(p3, zero);
+            EllA.assign(p3, zero);
+            EllB.assign(p3, zero);
+            break;
+
+  default :
+
+    std::cout << "evalN: WARNING - the profile " << nprofile << " is not implemented. Assuming a flat profile." << std::endl;
+
+    Elln.assign(p3, zero);
+    EllA.assign(p3, zero);
+    EllB.assign(p3, zero);
+
+  }
+
+  for ( int k = 0; k <  p3;  ++k) {
+
+    h11[k] =  umean[k]   * ( EllA[k] + EllB[k] - Elln[k] );
+    h12[k] = -valfven[k] * ( EllA[k] + EllB[k] + Elln[k] );
+    h21[k] =  h12[k];
+    h22[k] =  umean[k]   * ( EllB[k] - Elln[k] - EllA[k] );
+
+  }
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalValf( stack& run ) {
+  
+  std::string nprofile;
+  run.palette.fetch("nprofile", &nprofile);                          /* ~ specification for density profile    ~ */
+  int p3;
+  run.palette.fetch("p3", &p3);                                      /* ~ layers per stack not incl. ghosts      ~ */
+  double zl;                   
+  run.palette.fetch("zl", &zl);                                      /* ~ size of domain along z               ~ */
+  double ninf;
+  run.palette.fetch("ninf", &ninf);                                  /* ~ density at z = +/- infinity          ~ */
+  double n0;
+  run.palette.fetch("n0", &n0);                                      /* ~ density at z_0 (i.e. z = zl / 2)     ~ */
+
+  double H0;                                                         /* ~ density scale-height constant        ~ */
+
+  RealArray& z = run.z;
+
+  RealArray nofz;
+  RealArray dndz;
+
+  int i_profile;
+  if      (nprofile.compare("flat")   == 0) { i_profile =  0; }      /* ~ switch statements don't like strings ~ */
+  else if (nprofile.compare("torus")  == 0) { i_profile =  1; }
+  else if (nprofile.compare("cloop")  == 0) { i_profile =  2; }
+  else                                      { i_profile = -1; }
+
+  switch(i_profile) {
+
+  case(0) : valfven.assign(p3, one);
+            dvalfdz.assign(p3, zero);
+            break;
+  case(1) : H0 = zl / sqrt( - eight * log( (one - ninf) / (n0 - ninf)));
+            std::cout << "evalValf: H0 = " << H0 << std::endl;
+            nofz.assign(p3,zero);
+            dndz.assign(p3,zero);
+            valfven.assign(p3, one);
+            dvalfdz.assign(p3, zero);
+            for (unsigned k = 0; k < p3; ++k) {
+               nofz[k]    = ninf + ((n0 - ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two))));
+               dndz[k]    = -(n0 - ninf) * exp( -half * pow(((z[k]-(half*zl))/H0),2)) * (z[k] - (half*zl)) / (pow(H0,2));
+               valfven[k] = sqrt(n0 / (ninf + (n0-ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two)))));
+               dvalfdz[k] = -half * valfven[k] * dndz[k] / nofz[k];
+            }
+            break;
+  case(2) : valfven.assign(p3, one); 
+            dvalfdz.assign(p3, zero);
+            break;
+
+  default : 
+
+    std::cout << "evalValf: WARNING - the profile " << nprofile << " is not implemented. Assuming a flat profile." << std::endl;
+    valfven.assign(p3, one);
+    dvalfdz.assign(p3, zero);
+
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalUmean( stack& run ) {
+  
+  std::string uprofile;
+  run.palette.fetch("uprofile", &uprofile);
+  int p3;
+  run.palette.fetch("p3", &p3);
+
+  int i_profile;
+
+  if      (uprofile.compare("noflow")   == 0) { i_profile =  0; }
+  else if (uprofile.compare("uniform")  == 0) { i_profile =  1; }
+  else if (uprofile.compare("whoknows") == 0) { i_profile =  2; }
+  else                                        { i_profile = -1; }
+
+  switch(i_profile) {
+
+  case(0) : umean.assign(p3, zero); break;
+  case(1) : umean.assign(p3, zero); break;
+  case(2) : umean.assign(p3, zero); break;
+
+  default : 
+
+    std::cout << "evalValf: WARNING - the profile " << uprofile << " is not implemented. Assuming a flat profile." << std::endl;
+    umean.assign(p3, one);
+
+  }
+}
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::applyBC( std::string str_step, stack& run ) {
