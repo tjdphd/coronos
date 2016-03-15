@@ -63,18 +63,20 @@ void lcsolve::Loop( stack& run ) {
 
   redhallmhd physics ( run );
 
+  RealArray& EnergyQs = run.EnergyQs;
+
   int n1n2;
   run.stack_data.fetch("n1n2", &n1n2);
   int n1n2c;
   run.stack_data.fetch("n1n2c", &n1n2c);
 
-  int l, ndt,    iptest;
+  int l, ndt,    iptest, nw;
   RealVar tstart, t_cur, dt;
-
 
   run.palette.fetch("ndt",    &ndt   );
   run.palette.fetch("tstart", &t_cur );
   run.palette.fetch("iptest", &iptest);
+  run.palette.fetch("nw",     &nw    );
 
   for (l = 0; l < ndt;l++) {
 
@@ -83,6 +85,14 @@ void lcsolve::Loop( stack& run ) {
   passAdjacentLayers( "predict", run );
   physics.applyBC(    "predict", run );
   physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
+
+//  if (l > 0 ) { physics.trackEnergies(         run ); }
+//
+  physics.trackEnergies(l, nw,   run );
+
+  if (l % nw == 0 ) { run.reportEnergyQs(t_cur); }
+
+  /* ~ bookkeeping goes here ?                   ~ */
 
   setS(               "predict", run, physics );   /* ~ set predictor S's                                       ~ */
   setB(               "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
@@ -102,10 +112,9 @@ void lcsolve::Loop( stack& run ) {
 
   run.palette.fetch("dt", &dt);
   t_cur       = t_cur + dt;
+  physics.physics_data.reset("t_cur", t_cur);
 
   physics.updateTimeInc(        run );
-
-  /* ~ bookkeeping goes here                     ~ */
 
   }
 
@@ -734,8 +743,8 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
    
       if (kdx % n1n2c == 0 ) { ++l_idx; }
 
-      A0[ kdx ]    = h12[l_idx] * Jbar[kdx]; /* ~ A0 - L1 = h11(z) * Omega + h12(z)*jbar                       ~ */
-      A1[ kdx ]    = h21[l_idx] * Pbar[kdx]; /* ~ A1 - L2 = h21(z)*phibar  + h22(z)*A                          ~ */
+      A0[ kdx ]     = h12[l_idx] * Jbar[kdx];           /* ~ A0 - L1 = h11(z) * Omega + h12(z)*jbar                       ~ */
+      A1[ kdx ]     = h21[l_idx] * Pbar[kdx];           /* ~ A1 - L2 = h21(z)*phibar  + h22(z)*A                          ~ */
 
     }
 
@@ -980,7 +989,7 @@ void lcsolve::averageAcrossLayers( stack& run, int shift_sign, ComplexArray& dx 
   int n1n2c;
   run.stack_data.fetch("n1n2c",  &n1n2c );       /* ~ number of complex elements in a layer    ~ */
   int iu2;
-  run.stack_data.fetch("iu2"  , &iu2  );         /* ~ number of layers in stack                ~ */
+  run.stack_data.fetch("iu2"  , &iu2    );       /* ~ number of layers in stack                ~ */
 
   int dsize          = dx.capacity();
 
@@ -995,17 +1004,12 @@ void lcsolve::averageAcrossLayers( stack& run, int shift_sign, ComplexArray& dx 
   unsigned idx       = 0;
 
     for (unsigned k  = kstart; k < kstop; k++) {
-
           idx        =  k + kshift;
-
-        d_tmp_x[k]   = half * (dx[k] + dx[idx]) ;
-
+        d_tmp_x[k]   = half * ( dx[k] + dx[idx] ) ;
     }
 
     for (unsigned k  = kstart; k < kstop; k++) {
-
       dx[k]          = d_tmp_x[k];
-
     }
 }
 

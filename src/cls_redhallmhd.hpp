@@ -106,6 +106,8 @@ class redhallmhd
 
   RealArray valfven;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
   RealArray dvalfdz;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
+  RealArray nofz;                                                     /* ~ Needed for Inhomogeneous RMHD             ~ */
+  RealArray dndz;                                                     /* ~ Needed for Inhomogeneous RMHD             ~ */
   RealArray umean;
 
   RealArray Elln;
@@ -129,6 +131,15 @@ class redhallmhd
   void evalElls(                        stack& run );                 /* ~ calculate l's and h's at each layer       ~ */
   void evalValf(                        stack& run );                 /* ~ calculate Va at each layer                ~ */
   void evalUmean(                       stack& run );                 /* ~ calculate Va at each layer                ~ */
+
+
+  void trackEnergies(int l, int nw,     stack& run );                 /* ~ update energy quantities between steps    ~ */
+  void evalTotalKineticEnergy(          stack& run, int i_pe);
+  void evalTotalMagneticEnergy(         stack& run, int i_me);
+  void evalTotalVorticitySqd(           stack& run, int i_oe);
+  void evalTotalCurrentSqd(             stack& run, int i_ce);
+  void evalTotalFootPointKE(            stack& run, int i_fp);        /* ~ Misnomer?                                 ~ */
+  void evalTotalPoyntingFlux(           stack& run, int i_fe);        /* ~ Poynting Flux                             ~ */
 
   void physicsFinalize(                 stack& run );                 /* ~ end of subrun bookkeeping                 ~ */
                                                                       /* ~ this is just a stub right now, but will   ~ */

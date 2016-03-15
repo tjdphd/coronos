@@ -413,6 +413,47 @@ void stack::writeUData() {
 
   }
 }
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void stack::reportEnergyQs( double t_cur ) {
+
+  int rank;
+  run_data.fetch("rank",      &rank   );
+  std::string prefix;
+  palette.fetch("prefix",     &prefix );
+  std::string run_label;
+  palette.fetch("run_label",  &run_label);
+  std::string res_str;
+  stack_data.fetch("res_str", &res_str);
+
+  std::string energy_data_file;
+  energy_data_file = prefix + "_" + res_str + ".o" + run_label;
+
+  const char *c_energy_data_file;
+  c_energy_data_file = energy_data_file.c_str();
+  std::ofstream ofs;
+
+  int esize;
+  esize = EnergyQs.size();
+
+  if (rank == 0 ) {
+
+    ofs.open( c_energy_data_file, std::ios::out | std::ios::app );
+    if (ofs.good() ) {
+      ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << t_cur << " ";
+      for (unsigned k = 0; k < esize; k++){
+        ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << EnergyQs[k] << " ";
+      }
+      ofs << std::endl;
+    }
+    else {
+      std::cout << "reportEnergyQs: ofs is not good! " << std::endl;
+    }
+    ofs.close();
+  }
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 std::string stack::getLastDataFilename(int srun) {

@@ -18,6 +18,7 @@ uprofile   noflow                    str rfx
 ninf       0.09                      dbl rfx
 n0         5.0e+01                   dbl rfx
 ndt        1                         int rfx 
+nw         1                         int rfx 
 nf         0                         int sfx 
 nnodes     1                         int rfx 
 np         4                         int rfx 

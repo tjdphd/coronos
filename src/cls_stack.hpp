@@ -65,6 +65,8 @@ class stack : public canvas
   InputOutputArray U;                         /* ~ raw input/output array                  ~ */
   InputOutputArray AUX;                       /* ~ raw output array for auxiliary fields   ~ */
 
+  RealArray EnergyQs;                         /* ~ Energy related qty's as deter. by phys. ~ */
+
   RealArray x;                                /* ~ For holding x-coordinates               ~ */
   RealArray y;                                /* ~ For holding y-coordinates               ~ */
   RealArray z;                                /* ~ For holding z-coordinates               ~ */
@@ -99,6 +101,8 @@ class stack : public canvas
   void initAUX();                             /* ~ for containing auxiliary field data     ~ */
 
   void writeUData();                          /* ~ Input/Output                            ~ */
+
+  void reportEnergyQs( double t_cur );        /* ~ write energy quantities to energyfile   ~ */
 
 
   std::string getLastDataFilename(int srun);

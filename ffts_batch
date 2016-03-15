@@ -1,0 +1,42 @@
+; idl batch script - 'ffts_batch' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;                                                                              ;
+; Author: Timothy J. Dennis                                                    ;
+;         tdennis@gi.alaska.edu                                                ;
+;                                                                              ;
+; Developed for use with the family of Heliospheric Physics codes originating  ;
+; with the work of C.S. Ng and including 'rmct_np,' and 'fourfields,'          ;
+; 'rmct2-cuda,' and 'ff-cuda.'                                                 ;
+;                                                                              ;
+; Description: This is a batch script to be read into an instantiation of IDL  ;
+;              running on a login node. The reading in of this script          ;
+;              (and the instantiation of IDL on the  node) is                  ;
+;              accomplished via the execution of a 'parent' c-shell script     ;
+;              called 'cts_idl.s'. Prospective users are forewarned not to try ;
+;              'feeding' this script to IDL any other way unless they know     ;
+;              what they're doing. Otherwise confusion and frustration are     ;
+;              certain to ensue. You're much better off reading the            ;
+;              documentation in cts_idl.s first.                               ;
+;                                                                              ;
+;              The purpose of this script is to execute the IDL procedure      ;
+;              'ff_time_series' which, as of this writing, is an interactive   ;
+;              procedure used for examining the time-series output for a       ;
+;              variety of auxiliary quantities output by the code, most of     ;
+;              which are energy-related. A full list awaits further            ;
+;              development of the script and its documentation.                ;
+;                                                                              ;
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+idl_src_dir = GETENV('IDL_PATH')           ; Directory where the required IDL
+                                           ; sources reside
+
+ffts_dsc_lab = GETENV('FFTS_DSC_LAB')      ;
+ffts_fld_one = GETENV('FFTS_FLD_ONE')      ;
+ffts_fld_two = GETENV('FFTS_FLD_TWO')      ;
+
+.run scan_parameters.pro                   ; compile
+.run open_energy_data_file.pro
+.run ff_time_series.pro
+
+ff_time_series, ffts_dsc_lab, ffts_fld_one, ffts_fld_two ; run 
+
+retall                                     ; get ready to exit
+exit

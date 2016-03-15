@@ -167,7 +167,7 @@ void fft::fftwKInit(stack& run) {               /* ~ initialize the wave number 
       ndx     = (i * n2h) + j;
       k2[ndx] = (kx[ndx] * kx[ndx]) +  (ky[ndx] * ky[ndx]);
 
-      if (std::abs(k2[ndx]) > teensy) inv_k2[ndx] = one/k2[ndx];
+      if (std::abs(k2[ndx]) > teensy) inv_k2[ndx] = one / k2[ndx];
       else inv_k2[ndx] = zero;
 
     }

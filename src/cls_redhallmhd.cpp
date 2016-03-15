@@ -1053,8 +1053,11 @@ void redhallmhd::evalElls(    stack& run ) {
             EllB.assign(p3, zero);
             break;
   case(1) : for ( int k = 0; k <  p3;  ++k) {
-              EllA[k] = abs(half * (one / valfven[k]) * dvalfdz[k]);
-              Elln[k] = EllA[k];
+
+              EllA[k] = abs( dvalfdz[k] / (two  * valfven[k]) );
+              Elln[k] = abs( dndz[k]    / (four * nofz[k]   ) );
+//            Elln[k] = EllA[k];
+
             }
             EllB.assign(p3, zero);
             break;
@@ -1103,8 +1106,8 @@ void redhallmhd::evalValf( stack& run ) {
 
   RealArray& z = run.z;
 
-  RealArray nofz;
-  RealArray dndz;
+//  RealArray nofz;
+//  RealArray dndz;
 
   int i_profile;
   if      (nprofile.compare("flat")   == 0) { i_profile =  0; }      /* ~ switch statements don't like strings ~ */
@@ -1114,30 +1117,41 @@ void redhallmhd::evalValf( stack& run ) {
 
   switch(i_profile) {
 
-  case(0) : valfven.assign(p3, one);
+  case(0) : valfven.assign(p3, one );
             dvalfdz.assign(p3, zero);
+               nofz.assign(p3, one );
+               dndz.assign(p3, zero);
             break;
-  case(1) : H0 = zl / sqrt( - eight * log( (one - ninf) / (n0 - ninf)));
+  case(1) : H0 = zl / sqrt( - eight * log( (one - ninf) / (n0 - ninf) ));
+
             std::cout << "evalValf: H0 = " << H0 << std::endl;
-            nofz.assign(p3,zero);
-            dndz.assign(p3,zero);
-            valfven.assign(p3, one);
-            dvalfdz.assign(p3, zero);
+
+               nofz.assign(p3,one );
+               dndz.assign(p3,zero);
+            valfven.assign(p3,one );
+            dvalfdz.assign(p3,zero);
+
             for (unsigned k = 0; k < p3; ++k) {
+
                nofz[k]    = ninf + ((n0 - ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two))));
-               dndz[k]    = -(n0 - ninf) * exp( -half * pow(((z[k]-(half*zl))/H0),2)) * (z[k] - (half*zl)) / (pow(H0,2));
-               valfven[k] = sqrt(n0 / (ninf + (n0-ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two)))));
+               dndz[k]    = -(n0 - ninf) * exp( -half * pow(((z[k]-(half*zl))/H0),2)) * (z[k] - (half*zl)) / ( pow(H0,2) );
+               valfven[k] = sqrt( n0 / nofz[k] );
                dvalfdz[k] = -half * valfven[k] * dndz[k] / nofz[k];
+
+//               valfven[k] = sqrt(n0 / (ninf + (n0-ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two)))));
+
             }
             break;
-  case(2) : valfven.assign(p3, one); 
+  case(2) : valfven.assign(p3, one ); 
             dvalfdz.assign(p3, zero);
+               nofz.assign(p3, one );
+               dndz.assign(p3, zero);
             break;
 
   default : 
 
     std::cout << "evalValf: WARNING - the profile " << nprofile << " is not implemented. Assuming a flat profile." << std::endl;
-    valfven.assign(p3, one);
+    valfven.assign(p3, one );
     dvalfdz.assign(p3, zero);
 
   }
@@ -1172,6 +1186,448 @@ void redhallmhd::evalUmean( stack& run ) {
 
   }
 }
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::trackEnergies(int l, int nw, stack& run ) {
+
+  static const int i_pe = 0;
+  static const int i_me = 1;
+  static const int i_oe = 2;
+  static const int i_ce = 3;
+  static const int i_fp = 4;
+  static const int i_fe = 5;
+
+  evalTotalKineticEnergy(  run,  i_pe );
+  evalTotalMagneticEnergy( run,  i_me );
+  evalTotalVorticitySqd(   run,  i_oe );
+  evalTotalCurrentSqd(     run,  i_ce );
+  evalTotalFootPointKE(    run,  i_fp );
+  evalTotalPoyntingFlux(   run,  i_fe );
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalTotalKineticEnergy ( stack& run, int i_pe ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+
+  assert (wsize == np);
+  
+  RealArray& k2       = run.k2;
+  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double pe;
+  double pe_sum;
+
+  pe        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+  if (rank  == 0) { kstart = 0;     }
+  else            { kstart = n1n2c; }
+
+// kstart =  n1n2c; 
+  kstop  = n1n2c * (iu2 - 1);
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++){
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      pe    = pe + k2[idx] * pow(abs(P[kdx]), 2);
+
+      if (( rank == np - 1 ) && ( kdx >= (four * n1n2c) )) {
+        pe = pe - half * k2[idx] * pow(abs(P[kdx]),2);
+      }
+      if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
+        pe = pe - half * k2[idx] * pow(abs(P[kdx]),2);
+      }
+
+      ++idx;
+  }
+
+  pe = pe * dz;
+
+  int i_red;
+
+  i_red = MPI_Reduce(&pe, &pe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+    pe_sum = two_thirds * pe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+
+    if (EnergyQs.size() >= (i_pe + 1)) {
+      EnergyQs[i_pe] = pe_sum;
+    }
+    else {
+      EnergyQs.push_back(pe_sum);
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalTotalVorticitySqd( stack& run, int i_oe ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+  
+  RealArray& k2       = run.k2;
+  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double oe;
+  double oe_sum;
+
+  oe        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+  if (rank  == 0) { kstart = 0;     }
+  else            { kstart = n1n2c; }
+
+// kstart =  n1n2c; 
+  kstop  = n1n2c * (iu2 - 1);
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++){
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      oe    = oe + k2[idx]*k2[idx] * pow(abs(P[kdx]), 2);
+
+      if (( rank == np - 1 ) && ( kdx >= (four * n1n2c) )) {
+        oe = oe - half * k2[idx]*k2[idx] * pow(abs(P[kdx]),2);
+      }
+      if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
+        oe = oe - half * k2[idx]*k2[idx] * pow(abs(P[kdx]),2);
+      }
+
+      ++idx;
+  }
+
+  oe = oe * dz;
+
+  int i_red;
+
+  i_red = MPI_Reduce(&oe, &oe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+    oe_sum = two * two_thirds * oe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+
+    if (EnergyQs.size() >= (i_oe + 1)) {
+      EnergyQs[i_oe] = oe_sum;
+    }
+    else {
+      EnergyQs.push_back(oe_sum);
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalTotalMagneticEnergy ( stack& run, int i_me ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+
+  assert (wsize == np);
+  
+  RealArray& k2       = run.k2;
+  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double me;
+  double me_sum;
+
+  me        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+  kstart = n1n2c; 
+  kstop  = n1n2c * (iu2 - 1);
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++) {
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      me    = me + k2[idx] * pow(abs(A[kdx]), 2);
+      ++idx;
+  }
+
+  me = me * dz;
+
+  int i_red;
+
+  i_red = MPI_Reduce(&me, &me_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+    if (EnergyQs.size() >= (i_me + 1)) {
+      EnergyQs[i_me] = me_sum;
+    }
+    else {
+      EnergyQs.push_back(me_sum);
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalTotalCurrentSqd( stack& run, int i_ce ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+
+  assert (wsize == np);
+  
+  RealArray& k2       = run.k2;
+  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double ce;
+  double ce_sum;
+
+  ce        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+  kstart = n1n2c; 
+  kstop  = n1n2c * (iu2 - 1);
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++) {
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      ce    = ce + k2[idx] * k2[idx] * pow(abs(A[kdx]), 2);
+      ++idx;
+  }
+
+  ce = two * ce * dz;
+
+  int i_red;
+
+  i_red = MPI_Reduce(&ce, &ce_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+    if (EnergyQs.size() >= (i_ce + 1)) {
+      EnergyQs[i_ce] = ce_sum;
+    }
+    else {
+      EnergyQs.push_back(ce_sum);
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalTotalFootPointKE( stack& run, int i_fp ) {
+
+  /* ~ Note: this is the equivalent to vbot from the old code. I'm not convinced this is correct in
+   *         either of the codes. But I'm getting in implemented for now. ~ */
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+
+  assert (wsize == np);
+  
+  RealArray& k2       = run.k2;
+  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double fp;
+  double fp_sum;
+
+  fp        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+   kstart = 0;
+   kstop  = n1n2c;
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++){
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      fp    = fp + k2[idx] * pow(abs(P[kdx]), 2);
+
+      ++idx;
+  }
+
+  fp = fp * dz;
+
+  int i_red;
+
+  i_red = MPI_Reduce(&fp, &fp_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+    fp_sum = two_thirds * fp_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+
+    if (EnergyQs.size() >= (i_fp + 1)) {
+      EnergyQs[i_fp] = fp_sum;
+    }
+    else {
+      EnergyQs.push_back(fp_sum);
+    }
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::evalTotalPoyntingFlux ( stack& run, int i_fe ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+
+  assert (wsize == np);
+  
+  RealArray& k2       = run.k2;
+  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double fe;
+  double fe_sum;
+
+  fe        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+  if       (rank  ==  0)      { kstart = 0;                 }
+  else if  (rank  ==  np - 1) { kstart = ( iu2 - 2 )*n1n2c; }
+
+  kstop  = kstart + n1n2c;
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++){
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      if (( rank == np - 1 ) && ( kdx >= ( n3 * n1n2c) )) {
+        fe = fe + k2[idx] * ( A[kdx].real() * P[kdx].real() + A[kdx].imag() * P[kdx].imag() );
+      }
+      if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
+        fe = fe + k2[idx] * ( A[kdx + n1n2c].real() * P[kdx].real() + A[kdx + n1n2c].imag() * P[kdx].imag() );
+      }
+
+      ++idx;
+  }
+  fe = two * fe;
+
+  int i_red;
+  i_red = MPI_Reduce(&fe, &fe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+//  fe_sum = two_thirds * fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+
+    if (EnergyQs.size() >= (i_fe + 1)) {
+      EnergyQs[i_fe] = fe_sum;
+    }
+    else {
+      EnergyQs.push_back(fe_sum);
+    }
+  }
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::applyBC( std::string str_step, stack& run ) {
