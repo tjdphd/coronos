@@ -63,8 +63,6 @@ void lcsolve::Loop( stack& run ) {
 
   redhallmhd physics ( run );
 
-  RealArray& EnergyQs = run.EnergyQs;
-
   int n1n2;
   run.stack_data.fetch("n1n2", &n1n2);
   int n1n2c;
@@ -124,6 +122,8 @@ void lcsolve::Loop( stack& run ) {
   physics.AfromH (               run         );   /* ~ H still in U1. Replacing with A for Primary data output ~ */
 
   physics.fftw.fftwReverseAll(   run         );
+
+  physics.physicsFinalize(       run         );
 
   run.palette.reset(   "tstart", t_cur       );
   int srun;

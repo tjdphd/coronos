@@ -57,29 +57,27 @@ redhallmhd::redhallmhd(stack& run ) {
 
 #ifndef HAVE_CUDA_H
 
-  init_physics_data( run         );   /* ~ physics - specific parameters               ~ */
-  initU(             run         );   /* ~ initialization of layers 1 - n3 of U        ~ */
-  initBoundaries(    run         );   /* ~ initialization of quantities needed for     ~ */
-                                      /* ~ boundary value application.                 ~ */
+  init_physics_data(     run   );   /* ~ physics - specific parameters               ~ */
+  initU(                 run   );   /* ~ initialization of layers 1 - n3 of U        ~ */
+                                    /* ~ boundary value application.                 ~ */
 
-  initialize(        run         );   /* ~ not a good name, I'll probably revise this  ~ */
-                                      /* ~ it might be to let initialize do everything ~ */
-                                      /* ~ here or, alternatively to do away with it   ~ */
-  int srun;
-  run.palette.fetch("srun", &srun);
+  initialize(            run   );   /* ~ not a good name, I'll probably revise this  ~ */
+                                    /* ~ it might be to let initialize do everything ~ */
+                                    /* ~ here or, alternatively to do away with it   ~ */
+
+  initBoundaries(        run   );   /* ~ initialization of quantities needed for     ~ */
+
+  int srun; run.palette.fetch("srun", &srun);
+
   if (srun == 1) {
 
-    fftw.fftwReverseAll( run,   J);
-    run.writeUData  (            );   /* ~ initial conditions report                   ~ */
+    fftw.fftwReverseAll( run, J);
+    run.writeUData  (          );   /* ~ initial conditions report                   ~ */
 
   }
-  else {
+  else { /* ~ NOTE! AUX should be read from data file here!                            ~ */ }
 
-    /* ~ NOTE! AUX should be read from data file here!                                 ~ */
-   
-  }
-
-  initIRMHD(         run         );   /* ~ checks for inhomegeneous conditions         ~ */
+  initIRMHD(             run   );   /* ~ checks for inhomegeneous conditions         ~ */
 
 #endif
 
@@ -102,35 +100,36 @@ void redhallmhd::initTimeInc( stack& run ){
 
 void redhallmhd::initU( stack& run ) {
 
-  std::string init;
-
-  int srun;
-
   fftw.fftwInitialize( run );
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  run.palette.fetch("srun", &srun);
+  int srun;             run.palette.fetch("srun",     &srun    );
+  std::string scenario; run.palette.fetch("scenario", &scenario);
 
-  if (srun == 1) {
+  if (scenario.compare("reconnection")  == 0) {
 
-    run.palette.fetch("initMode", &init);
+    if (srun == 1) {
 
-    if (init.compare("fourierspace") == 0) computeFourierU( run );
-    if (init.compare("realspace")    == 0) computeRealU(    run );
-    if (init.compare("from_data" )   == 0) readUData(       run );
+      std::string init; run.palette.fetch("initMode", &init);
 
-    int ilnr;
-    run.palette.fetch("ilnr", &ilnr);
+      if (init.compare("fourierspace") == 0) computeFourierU( run );
+      if (init.compare("realspace")    == 0) computeRealU(    run );
+      if (init.compare("from_data" )   == 0) readUData(       run );
 
-    if (ilnr != 0 && init.compare("from_data") !=0 ) pLinzEnv( run );
+      int ilnr; run.palette.fetch("ilnr", &ilnr);
+
+      if (ilnr != 0 && init.compare("from_data") !=0 ) pLinzEnv( run );
+
+    }
+    else           { readUData( run ); }
+  }
+  else if (scenario.compare("parker") == 0 ) {
+
+    if (srun == 1) { run.zeroU();      }
+    else           { readUData( run ); }
 
   }
-  else { std::cout << "reading data for subrun " << srun << std::endl;                                  
-
-                                           readUData(       run );
-
-       }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -533,18 +532,18 @@ void redhallmhd::initBoundaries( stack& run) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);  
 
-  int np;
-  run.palette.fetch("np", &np);
-
-  int bdrys;
+  int np; run.palette.fetch("np", &np);
 
   if ( rank == 0 || rank == np - 1 ) {
     
   /* ~ do exterior boundary stuff ~ */  
- 
-    run.palette.fetch("bdrys", &bdrys);
 
-    if (bdrys > 0 ) { initFootPointDriving( run ); }
+    int bdrys; run.palette.fetch("bdrys", &bdrys);
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+    if (bdrys > 0 ) { initFootPointDriving( run ); // <- retain after testing 
+                      initNoDrive(          run ); // <- delete after testing
+                    }
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
     else            { initNoDrive(          run ); }
 
   }
@@ -558,10 +557,18 @@ void redhallmhd::initBoundaries( stack& run) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+void redhallmhd::finalizeBoundaries( stack& run) {
+
+    int bdrys; run.palette.fetch("bdrys", &bdrys);
+
+    if (bdrys > 0) { finalizeFootPointDriving( run ); }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 void redhallmhd::countModes( stack& run ) {
 
-  RealVar kc;
-  run.palette.fetch("kc", &kc);
+  RealVar kc; run.palette.fetch("kc", &kc);
 
 
   bool   l_reset_success = false;
@@ -571,11 +578,12 @@ void redhallmhd::countModes( stack& run ) {
 
   RealVar arg;
   int nf                 = 0;
-  for (int ix = -m; ix < (m + 1);  ++ix) {
-    for (int iy = -m; iy < (m + 1);  ++iy) {
+  for (   int ix = -m; ix < (m + 1);  ++ix) {
+    for ( int iy = -m; iy < (m + 1);  ++iy) {
 
     arg                  = sqrt( pow((two_pi * ((RealVar) ix)),2) + pow((two_pi * ((RealVar) iy)),2) );
-    if (arg != zero && arg <= kc) { ++nf; }
+
+    if (arg != zero && arg <= kc) {   ++nf; }
     
     }
   }
@@ -591,14 +599,16 @@ void redhallmhd::initFootPointDriving( stack& run ) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank );
 
+  MPI_Status * status = 0;
+
+  int tag_old = 0;
+  int tag_new = 1;
+
   countModes( run );
 
-  int    nf;
-  run.palette.fetch("nf"  , &nf  );
-  RealVar tauC;
-  run.palette.fetch("tauC", &tauC);
-  RealVar tauE;
-  run.palette.fetch("tauE", &tauE);
+  int       nf; run.palette.fetch("nf"  , &nf  );
+  RealVar tauC; run.palette.fetch("tauC", &tauC);
+  RealVar tauE; run.palette.fetch("tauE", &tauE);
 
   RealVar dtau          = ((RealVar) (1.383)) * tauC;
   RealVar qfp           = zero;
@@ -613,20 +623,16 @@ void redhallmhd::initFootPointDriving( stack& run ) {
   const int    seed     = 1234567;
   srand(seed);
 
-  int rcount;
-  run.palette.fetch(   "rcount",  &rcount);
+  int rcount; run.palette.fetch( "rcount",  &rcount);
 
   RealVar dummy;
-  if (rcount > 0) { for (int l = 0; l < rcount; ++l) { dummy = rand(); } }
+  if (rcount > 0) { for (int l = 0; l < rcount; ++l) { dummy = (double) rand() / RAND_MAX; }}
 
-  int srun;
-  run.palette.fetch(   "srun",     &srun );
-
-  int n1n2c;
-  run.stack_data.fetch("n1n2c",   &n1n2c);
-
-  RealVar kc;
-  run.palette.fetch(   "kc", &kc);
+  int srun;   run.palette.fetch(    "srun",   &srun  );
+  int n1n2c;  run.stack_data.fetch( "n1n2c",  &n1n2c );
+  RealVar kc; run.palette.fetch(    "kc",     &kc    );
+  int np;     run.palette.fetch(    "np",     &np    );
+  int bdrys;  run.palette.fetch("bdrys",     &bdrys  );
 
   RealArray& k2         = run.k2;
 
@@ -634,85 +640,100 @@ void redhallmhd::initFootPointDriving( stack& run ) {
   RealVar    next_imag;
   ComplexVar tuple;
 
+  if (rank == 0 || rank == np - 1 ) {
+
+    roldlb.assign(n1n2c,czero);
+    rnewlb.assign(n1n2c,czero);
+    roldub.assign(n1n2c,czero);
+    rnewub.assign(n1n2c,czero);
+
+  }
+
   if (rank == 0) {
 
-    int brcount;
-
-    physics_data.fetch("brcount", &brcount);
-
-    roldlb.reserve(n1n2c);
-    rnewlb.reserve(n1n2c);
-
-    roldub.reserve(n1n2c);
-    rnewub.reserve(n1n2c);
+    int brcount; physics_data.fetch("brcount", &brcount);
 
     if (srun == 1) {
-
       for (int l = 0; l < n1n2c; ++l) {
-
-        roldlb.push_back(czero);
 
         if ( sqrt(k2[l]) < kc ) {
 
-            next_real   = ffp * (rand() * two - one);
+            next_real   = ffp * ( ((double) rand() / RAND_MAX ) * two - one);
             ++brcount;
-            next_imag   = ffp * (rand() * two - one);
+            next_imag   = ffp * ( ((double) rand() / RAND_MAX ) * two - one);
             ++brcount;
             tuple       = ComplexVar(next_real, next_imag);
-            rnewlb.push_back(tuple);
+            rnewlb[l]   = tuple;
 
-/* ~        next_real = ffp * (rand() * two - one);
-            ++brcount;
-            next_imag = ffp * (rand() * two - one);
-            ++brcount;
-            tuple = std::complex<double>(next_real, next_imag);
-            rnewub.push_back(tuple);
- ~ */
         }
-      }
+    }
   
-      l_reset_success = physics_data.reset("brcount", brcount);
+    l_reset_success = physics_data.reset("brcount", brcount);
 
     }
     else {
+      
+      std::string prefix;    run.palette.fetch(    "prefix",     &prefix    );
+      std::string run_label; run.palette.fetch(    "run_label",  &run_label );
+      std::string res_str;   run.stack_data.fetch( "res_str", &res_str      );
 
-           std::cout << "initFootPointDriving: read rmct2r.in not yet implemented" << std::endl;
+      std::string srn_str              = static_cast<std::ostringstream*>( &(std::ostringstream() << ( srun -1 ) ) ) -> str();
+      std::string boundary_data_file   = prefix + '_' + res_str + "r" + srn_str;
+      const char *c_boundary_data_file = boundary_data_file.c_str();
 
+      std::ifstream ifs;
+      ifs.open( c_boundary_data_file );
+
+      ComplexVar cignore;
+      if ( ifs.good() ) {
+        int fld_count  = 0;
+        int line_count = 0;
+        while ( !ifs.eof() ) {
+
+          /* ~ order: roldlb rnewlb roldub rnewub pbot ~ */
+
+          ifs >> next_real; ifs >> next_imag; tuple = ComplexVar(next_real, next_imag); roldlb[line_count] = tuple; ++fld_count;
+          ifs >> next_real; ifs >> next_imag; tuple = ComplexVar(next_real, next_imag); rnewlb[line_count] = tuple; ++fld_count;
+          ifs >> next_real; ifs >> next_imag; tuple = ComplexVar(next_real, next_imag); roldub[line_count] = tuple; ++fld_count;
+          ifs >> next_real; ifs >> next_imag; tuple = ComplexVar(next_real, next_imag); rnewub[line_count] = tuple; ++fld_count;
+          ifs >> next_real; ifs >> next_imag; tuple = ComplexVar(next_real, next_imag); cignore            = tuple; ++fld_count;
+
+          if (fld_count == 5) { ++line_count; fld_count = 0;}
+
+        }
+        ifs.close();
+        assert( line_count == n1n2c + 1);
+
+        MPI_Send( &roldub.front(), n1n2c, MPI::DOUBLE_COMPLEX, np - 1, tag_old, MPI_COMM_WORLD );
+        MPI_Send( &rnewub.front(), n1n2c, MPI::DOUBLE_COMPLEX, np - 1, tag_new, MPI_COMM_WORLD );
+
+      }
+      else { std::cout << "initFootPointDriving: WARNING - could not open file " << boundary_data_file << std::endl; }
     }
-  }
+  } // lower boundary
 
-  int bdrys;
-  run.palette.fetch("bdrys", &bdrys);
+  if ( rank == np - 1 ) {
+    if (bdrys  == 2) {
 
-  if (bdrys  == 2) {
-
-    int np;
-    run.palette.fetch("np", &np);
-
-    if (rank == np - 1 ) {
-
-      int trcount;
-      physics_data.fetch("trcount", &trcount);
+      int trcount; physics_data.fetch("trcount", &trcount);
 
       for (int l = 0; l < n1n2c; ++l) {
-
-        roldub.push_back(czero);
 
         if ( sqrt(k2[l]) < kc ) {
 
           if (srun == 1) {
 
-            dummy       = rand();
-            ++trcount;
-            dummy       = rand();
-            ++trcount;
+//            dummy       = ((double) rand() / RAND_MAX );   // one or two here?
+//            ++trcount;
 
-            next_real   = ffp * (rand() * two - one);
+            dummy       = ((double) rand() / RAND_MAX );
             ++trcount;
-            next_imag   = ffp * (rand() * two - one);
+            next_real   = ffp * (((double) rand() / RAND_MAX ) * two - one);
+            ++trcount;
+            next_imag   = ffp * (((double) rand() / RAND_MAX ) * two - one);
             ++trcount;
             tuple       = ComplexVar(next_real, next_imag);
-            rnewub.push_back(tuple);
+            rnewub[l]   = tuple;
 
           }
           else {
@@ -726,33 +747,88 @@ void redhallmhd::initFootPointDriving( stack& run ) {
 
           }
         }
-      }
+      } // end for
+
       l_reset_success   = physics_data.reset("trcount", trcount);
     }
+    if ( srun > 1) {
+
+       MPI_Recv(&roldub.front(), n1n2c, MPI::DOUBLE_COMPLEX, 0, tag_old, MPI_COMM_WORLD, status);
+       MPI_Recv(&rnewub.front(), n1n2c, MPI::DOUBLE_COMPLEX, 0, tag_new, MPI_COMM_WORLD, status);
+
+    }
+//  MPI_Barrier( MPI_COMM_WORLD);
   }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-//void redhallmhd::finalizeFootPointDriving( stack& run, lcsolve& solve ) {
-//
-//    int rank;
-//    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//  
-//    int bdrys;
-//    run.palette.fetch("bdrys", &bdrys);
-//  
-//    if (bdrys > 0) {
-//      if (rank == 0) {
-//  
-//         roldlb.resize(0);
-//         roldub.resize(0);
-//         rnewlb.resize(0);
-//         rnewub.resize(0);
-//   
-//       }
-//     }
-//  }
+void redhallmhd::finalizeFootPointDriving( stack& run ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  MPI_Status * status = 0;
+
+  int np;     run.palette.fetch(    "np",     &np    );
+  int n1n2c;  run.stack_data.fetch( "n1n2c",  &n1n2c );
+  int srun;   run.palette.fetch(    "srun",   &srun  );
+
+  int tag_old         = 0;
+  int tag_new         = 1;
+
+  if (rank            == 0)      {
+     
+    assert (roldub.size() == n1n2c);
+    assert (rnewub.size() == n1n2c);
+    assert (roldlb.size() == n1n2c);
+    assert (rnewlb.size() == n1n2c);
+
+    MPI_Recv(&roldub.front(), n1n2c, MPI::DOUBLE_COMPLEX, np -1, tag_old, MPI_COMM_WORLD, status);
+    MPI_Recv(&rnewub.front(), n1n2c, MPI::DOUBLE_COMPLEX, np -1, tag_new, MPI_COMM_WORLD, status);
+
+    std::string prefix;    run.palette.fetch(    "prefix",     &prefix    );
+    std::string run_label; run.palette.fetch(    "run_label",  &run_label );
+    std::string res_str;   run.stack_data.fetch( "res_str",    &res_str   );
+
+    std::string srn_str              = static_cast<std::ostringstream*>( &(std::ostringstream() << ( srun ) ) ) -> str();
+    std::string boundary_data_file   = prefix + '_' + res_str + "r" + srn_str;
+    const char *c_boundary_data_file = boundary_data_file.c_str();
+
+    std::ofstream ofs;
+    ofs.open( c_boundary_data_file, ios::out | ios::trunc );
+
+    if ( ofs.good() ) {
+      for (unsigned k = 0; k < n1n2c; k++) {
+
+        /* ~ order: roldlb rnewlb roldub rnewub pbot ~ */
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << roldlb[k].real() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << roldlb[k].imag() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << rnewlb[k].real() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << rnewlb[k].imag() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << roldub[k].real() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << roldub[k].imag() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << rnewub[k].real() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << rnewub[k].imag() << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << P[k].real()      << " ";
+        ofs << std::setw(30) << std::right << std::setprecision(16) << std::scientific << P[k].imag()      << " ";
+        ofs << std::endl;
+
+      }
+      ofs.close();
+    }
+    else { std::cout << "finalizeFootPointDriving: WARNING - could not open file " << boundary_data_file << std::endl; }
+  }
+  else if (rank       == np - 1) {
+
+    assert (roldub.size() == n1n2c);
+    assert (rnewub.size() == n1n2c);
+
+    MPI_Send( &roldub.front(), n1n2c, MPI::DOUBLE_COMPLEX, 0, tag_old, MPI_COMM_WORLD );
+    MPI_Send( &rnewub.front(), n1n2c, MPI::DOUBLE_COMPLEX, 0, tag_new, MPI_COMM_WORLD );
+
+  }
+}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -1958,7 +2034,12 @@ void redhallmhd::applyBC( std::string str_step, stack& run ) {
 
   if ( rank == 0 || rank == np - 1) {
 
-    if (bdrys > 0 ) { applyFootPointDrivingBC(   run ); }
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+    if (bdrys > 0 ) { applyLineTiedBC( str_step, run );   // <- delete  after testing initFootPointDriving
+//                      applyFootPointDrivingBC(   run ); // <- restore after testing initFootPointDriving
+                    }
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
     else            { applyLineTiedBC( str_step, run ); }
 
   }
@@ -2345,6 +2426,8 @@ void redhallmhd::updateTimeInc( stack& run ) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::physicsFinalize ( stack& run) {
+
+  finalizeBoundaries( run );
 
 /* ~ currently a stub, but eventually intended to replace the stuff at end of Loop in lcsolve ~ */
 

@@ -92,7 +92,8 @@ class redhallmhd
   void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
   void applyLineTiedBC( std::string str_step, stack& run );           /* ~ pbot and p(:,n3) set to zero              ~ */
 
-//  void finalizeFootPointDriving(        stack& run, lcsolve& solve);  /* ~                                         ~ */
+  void finalizeBoundaries(              stack& run );
+  void finalizeFootPointDriving(        stack& run );                 /* ~                                           ~ */
 
   public:
 
