@@ -86,11 +86,8 @@ void lcsolve::Loop( stack& run ) {
   physics.applyBC(    "predict", run );
   physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
-//  if (l > 0 ) { physics.trackEnergies(         run ); }
-//
-  physics.trackEnergies(l, nw,   run );
-
-  if (l % nw == 0 ) { run.reportEnergyQs(t_cur); }
+  physics.trackEnergies(t_cur,   run );
+  if (l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
 
   /* ~ bookkeeping goes here ?                   ~ */
 

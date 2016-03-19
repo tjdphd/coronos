@@ -132,14 +132,16 @@ class redhallmhd
   void evalValf(                        stack& run );                 /* ~ calculate Va at each layer                ~ */
   void evalUmean(                       stack& run );                 /* ~ calculate Va at each layer                ~ */
 
+  void trackEnergies(double t_cur,      stack& run );                 /* ~ update energy quantities between steps    ~ */
+  void reportEnergyQs(                  stack& run );
 
-  void trackEnergies(int l, int nw,     stack& run );                 /* ~ update energy quantities between steps    ~ */
-  void evalTotalKineticEnergy(          stack& run, int i_pe);
-  void evalTotalMagneticEnergy(         stack& run, int i_me);
-  void evalTotalVorticitySqd(           stack& run, int i_oe);
-  void evalTotalCurrentSqd(             stack& run, int i_ce);
-  void evalTotalFootPointKE(            stack& run, int i_fp);        /* ~ Misnomer?                                 ~ */
-  void evalTotalPoyntingFlux(           stack& run, int i_fe);        /* ~ Poynting Flux                             ~ */
+  double evalTotalKineticEnergy(        stack& run);
+  double evalTotalMagneticEnergy(       stack& run);
+  double evalTotalVorticitySqd(         stack& run);
+  double evalTotalCurrentSqd(           stack& run);
+  double evalTotalGradCurrentSqd(       stack& run);
+  double evalTotalFootPointKE(          stack& run);                  /* ~ Misnomer?                                 ~ */
+  double evalTotalPoyntingFlux(         stack& run);                  /* ~ Poynting Flux                             ~ */
 
   void physicsFinalize(                 stack& run );                 /* ~ end of subrun bookkeeping                 ~ */
                                                                       /* ~ this is just a stub right now, but will   ~ */

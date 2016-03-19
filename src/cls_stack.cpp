@@ -441,7 +441,7 @@ void stack::reportEnergyQs( double t_cur ) {
 
     ofs.open( c_energy_data_file, std::ios::out | std::ios::app );
     if (ofs.good() ) {
-      ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << t_cur << " ";
+//      ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << t_cur << " ";
       for (unsigned k = 0; k < esize; k++){
         ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << EnergyQs[k] << " ";
       }

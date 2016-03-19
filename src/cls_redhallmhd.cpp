@@ -183,8 +183,10 @@ void redhallmhd::init_physics_data( stack& run ) {
 
   padjust.assign("adj" );
   pname.assign( "t_cur");
-
   physics_data.emplace(pname, tstart, padjust);
+  pname.assign( "dtvb");
+  physics_data.emplace(pname, zero, padjust);
+
 
   if (bdrys > 0) {
 
@@ -1189,27 +1191,300 @@ void redhallmhd::evalUmean( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::trackEnergies(int l, int nw, stack& run ) {
+void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
-  static const int i_pe = 0;
-  static const int i_me = 1;
-  static const int i_oe = 2;
-  static const int i_ce = 3;
-  static const int i_fp = 4;
-  static const int i_fe = 5;
+  RealArray& EnergyQs = run.EnergyQs;
 
-  evalTotalKineticEnergy(  run,  i_pe );
-  evalTotalMagneticEnergy( run,  i_me );
-  evalTotalVorticitySqd(   run,  i_oe );
-  evalTotalCurrentSqd(     run,  i_ce );
-  evalTotalFootPointKE(    run,  i_fp );
-  evalTotalPoyntingFlux(   run,  i_fe );
+  static const int i_tcr =  0;
+  static const int i_pe  =  1;
+  static const int i_ae  =  2;
+  static const int i_mo  =  3;
+  static const int i_imo =  4;
+  static const int i_jmo =  5;
+  static const int i_oe  =  6;
+  static const int i_mj  =  7;
+  static const int i_imj =  8;
+  static const int i_jmj =  9;
+  static const int i_ce  = 10;
+  static const int i_noe = 11;
+  static const int i_ece = 12;
+  static const int i_fe  = 13;
+  static const int i_ftp = 14;
+  static const int i_eds = 15;
+  static const int i_dng = 16;
+  static const int i_irc = 17;
+  static const int i_gml = 18;
+  static const int i_cns = 19;
+  static const int i_ttc = 20;
+  static const int i_dt  = 21;
+  static const int i_dtv = 22;
+  static const int i_coc = 23;
+  static const int i_vkt = 24;
+  static const int i_avm = 25;
+  static const int i_avp = 26;
+  static const int i_fp  = 27;
 
+  double tcr;
+  double pe ;
+  double ae ;
+  double mo ;
+  double imo;
+  double jmo;
+  double oe ;
+  double mj ;
+  double imj;
+  double jmj;
+  double ce ;
+  double cee;
+  double noe;
+  double ece;
+  double fe ;
+  double ftp;
+  double eds;
+  double dng;
+  double irc;
+  double gml;
+  double cns;
+  double ttc;
+  double dt ;
+  double dtv;
+  double coc;
+  double vkt;
+  double avm;
+  double avp;
+  double fp ;
+
+  pe  = evalTotalKineticEnergy(  run );
+  ae  = evalTotalMagneticEnergy( run );
+  oe  = evalTotalVorticitySqd(   run );
+  ce  = evalTotalCurrentSqd(     run );
+  cee = evalTotalGradCurrentSqd( run );
+  fp  = evalTotalFootPointKE(    run );
+  fe  = evalTotalPoyntingFlux(   run );
+
+  double t_old;
+  double dt_old;
+  double aeold;
+  double peold;
+  double dtvb;
+  double tauC;
+  double eta;
+  double nu;
+  run.palette.fetch("tauC", &tauC);
+  run.palette.fetch("eta", &eta);
+  run.palette.fetch("nu", &nu);
+
+  physics_data.fetch("dtvb", &dtvb);
+
+  if (EnergyQs.size() >= i_fp ) {
+
+   
+    t_old  = EnergyQs[i_tcr];
+    dt_old = EnergyQs[i_dt];
+ 
+    aeold  = EnergyQs[i_ae];
+    peold  = EnergyQs[i_pe];
+    tcr    = t_cur;
+// pe
+// ae
+    mo     = zero;
+    imo    = zero;
+    jmo    = zero;
+// oe
+    mj     = zero;
+    imj    = zero;
+    jmj    = zero;
+//ce
+    noe    = nu  * oe;
+    ece    = eta * ce;
+//fe
+    ftp    = (EnergyQs[i_ftp] + fe * dt_old) / t_cur;
+    eds    = (EnergyQs[i_eds] + (noe + ece) * dt_old) / t_cur;
+    dng    = (EnergyQs[i_dng] + (ae - aeold + pe - peold)) /t_cur;
+    irc    = (ae - aeold + pe - peold) / dt_old;
+    gml    = ftp - eds;
+    cns    = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+    ttc    = t_cur / tauC; 
+    run.palette.fetch("dt",&dt);
+    dtv    = dtvb;
+    if (cee == zero){
+      coc  = zero; 
+    }
+    else {
+      coc  = sqrt(ce/cee);
+    }
+    if (ae != zero) {
+
+    vkt    = EnergyQs[i_vkt] * t_old;
+    vkt    = (vkt +  (ce/ae)  * dt_old) / t_cur;
+
+    }
+    else { vkt = zero; }
+    avm    = pow(EnergyQs[i_avm],2) * t_old;
+    avm    = sqrt((avm + ae * dt_old) / t_cur);
+    avp    = half * pow(EnergyQs[i_avp],2) * t_old;
+    avp    = sqrt(two * (avp + fp * dt_old) / t_cur);
+
+    EnergyQs[ i_tcr ] = tcr;
+    EnergyQs[ i_pe  ] = pe ;
+    EnergyQs[ i_ae  ] = ae ;
+    EnergyQs[ i_mo  ] = mo ;
+    EnergyQs[ i_imo ] = imo;
+    EnergyQs[ i_jmo ] = jmo;
+    EnergyQs[ i_oe  ] = oe ;
+    EnergyQs[ i_mj  ] = mj ;
+    EnergyQs[ i_imj ] = imj;
+    EnergyQs[ i_jmj ] = jmj;
+    EnergyQs[ i_ce  ] = ce ;
+    EnergyQs[ i_noe ] = noe;      
+    EnergyQs[ i_ece ] = ece;
+    EnergyQs[ i_fe  ] = fe ;
+    EnergyQs[ i_ftp ] = ftp;
+    EnergyQs[ i_eds ] = eds;
+    EnergyQs[ i_dng ] = dng;
+    EnergyQs[ i_irc ] = irc;
+    EnergyQs[ i_gml ] = gml;
+    EnergyQs[ i_cns ] = cns;
+    EnergyQs[ i_ttc ] = ttc;
+    EnergyQs[ i_dt  ] = dt ;
+    EnergyQs[ i_dtv ] = dtv;
+    EnergyQs[ i_coc ] = coc;
+    EnergyQs[ i_vkt ] = vkt;
+    EnergyQs[ i_avm ] = avm;
+    EnergyQs[ i_avp ] = avp;
+    EnergyQs[ i_fp  ] =  fp;
+  }
+  else {
+
+    run.palette.fetch("dt", &dt_old);
+    t_old  = t_cur;
+
+    aeold  = zero;
+    peold  = zero;
+
+    tcr    = t_cur;
+// pe
+// ae
+    mo     = zero;
+    imo    = zero;
+    jmo    = zero;
+// oe
+    mj     = zero;
+    imj    = zero;
+    jmj    = zero;
+//ce
+    noe    = nu  * oe;
+    ece    = eta * ce;
+
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+    noe    = zero;
+    ece    = zero;
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+//fe
+    ftp    = zero;
+    eds    = zero;
+    cns    = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+
+    dng    = zero;
+    gml    = (ae - aeold + pe - peold )/ dt;
+    dt     = dt_old;
+    dtv    = dtvb;
+    if (cee == zero){
+      coc  = zero; 
+    }
+    else {
+      coc  = sqrt(ce/cee);
+    }
+    vkt    = zero;
+    avm    = zero;
+    avp    = zero;
+
+    EnergyQs.push_back(tcr);
+//    EnergyQs.push_back(pe );
+//    EnergyQs.push_back(ae );
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+    EnergyQs.push_back(peold );
+    EnergyQs.push_back(aeold );
+/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+
+    EnergyQs.push_back(mo );
+    EnergyQs.push_back(imo);
+    EnergyQs.push_back(jmo);
+    EnergyQs.push_back(oe );
+    EnergyQs.push_back(mj );
+    EnergyQs.push_back(imj);
+    EnergyQs.push_back(jmj);
+    EnergyQs.push_back(ce );
+    EnergyQs.push_back(noe);
+    EnergyQs.push_back(ece);
+    EnergyQs.push_back(fe );
+    EnergyQs.push_back(ftp);
+    EnergyQs.push_back(eds);
+    EnergyQs.push_back(dng);
+    EnergyQs.push_back(irc);
+    EnergyQs.push_back(gml);
+    EnergyQs.push_back(cns);
+    EnergyQs.push_back(ttc);
+    EnergyQs.push_back(dt );
+    EnergyQs.push_back(dtv);
+    EnergyQs.push_back(coc);
+    EnergyQs.push_back(vkt);
+    EnergyQs.push_back(avm);
+    EnergyQs.push_back(avp);
+    EnergyQs.push_back(fp );
+
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::evalTotalKineticEnergy ( stack& run, int i_pe ) {
+void redhallmhd::reportEnergyQs ( stack& run ) {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
+
+  if (rank == 0) {
+
+    RealArray& EnergyQs = run.EnergyQs;
+
+    std::string prefix;
+    run.palette.fetch("prefix",     &prefix );
+
+    std::string run_label;
+    run.palette.fetch("run_label",  &run_label);
+
+    std::string res_str;
+    run.stack_data.fetch("res_str", &res_str);
+
+    std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
+
+    const char *c_data_file;
+    c_data_file              = energy_data_file.c_str();
+
+    std::ofstream ofs;
+    ofs.open( c_data_file, std::ios::out | std::ios::app );
+
+    if (ofs.good()) {
+
+      unsigned esize  = EnergyQs.size();
+      for (unsigned k = 0; k < esize; k++) {
+
+        ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << EnergyQs[k] << " ";
+
+      }
+      ofs << std::endl;
+      ofs.close();
+
+    }
+    else {std::cout << "reportEnergyQs: Warning - could not open file " << energy_data_file << std::endl;}
+
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+double redhallmhd::evalTotalKineticEnergy ( stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1221,7 +1496,6 @@ void redhallmhd::evalTotalKineticEnergy ( stack& run, int i_pe ) {
   assert (wsize == np);
   
   RealArray& k2       = run.k2;
-  RealArray& EnergyQs = run.EnergyQs;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c );
@@ -1246,7 +1520,6 @@ void redhallmhd::evalTotalKineticEnergy ( stack& run, int i_pe ) {
   if (rank  == 0) { kstart = 0;     }
   else            { kstart = n1n2c; }
 
-// kstart =  n1n2c; 
   kstop  = n1n2c * (iu2 - 1);
 
   for (unsigned kdx = kstart; kdx < kstop; kdx++){
@@ -1275,18 +1548,15 @@ void redhallmhd::evalTotalKineticEnergy ( stack& run, int i_pe ) {
 
     pe_sum = two_thirds * pe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
 
-    if (EnergyQs.size() >= (i_pe + 1)) {
-      EnergyQs[i_pe] = pe_sum;
-    }
-    else {
-      EnergyQs.push_back(pe_sum);
-    }
   }
+
+  return pe_sum;
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::evalTotalVorticitySqd( stack& run, int i_oe ) {
+double redhallmhd::evalTotalVorticitySqd( stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1296,7 +1566,6 @@ void redhallmhd::evalTotalVorticitySqd( stack& run, int i_oe ) {
   run.palette.fetch("np", &np);
   
   RealArray& k2       = run.k2;
-  RealArray& EnergyQs = run.EnergyQs;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c );
@@ -1350,18 +1619,20 @@ void redhallmhd::evalTotalVorticitySqd( stack& run, int i_oe ) {
 
     oe_sum = two * two_thirds * oe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
 
-    if (EnergyQs.size() >= (i_oe + 1)) {
-      EnergyQs[i_oe] = oe_sum;
-    }
-    else {
-      EnergyQs.push_back(oe_sum);
-    }
+//    if (EnergyQs.size() >= (i_oe + 1)) {
+//      EnergyQs[i_oe] = oe_sum;
+//    }
+//    else {
+//      EnergyQs.push_back(oe_sum);
+//    }
+
   }
+  return oe_sum;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::evalTotalMagneticEnergy ( stack& run, int i_me ) {
+double redhallmhd::evalTotalMagneticEnergy ( stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1373,7 +1644,6 @@ void redhallmhd::evalTotalMagneticEnergy ( stack& run, int i_me ) {
   assert (wsize == np);
   
   RealArray& k2       = run.k2;
-  RealArray& EnergyQs = run.EnergyQs;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c );
@@ -1412,20 +1682,21 @@ void redhallmhd::evalTotalMagneticEnergy ( stack& run, int i_me ) {
 
   i_red = MPI_Reduce(&me, &me_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  if (rank == 0) {
-
-    if (EnergyQs.size() >= (i_me + 1)) {
-      EnergyQs[i_me] = me_sum;
-    }
-    else {
-      EnergyQs.push_back(me_sum);
-    }
-  }
+//  if (rank == 0) {
+//
+//    if (EnergyQs.size() >= (i_me + 1)) {
+//      EnergyQs[i_me] = me_sum;
+//    }
+//    else {
+//      EnergyQs.push_back(me_sum);
+//    }
+//  }
+    return me_sum;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::evalTotalCurrentSqd( stack& run, int i_ce ) {
+double redhallmhd::evalTotalCurrentSqd( stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1437,7 +1708,6 @@ void redhallmhd::evalTotalCurrentSqd( stack& run, int i_ce ) {
   assert (wsize == np);
   
   RealArray& k2       = run.k2;
-  RealArray& EnergyQs = run.EnergyQs;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c );
@@ -1476,23 +1746,22 @@ void redhallmhd::evalTotalCurrentSqd( stack& run, int i_ce ) {
 
   i_red = MPI_Reduce(&ce, &ce_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  if (rank == 0) {
-
-    if (EnergyQs.size() >= (i_ce + 1)) {
-      EnergyQs[i_ce] = ce_sum;
-    }
-    else {
-      EnergyQs.push_back(ce_sum);
-    }
-  }
+//  if (rank == 0) {
+//
+//    if (EnergyQs.size() >= (i_ce + 1)) {
+//      EnergyQs[i_ce] = ce_sum;
+//    }
+//    else {
+//      EnergyQs.push_back(ce_sum);
+//    }
+//  }
+    return ce_sum;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::evalTotalFootPointKE( stack& run, int i_fp ) {
+double redhallmhd::evalTotalGradCurrentSqd( stack& run ) {
 
-  /* ~ Note: this is the equivalent to vbot from the old code. I'm not convinced this is correct in
-   *         either of the codes. But I'm getting in implemented for now. ~ */
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   int wsize;
@@ -1503,7 +1772,73 @@ void redhallmhd::evalTotalFootPointKE( stack& run, int i_fp ) {
   assert (wsize == np);
   
   RealArray& k2       = run.k2;
-  RealArray& EnergyQs = run.EnergyQs;
+
+  int n1n2c; 
+  run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;
+  run.stack_data.fetch("iu2"   , &iu2  );
+
+  int n3;
+  run.stack_data.fetch("n3"   , &n3    );
+  double dz;
+  run.stack_data.fetch("dz"   , &dz    );
+
+  double cee;
+  double cee_sum;
+
+  cee        = zero;
+
+  int idx   = 0;
+
+  int kstart;
+  int kstop;
+
+  kstart = n1n2c; 
+  kstop  = n1n2c * (iu2 - 1);
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++) {
+
+    if (kdx % n1n2c  == 0) { idx = 0; }
+
+      cee    = cee + k2[idx] * k2[idx] * k2[idx] * pow(abs(A[kdx]), 2);
+      ++idx;
+  }
+
+  cee = two * cee * dz;
+
+  int i_red;
+
+  i_red = MPI_Reduce(&cee, &cee_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+//  if (rank == 0) {
+//
+//    if (EnergyQs.size() >= (i_ce + 1)) {
+//      EnergyQs[i_ce] = ce_sum;
+//    }
+//    else {
+//      EnergyQs.push_back(ce_sum);
+//    }
+//  }
+    return cee_sum;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+double redhallmhd::evalTotalFootPointKE( stack& run ) {
+
+  /* ~ Note: this is the equivalent to vbot from the old code. I'm not convinced this is correct in
+   *         either of the codes. But I'm getting in implemented for now. ~ */
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int wsize;
+  MPI_Comm_size(MPI_COMM_WORLD, &wsize);
+  int np;
+  run.palette.fetch("np", &np);
+
+
+  assert (wsize == np);
+  RealArray& k2       = run.k2;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c );
@@ -1518,47 +1853,34 @@ void redhallmhd::evalTotalFootPointKE( stack& run, int i_fp ) {
   double fp;
   double fp_sum;
 
-  fp        = zero;
+  fp           = zero;
 
-  int idx   = 0;
+  if (rank     == 0) {
 
-  int kstart;
-  int kstop;
+    int idx    = 0;
 
-   kstart = 0;
-   kstop  = n1n2c;
+    int kstart = 0;
+    int kstop  = n1n2c;
 
-  for (unsigned kdx = kstart; kdx < kstop; kdx++){
+    for (unsigned kdx = kstart; kdx < kstop; kdx++) {
 
-    if (kdx % n1n2c  == 0) { idx = 0; }
-
-      fp    = fp + k2[idx] * pow(abs(P[kdx]), 2);
-
-      ++idx;
-  }
-
-  fp = fp * dz;
-
-  int i_red;
-
-  i_red = MPI_Reduce(&fp, &fp_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-  if (rank == 0) {
-
-    fp_sum = two_thirds * fp_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
-
-    if (EnergyQs.size() >= (i_fp + 1)) {
-      EnergyQs[i_fp] = fp_sum;
+      fp       = fp + k2[kdx] * pow(abs(P[kdx]), 2);
     }
-    else {
-      EnergyQs.push_back(fp_sum);
-    }
+
+    fp         = fp * dz;
+
+//    int i_red;
+//   i_red = MPI_Reduce(&fp, &fp_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    fp         = two_thirds * fp;  /* ~ NOTE!:  do I need this? ~ */
+
   }
+    return fp;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::evalTotalPoyntingFlux ( stack& run, int i_fe ) {
+double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1570,7 +1892,6 @@ void redhallmhd::evalTotalPoyntingFlux ( stack& run, int i_fe ) {
   assert (wsize == np);
   
   RealArray& k2       = run.k2;
-  RealArray& EnergyQs = run.EnergyQs;
 
   int n1n2c; 
   run.stack_data.fetch("n1n2c", &n1n2c );
@@ -1605,7 +1926,7 @@ void redhallmhd::evalTotalPoyntingFlux ( stack& run, int i_fe ) {
         fe = fe + k2[idx] * ( A[kdx].real() * P[kdx].real() + A[kdx].imag() * P[kdx].imag() );
       }
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
-        fe = fe + k2[idx] * ( A[kdx + n1n2c].real() * P[kdx].real() + A[kdx + n1n2c].imag() * P[kdx].imag() );
+        fe = fe - k2[idx] * ( A[kdx + n1n2c].real() * P[kdx].real() + A[kdx + n1n2c].imag() * P[kdx].imag() );
       }
 
       ++idx;
@@ -1617,15 +1938,10 @@ void redhallmhd::evalTotalPoyntingFlux ( stack& run, int i_fe ) {
 
   if (rank == 0) {
 
-//  fe_sum = two_thirds * fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+    fe_sum = two_thirds * fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
 
-    if (EnergyQs.size() >= (i_fe + 1)) {
-      EnergyQs[i_fe] = fe_sum;
-    }
-    else {
-      EnergyQs.push_back(fe_sum);
-    }
   }
+  return fe_sum;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2009,6 +2325,7 @@ void redhallmhd::updateTimeInc( stack& run ) {
     dtvb        = one / dtvb;
     dtr         = dtvb / dt;
 
+    physics_data.reset("dtvb", dtvb);
     if (( dt < (q1 * dtvb) ) && ( dt <  (half * qp * dz) ) ) {
 
       dt        = two * dt;

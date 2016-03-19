@@ -9,6 +9,7 @@ ffp        0.000000000000000e+00     dbl sfx
 igen       1                         int rfx 
 ilnr       0                         int rfx 
 initMode   fourierspace              str rfx 
+scenario   parker                    str rfx
 iptest     0                         int rfx 
 kappa      5.000000000000000e-03     dbl rfx 
 kc         0.000000000000000e+00     dbl rfx 
@@ -17,7 +18,7 @@ nprofile   flat                      str rfx
 uprofile   noflow                    str rfx 
 ninf       0.09                      dbl rfx
 n0         5.0e+01                   dbl rfx
-ndt        1                         int rfx 
+ndt        2                         int rfx 
 nw         1                         int rfx 
 nf         0                         int sfx 
 nnodes     1                         int rfx 
@@ -34,6 +35,8 @@ q2         4.000000000000000e-01     dbl rfx
 qfp        0.000000000000000e+00     dbl sfx 
 qp         1.000000000000000e-01     dbl rfx 
 rcount     0                         int sfx 
+oldnumlb   0                         int adj
+oldnumub   0                         int adj
 run_label  cr                        str rfx 
 s0         5.000000000000000e-01     dbl rfx 
 s1         5.000000000000000e-01     dbl rfx 
