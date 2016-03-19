@@ -82,10 +82,14 @@ void lcsolve::Loop( stack& run ) {
 
   passAdjacentLayers( "predict", run );
   physics.applyBC(    "predict", run );
+  physics.trackEnergies(t_cur,   run );
+
   physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
-  physics.trackEnergies(t_cur,   run );
   if (l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
+
+
+
 
   /* ~ bookkeeping goes here ?                   ~ */
 
@@ -95,8 +99,8 @@ void lcsolve::Loop( stack& run ) {
   setAi(                         run, physics );   /* ~ set predictor A's                                       ~ */
   Step(               "predict", run );            /* ~ execute predictor update                                ~ */
 
-  physics.applyBC(    "correct", run );
   passAdjacentLayers( "correct", run );
+  physics.applyBC(    "correct", run );
   physics.updatePAJ(  "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
 
   setS(               "correct", run, physics );   /* ~ set corrector S's                                       ~ */
@@ -114,8 +118,6 @@ void lcsolve::Loop( stack& run ) {
   }
 
   physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
-
-  physics.physicsFinalize(       run         );
   physics.applyBC(   "finalize", run         );
 
   physics.fftw.fftwReverseAll(run, physics.J );
@@ -123,8 +125,9 @@ void lcsolve::Loop( stack& run ) {
   physics.PfromO (               run         );   /* ~ O still in U0. Replacing with P for Primary data output ~ */
   physics.AfromH (               run         );   /* ~ H still in U1. Replacing with A for Primary data output ~ */
 
-  physics.fftw.fftwReverseAll(   run         );
+  physics.physicsFinalize(       run         );
 
+  physics.fftw.fftwReverseAll(   run         );
 
   run.palette.reset(   "tstart", t_cur       );
   int srun;

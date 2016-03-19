@@ -42,7 +42,8 @@ E            = FLTARR(cols, nlines)
 FOR I = 0, nlines - 1 DO BEGIN
 
 ;  READF, data_unit, FORMAT = '(4(e24.20,1x),2(I6,1x),:/)', Eline
-   READF, data_unit, FORMAT = '( 4(e24.20,1x),2(I6,1x),2(e24.20,1x),2(I6,1x),24(e24.20,1x),:/)', Eline
+;  READF, data_unit, FORMAT = '( 4(e24.20,1x),2(I6,1x),2(e24.20,1x),2(I6,1x),24(e24.20,1x),:/)', Eline
+   READF, data_unit, FORMAT = '( 28(e24.20,1x),:/)', Eline
    E[*, I]    = Eline
   
 ENDFOR

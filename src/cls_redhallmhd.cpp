@@ -709,6 +709,7 @@ void redhallmhd::initFootPointDriving( stack& run ) {
 
       }
       else { std::cout << "initFootPointDriving: WARNING - could not open file " << boundary_data_file << std::endl; }
+
     }
   } // lower boundary
 
@@ -726,6 +727,8 @@ void redhallmhd::initFootPointDriving( stack& run ) {
 //            dummy       = ((double) rand() / RAND_MAX );   // one or two here?
 //            ++trcount;
 
+            dummy       =        ((double) rand() / RAND_MAX );
+            ++trcount;
             dummy       =        ((double) rand() / RAND_MAX );
             ++trcount;
             next_real   = ffp * (((double) rand() / RAND_MAX ) * two - one);
@@ -930,9 +933,9 @@ void redhallmhd::OfromP( stack& run )  {
     assert(usize     == (n1n2c * n_layers));           /* ~ test usize                                 ~ */
   
     ComplexArray O;                                    /* ~ temporary storage for vorticity            ~ */
-    O.reserve(usize);
+    O.assign(usize,czero);
   
-    P.reserve(usize);                                  /* ~ member P will be needed throughout run     ~ */
+    P.assign(usize,czero);                              /* ~ member P will be needed throughout run     ~ */
   
    for (unsigned k = 0; k <usize; k++) {P[k] = U0[k];} /* ~ preserve stream funtion in P               ~ */
    
@@ -1267,6 +1270,9 @@ void redhallmhd::evalUmean( stack& run ) {
 
 void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
   RealArray& EnergyQs = run.EnergyQs;
 
   static const int i_tcr =  0;
@@ -1344,6 +1350,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
   double tauC;
   double eta;
   double nu;
+
   run.palette.fetch("tauC", &tauC);
   run.palette.fetch("eta", &eta);
   run.palette.fetch("nu", &nu);
@@ -1352,12 +1359,12 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
   if (EnergyQs.size() >= i_fp ) {
 
-   
     t_old  = EnergyQs[i_tcr];
     dt_old = EnergyQs[i_dt];
  
     aeold  = EnergyQs[i_ae];
     peold  = EnergyQs[i_pe];
+
     tcr    = t_cur;
 // pe
 // ae
@@ -1369,35 +1376,38 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
     imj    = zero;
     jmj    = zero;
 //ce
-    noe    = nu  * oe;
-    ece    = eta * ce;
+//
+    if (rank == 0 ){
+
+      noe    = nu  * oe;
+      ece    = eta * ce;
 //fe
-    ftp    = (EnergyQs[i_ftp] + fe * dt_old) / t_cur;
-    eds    = (EnergyQs[i_eds] + (noe + ece) * dt_old) / t_cur;
-    dng    = (EnergyQs[i_dng] + (ae - aeold + pe - peold)) /t_cur;
-    irc    = (ae - aeold + pe - peold) / dt_old;
-    gml    = ftp - eds;
-    cns    = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
-    ttc    = t_cur / tauC; 
-    run.palette.fetch("dt",&dt);
-    dtv    = dtvb;
-    if (cee == zero){
-      coc  = zero; 
-    }
-    else {
-      coc  = sqrt(ce/cee);
-    }
-    if (ae != zero) {
+      ftp    = ((EnergyQs[i_ftp]*t_old) + fe          * dt_old)      / t_cur;
+      eds    = ((EnergyQs[i_eds]*t_old) + (noe + ece) * dt_old)      / t_cur;
+      dng    = ((EnergyQs[i_dng] * t_old) + (ae - aeold + pe - peold)) / t_cur;
+      irc    = (ae - aeold + pe - peold) / dt_old;
+      gml    = ftp - eds;
+      cns    = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+      ttc    = t_cur / tauC; 
+      run.palette.fetch("dt",&dt);
+      dtv    = dtvb;
+      if (cee == zero){
+        coc  = zero; 
+      }
+      else {
+        coc  = sqrt(ce/cee);
+      }
+      if (ae != zero) {
 
-    vkt    = EnergyQs[i_vkt] * t_old;
-    vkt    = (vkt +  (ce/ae)  * dt_old) / t_cur;
+        vkt    = EnergyQs[i_vkt]  * t_old;
+        vkt    = (vkt +  (ce/ae)  * dt_old)     / t_cur;
 
-    }
-    else { vkt = zero; }
-    avm    = pow(EnergyQs[i_avm],2) * t_old;
-    avm    = sqrt((avm + ae * dt_old) / t_cur);
-    avp    = half * pow(EnergyQs[i_avp],2) * t_old;
-    avp    = sqrt(two * (avp + fp * dt_old) / t_cur);
+      }
+      else { vkt = zero; }
+        avm    = pow(EnergyQs[i_avm],2) * t_old;
+        avm    = sqrt((avm + ae * dt_old)       / t_cur);
+        avp    = half * pow(EnergyQs[i_avp],2)  * t_old;
+        avp    = sqrt(two * (avp + fp * dt_old) / t_cur);
 
     EnergyQs[ i_tcr ] = tcr;
     EnergyQs[ i_pe  ] = pe ;
@@ -1427,6 +1437,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
     EnergyQs[ i_avm ] = avm;
     EnergyQs[ i_avp ] = avp;
     EnergyQs[ i_fp  ] =  fp;
+    }
   }
   else {
 
@@ -1447,67 +1458,59 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
     imj    = zero;
     jmj    = zero;
 //ce
-    noe    = nu  * oe;
-    ece    = eta * ce;
+    if (rank == 0 ){
 
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-    noe    = zero;
-    ece    = zero;
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
+      noe    = nu  * oe;
+      ece    = eta * ce;
+//fe  
+      ftp    = zero;
+      eds    = zero;
+      dng    = zero;
+      irc    = (ae - aeold + pe - peold) / dt_old;
+      gml    = (ae - aeold + pe - peold )/ dt_old;
+      cns    = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+      ttc    = t_cur / tauC; 
+      dt     = dt_old;
+      dtv    = dtvb;
+      if (cee == zero){
+        coc  = zero; 
+      }
+      else {
+        coc  = sqrt(ce/cee);
+      }
+      vkt    = zero;
+      avm    = zero;
+      avp    = zero;
 
-//fe
-    ftp    = zero;
-    eds    = zero;
-    cns    = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
-
-    dng    = zero;
-    gml    = (ae - aeold + pe - peold )/ dt;
-    dt     = dt_old;
-    dtv    = dtvb;
-    if (cee == zero){
-      coc  = zero; 
+      EnergyQs.push_back(tcr);
+      EnergyQs.push_back(pe );
+      EnergyQs.push_back(ae );
+      EnergyQs.push_back(mo );
+      EnergyQs.push_back(imo);
+      EnergyQs.push_back(jmo);
+      EnergyQs.push_back(oe );
+      EnergyQs.push_back(mj );
+      EnergyQs.push_back(imj);
+      EnergyQs.push_back(jmj);
+      EnergyQs.push_back(ce );
+      EnergyQs.push_back(noe);
+      EnergyQs.push_back(ece);
+      EnergyQs.push_back(fe );
+      EnergyQs.push_back(ftp);
+      EnergyQs.push_back(eds);
+      EnergyQs.push_back(dng);
+      EnergyQs.push_back(irc);
+      EnergyQs.push_back(gml);
+      EnergyQs.push_back(cns);
+      EnergyQs.push_back(ttc);
+      EnergyQs.push_back(dt );
+      EnergyQs.push_back(dtv);
+      EnergyQs.push_back(coc);
+      EnergyQs.push_back(vkt);
+      EnergyQs.push_back(avm);
+      EnergyQs.push_back(avp);
+      EnergyQs.push_back(fp );
     }
-    else {
-      coc  = sqrt(ce/cee);
-    }
-    vkt    = zero;
-    avm    = zero;
-    avp    = zero;
-
-    EnergyQs.push_back(tcr);
-//    EnergyQs.push_back(pe );
-//    EnergyQs.push_back(ae );
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-    EnergyQs.push_back(peold );
-    EnergyQs.push_back(aeold );
-/* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
-
-    EnergyQs.push_back(mo );
-    EnergyQs.push_back(imo);
-    EnergyQs.push_back(jmo);
-    EnergyQs.push_back(oe );
-    EnergyQs.push_back(mj );
-    EnergyQs.push_back(imj);
-    EnergyQs.push_back(jmj);
-    EnergyQs.push_back(ce );
-    EnergyQs.push_back(noe);
-    EnergyQs.push_back(ece);
-    EnergyQs.push_back(fe );
-    EnergyQs.push_back(ftp);
-    EnergyQs.push_back(eds);
-    EnergyQs.push_back(dng);
-    EnergyQs.push_back(irc);
-    EnergyQs.push_back(gml);
-    EnergyQs.push_back(cns);
-    EnergyQs.push_back(ttc);
-    EnergyQs.push_back(dt );
-    EnergyQs.push_back(dtv);
-    EnergyQs.push_back(coc);
-    EnergyQs.push_back(vkt);
-    EnergyQs.push_back(avm);
-    EnergyQs.push_back(avp);
-    EnergyQs.push_back(fp );
-
   }
 }
 
@@ -1600,10 +1603,10 @@ double redhallmhd::evalTotalKineticEnergy ( stack& run ) {
 
     if (kdx % n1n2c  == 0) { idx = 0; }
 
-      pe    = pe + k2[idx] * pow(abs(P[kdx]), 2);
+      pe   = pe + k2[idx] * pow(abs(P[kdx]), 2);
 
       if (( rank == np - 1 ) && ( kdx >= (four * n1n2c) )) {
-        pe = pe - half * k2[idx] * pow(abs(P[kdx]),2);
+        pe = pe + half * k2[idx] * pow(abs(P[kdx]),2);
       }
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
         pe = pe - half * k2[idx] * pow(abs(P[kdx]),2);
@@ -1612,17 +1615,11 @@ double redhallmhd::evalTotalKineticEnergy ( stack& run ) {
       ++idx;
   }
 
-  pe = pe * dz;
+  pe = two_thirds * pe * dz;
 
   int i_red;
 
   i_red = MPI_Reduce(&pe, &pe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-  if (rank == 0) {
-
-    pe_sum = two_thirds * pe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
-
-  }
 
   return pe_sum;
 
@@ -1671,36 +1668,27 @@ double redhallmhd::evalTotalVorticitySqd( stack& run ) {
 
     if (kdx % n1n2c  == 0) { idx = 0; }
 
-      oe    = oe + k2[idx]*k2[idx] * pow(abs(P[kdx]), 2);
+       oe   = oe + k2[idx]*k2[idx] * pow(abs(P[kdx]), 2);
 
       if (( rank == np - 1 ) && ( kdx >= (four * n1n2c) )) {
-        oe = oe - half * k2[idx]*k2[idx] * pow(abs(P[kdx]),2);
+        oe  = oe + half * k2[idx] * k2[idx] * pow(abs(P[kdx]),2);
       }
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
-        oe = oe - half * k2[idx]*k2[idx] * pow(abs(P[kdx]),2);
+        oe  = oe - half * k2[idx]*k2[idx] * pow(abs(P[kdx]),2);
       }
 
       ++idx;
   }
 
-  oe = oe * dz;
+  oe = two * two_thirds * oe * dz;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
 
   int i_red;
-
   i_red = MPI_Reduce(&oe, &oe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  if (rank == 0) {
+//  MPI_Bcast(&oe_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    oe_sum = two * two_thirds * oe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+//  std::cout << "totaloe: rank = " << rank << ": oe = " << oe_sum << std::endl;
 
-//    if (EnergyQs.size() >= (i_oe + 1)) {
-//      EnergyQs[i_oe] = oe_sum;
-//    }
-//    else {
-//      EnergyQs.push_back(oe_sum);
-//    }
-
-  }
   return oe_sum;
 }
 
@@ -1756,16 +1744,8 @@ double redhallmhd::evalTotalMagneticEnergy ( stack& run ) {
 
   i_red = MPI_Reduce(&me, &me_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-//  if (rank == 0) {
-//
-//    if (EnergyQs.size() >= (i_me + 1)) {
-//      EnergyQs[i_me] = me_sum;
-//    }
-//    else {
-//      EnergyQs.push_back(me_sum);
-//    }
-//  }
-    return me_sum;
+  return me_sum;
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1820,15 +1800,7 @@ double redhallmhd::evalTotalCurrentSqd( stack& run ) {
 
   i_red = MPI_Reduce(&ce, &ce_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-//  if (rank == 0) {
-//
-//    if (EnergyQs.size() >= (i_ce + 1)) {
-//      EnergyQs[i_ce] = ce_sum;
-//    }
-//    else {
-//      EnergyQs.push_back(ce_sum);
-//    }
-//  }
+  MPI_Bcast(&ce_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     return ce_sum;
 }
 
@@ -1884,16 +1856,7 @@ double redhallmhd::evalTotalGradCurrentSqd( stack& run ) {
 
   i_red = MPI_Reduce(&cee, &cee_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-//  if (rank == 0) {
-//
-//    if (EnergyQs.size() >= (i_ce + 1)) {
-//      EnergyQs[i_ce] = ce_sum;
-//    }
-//    else {
-//      EnergyQs.push_back(ce_sum);
-//    }
-//  }
-    return cee_sum;
+  return cee_sum;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1949,6 +1912,7 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
     fp         = two_thirds * fp;  /* ~ NOTE!:  do I need this? ~ */
 
   }
+    MPI_Bcast(&fp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     return fp;
 }
 
@@ -1978,10 +1942,11 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
   run.stack_data.fetch("dz"   , &dz    );
 
   double fe;
+  double dfe_r, dfe_i;
   double fe_sum;
 
   fe        = zero;
-
+  
   int idx   = 0;
 
   int kstart;
@@ -1992,30 +1957,42 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 
   kstop  = kstart + n1n2c;
 
+  idx = 0;
   for (unsigned kdx = kstart; kdx < kstop; kdx++){
 
-    if (kdx % n1n2c  == 0) { idx = 0; }
+//    if (kdx % n1n2c  == 0) { idx = 0; }
 
       if (( rank == np - 1 ) && ( kdx >= ( n3 * n1n2c) )) {
-        fe = fe + k2[idx] * ( A[kdx].real() * P[kdx].real() + A[kdx].imag() * P[kdx].imag() );
+
+        dfe_r =       k2[idx] * ( (A[kdx].imag() * P[kdx].real()) + (A[kdx].real() * P[kdx].imag()) );
+        dfe_i =       k2[idx] * ( (A[kdx].imag() * P[kdx].imag()) - (A[kdx].real() * P[kdx].real()) );
+
+        fe = fe + sqrt(pow(dfe_r,2) + pow(dfe_i,2));
+//        fe = fe + k2[idx] * ( A[kdx].imag()         * P[kdx].real() + A[kdx].real()         * P[kdx].imag() );
       }
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
-        fe = fe - k2[idx] * ( A[kdx + n1n2c].real() * P[kdx].real() + A[kdx + n1n2c].imag() * P[kdx].imag() );
+
+        dfe_r =       k2[idx] * ( (A[idx + n1n2c].imag() * P[idx].real()) + (A[idx + n1n2c].real() * P[kdx].imag()) );
+        dfe_i =       k2[idx] * ( (A[idx + n1n2c].imag() * P[idx].imag()) - (A[idx + n1n2c].real() * P[kdx].real()) );
+
+        fe = fe - sqrt(pow(dfe_r,2) + pow(dfe_i,2));
+
+        //    fe = fe - k2[idx] * ( A[idx + n1n2c].imag() * P[idx].real() + A[idx + n1n2c].real() * P[idx].imag() );
       }
 
       ++idx;
   }
+
   fe = two * fe;
 
   int i_red;
   i_red = MPI_Reduce(&fe, &fe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  if (rank == 0) {
+// fe_sum = two*two_thirds * fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
+// fe_sum = fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
 
-    fe_sum = two_thirds * fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
-
-  }
   return fe_sum;
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2106,11 +2083,11 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
       a                    = cos((pi*lowtau)/( two * dtau)); /* ~ Gilson's "interp" ~ */
       b                    = cos((pi*bigtau)/( two * dtau));
 
-//      std::cout << "applyFootPointDriving: (low bound) a     = " << a << std::endl;
-//      std::cout << "applyFootPointDriving: (low bound) b     = " << b << std::endl;
-//      std::cout << "applyFootPointDriving: {low bound) num   = " << num << std::endl;
-//      std::cout << "applyFootPointDriving: (low bound) dtau  = " << dtau << std::endl;
-//      std::cout << "applyFootPointDriving: (low bound) t_cur = " << t_cur << std::endl;
+//        std::cout << "applyFootPointDriving: (low bound) a     = " << a << std::endl;
+//        std::cout << "applyFootPointDriving: (low bound) b     = " << b << std::endl;
+//        std::cout << "applyFootPointDriving: {low bound) num   = " << num << std::endl;
+//        std::cout << "applyFootPointDriving: (low bound) dtau  = " << dtau << std::endl;
+//        std::cout << "applyFootPointDriving: (low bound) t_cur = " << t_cur << std::endl;
 
       if (num == oldnum) {
     
@@ -2166,7 +2143,7 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
     else if ( rank == np - 1 && bdrys == 2) {
 
       run.palette.fetch("oldnumub", &oldnum ); /* ~ "oldnum" ~ */
-      strt_idx             = (n_layers - 1) * nc;
+      strt_idx             = n_layers * nc;
       stop_idx             = strt_idx + n1n2c;
 
       for (unsigned k = strt_idx; k < stop_idx; k++) { 
@@ -2186,11 +2163,11 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
       a                    = cos((pi*lowtau)/( two * dtau));    /* ~ Gilson's "interp" ~ */
       b                    = cos((pi*bigtau)/( two * dtau));
 
-      std::cout << "applyFootPointDriving: (high bound) a     = " << a << std::endl;
-      std::cout << "applyFootPointDriving: (high bound) b     = " << b << std::endl;
-      std::cout << "applyFootPointDriving: {high bound) num   = " << num << std::endl;
-      std::cout << "applyFootPointDriving: (high bound) dtau  = " << dtau << std::endl;
-      std::cout << "applyFootPointDriving: (high bound) t_cur = " << t_cur << std::endl;
+//      std::cout << "applyFootPointDriving: (high bound) a     = " << a     << std::endl;
+//      std::cout << "applyFootPointDriving: (high bound) b     = " << b     << std::endl;
+//      std::cout << "applyFootPointDriving: {high bound) num   = " << num   << std::endl;
+//      std::cout << "applyFootPointDriving: (high bound) dtau  = " << dtau  << std::endl;
+//      std::cout << "applyFootPointDriving: (high bound) t_cur = " << t_cur << std::endl;
 
       if (num == oldnum) {
     
@@ -2332,7 +2309,7 @@ void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
   unsigned kstart    = 0;                        /* ~ lower and upper loop limits on k            ~ */
   unsigned kstop     = n_layers * n1n2c;         /* ~ note: pbot and atop boundary layers incl.'d ~ */
 
-  unsigned idx;                                  /* ~ index for k2 and inv_k2                     ~ */
+  unsigned idx = 0;                              /* ~ index for k2 and inv_k2                     ~ */
   if (    str_step.compare("predict") == 0 ) {   /* ~ PRIOR to predictor step                     ~ */
     for (unsigned k = kstart; k < kstop; k++) { 
 
