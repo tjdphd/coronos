@@ -114,7 +114,9 @@ void lcsolve::Loop( stack& run ) {
   }
 
   physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
-  physics.applyBC(    "predict", run         );
+
+  physics.physicsFinalize(       run         );
+  physics.applyBC(   "finalize", run         );
 
   physics.fftw.fftwReverseAll(run, physics.J );
 
@@ -123,7 +125,6 @@ void lcsolve::Loop( stack& run ) {
 
   physics.fftw.fftwReverseAll(   run         );
 
-  physics.physicsFinalize(       run         );
 
   run.palette.reset(   "tstart", t_cur       );
   int srun;

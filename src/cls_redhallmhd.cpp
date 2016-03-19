@@ -541,7 +541,7 @@ void redhallmhd::initBoundaries( stack& run) {
     int bdrys; run.palette.fetch("bdrys", &bdrys);
 /* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
     if (bdrys > 0 ) { initFootPointDriving( run ); // <- retain after testing 
-                      initNoDrive(          run ); // <- delete after testing
+//                      initNoDrive(          run ); // <- delete after testing
                     }
 /* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
     else            { initNoDrive(          run ); }
@@ -632,7 +632,7 @@ void redhallmhd::initFootPointDriving( stack& run ) {
   int n1n2c;  run.stack_data.fetch( "n1n2c",  &n1n2c );
   RealVar kc; run.palette.fetch(    "kc",     &kc    );
   int np;     run.palette.fetch(    "np",     &np    );
-  int bdrys;  run.palette.fetch("bdrys",     &bdrys  );
+  int bdrys;  run.palette.fetch( "bdrys",    &bdrys  );
 
   RealArray& k2         = run.k2;
 
@@ -675,9 +675,9 @@ void redhallmhd::initFootPointDriving( stack& run ) {
       
       std::string prefix;    run.palette.fetch(    "prefix",     &prefix    );
       std::string run_label; run.palette.fetch(    "run_label",  &run_label );
-      std::string res_str;   run.stack_data.fetch( "res_str", &res_str      );
+      std::string res_str;   run.stack_data.fetch( "res_str",    &res_str   );
 
-      std::string srn_str              = static_cast<std::ostringstream*>( &(std::ostringstream() << ( srun -1 ) ) ) -> str();
+      std::string srn_str              = static_cast<std::ostringstream*>( &(std::ostringstream() << ( srun - 1 ) ) ) -> str();
       std::string boundary_data_file   = prefix + '_' + res_str + "r" + srn_str;
       const char *c_boundary_data_file = boundary_data_file.c_str();
 
@@ -726,7 +726,7 @@ void redhallmhd::initFootPointDriving( stack& run ) {
 //            dummy       = ((double) rand() / RAND_MAX );   // one or two here?
 //            ++trcount;
 
-            dummy       = ((double) rand() / RAND_MAX );
+            dummy       =        ((double) rand() / RAND_MAX );
             ++trcount;
             next_real   = ffp * (((double) rand() / RAND_MAX ) * two - one);
             ++trcount;
@@ -738,12 +738,10 @@ void redhallmhd::initFootPointDriving( stack& run ) {
           }
           else {
 
-            dummy       = rand();
+            dummy       = ((double) rand() / RAND_MAX);
             ++trcount;
-            dummy       = rand();
+            dummy       = ((double) rand() / RAND_MAX);
             ++trcount;
-
-           std::cout << "initFootPointDriving: read rmct2r.in not yet implemented" << std::endl;
 
           }
         }
@@ -2036,8 +2034,10 @@ void redhallmhd::applyBC( std::string str_step, stack& run ) {
 
 /* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
 
-    if (bdrys > 0 ) { applyLineTiedBC( str_step, run );   // <- delete  after testing initFootPointDriving
-//                      applyFootPointDrivingBC(   run ); // <- restore after testing initFootPointDriving
+    if (bdrys > 0 ) { //applyLineTiedBC( str_step, run );   // <- delete  after testing initFootPointDriving
+                      if (!str_step.compare("finalize") == 0) { 
+                        applyFootPointDrivingBC(   run ); // <- restore after testing initFootPointDriving
+                      }
                     }
 /* ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ TEST  ~ */
     else            { applyLineTiedBC( str_step, run ); }
@@ -2052,15 +2052,12 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank     );
 
-  int bdrys;
-  run.palette.fetch("bdrys"   , &bdrys    );
-
-  int np;  
-  run.palette.fetch("np"      , &np       );
-  int n1n2c; 
-  run.stack_data.fetch("n1n2c", &n1n2c    );
-  int n_layers;
-  run.stack_data.fetch("n3"   , &n_layers );
+  int bdrys;      run.palette.fetch(    "bdrys", &bdrys    );
+  int np;         run.palette.fetch(    "np"   , &np       );
+  int n1n2c;      run.stack_data.fetch( "n1n2c", &n1n2c    );
+  int n_layers;   run.stack_data.fetch( "n3"   , &n_layers );
+  RealVar dtau;   run.palette.fetch(    "dtau" , &dtau     );
+  RealVar t_cur;  physics_data.fetch(   "t_cur", &t_cur    );
 
   int oldnum, num;
 
@@ -2068,11 +2065,6 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
   RealVar    dummy;
   RealVar    next_real, next_imag;
   ComplexVar tuple;
-
-  RealVar dtau;
-  run.palette.fetch("dtau"    , &dtau     );
-  RealVar t_cur; 
-  physics_data.fetch("t_cur"  , &t_cur    );
 
   RealVar lowtau; 
   RealVar bigtau; 
@@ -2098,9 +2090,7 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
       strt_idx             = 0;
       stop_idx             = strt_idx + n1n2c;
 
-      ComplexArray& oldr   = roldlb;
-      ComplexArray& newr   = rnewlb;
-      for (unsigned k = strt_idx; k < stop_idx; k++) { 
+      for (unsigned k = strt_idx; k < stop_idx; k++) {
         O[k]               = czero;
         if (iu3 > 2){ 
         Z[k]               = czero;
@@ -2110,38 +2100,43 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
      
       while (  (num * dtau) <= t_cur ) { ++num; }
 
-      bigtau               = (num * dtau) - t_cur;
-      lowtau               = bigtau       - dtau;
+      num                  = num - 1; 
+      lowtau               = (num    * dtau) - t_cur;
+      bigtau               =((num+1) * dtau) - t_cur;
       a                    = cos((pi*lowtau)/( two * dtau)); /* ~ Gilson's "interp" ~ */
       b                    = cos((pi*bigtau)/( two * dtau));
+
+//      std::cout << "applyFootPointDriving: (low bound) a     = " << a << std::endl;
+//      std::cout << "applyFootPointDriving: (low bound) b     = " << b << std::endl;
+//      std::cout << "applyFootPointDriving: {low bound) num   = " << num << std::endl;
+//      std::cout << "applyFootPointDriving: (low bound) dtau  = " << dtau << std::endl;
+//      std::cout << "applyFootPointDriving: (low bound) t_cur = " << t_cur << std::endl;
+
       if (num == oldnum) {
     
         for (unsigned k = strt_idx; k < stop_idx; k++) {
-
-          O[k]             = (a * oldr[k]) + (b * newr[k]);
+          O[k]             = (a * roldlb[k]) + (b * rnewlb[k]);
           if (iu3 > 2){ 
             Z[k]           = czero;
           }
-
         }
       }
       else {
 
-        int brcount;
-        physics_data.fetch("brcount", &brcount);
-        physics_data.fetch("ffp",     &ffp);
+        int brcount; physics_data.fetch("brcount", &brcount);
+        run.palette.fetch("ffp",     &ffp);
         run.palette.fetch( "kc",      &kc);
 
         for (unsigned k = 0; k < num - oldnum; k++) {
 
-          for (unsigned l = 0; l < nc; l++) { oldr[l] = newr[l]; }
+          for (unsigned l = 0; l < nc; l++) { roldlb[l] = rnewlb[l]; }
 
           for (unsigned l = 0; l < nc; l++ ) {
             if ( sqrt(k2[l]) < kc ) {
 
-                dummy      = rand();
+                dummy      = ((double) rand() / RAND_MAX );
                 ++brcount;
-                dummy      = rand();
+                dummy      = ((double) rand() / RAND_MAX );
                 ++brcount;
             }
           }
@@ -2149,18 +2144,23 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
           for (unsigned l = 0; l < nc; l++ ) {
             if ( sqrt(k2[l]) < kc ) {
 
-                next_real  = ffp * (rand() * two - one);
+                next_real  = ffp * (((double) rand() / RAND_MAX) * two - one);
                 ++brcount;
-                next_imag  = ffp * (rand() * two - one);
+                next_imag  = ffp * (((double) rand() / RAND_MAX) * two - one);
                 ++brcount;
                 tuple      = ComplexVar(next_real, next_imag);
-                newr[l]    = tuple;
+                rnewlb[l]  = tuple;
 
             }
           }
         }
+        for (unsigned k = strt_idx; k < stop_idx; k++) {
+          O[k]             = (a * roldlb[k]) + (b * rnewlb[k]);
+          if (iu3 > 2){ 
+            Z[k]           = czero;
+          }
+        }
         physics_data.reset("brcount", brcount);
-
       }
     }
     else if ( rank == np - 1 && bdrys == 2) {
@@ -2169,8 +2169,6 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
       strt_idx             = (n_layers - 1) * nc;
       stop_idx             = strt_idx + n1n2c;
 
-      ComplexArray& oldr   = roldub;
-      ComplexArray& newr   = rnewub;
       for (unsigned k = strt_idx; k < stop_idx; k++) { 
         O[k]               = czero;
         if (iu3 > 2) {
@@ -2178,78 +2176,76 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
         }
       }
       num                  = oldnum;
+
       while (  (num * dtau) <= t_cur ) { ++num; }
-      bigtau               = (num * dtau) - t_cur;
-      lowtau               = bigtau       - dtau;
+
+      num                  = num - 1;
+      lowtau               =  (num    * dtau) - t_cur;
+      bigtau               = ((num+1) * dtau) - t_cur;
+
       a                    = cos((pi*lowtau)/( two * dtau));    /* ~ Gilson's "interp" ~ */
       b                    = cos((pi*bigtau)/( two * dtau));
+
+      std::cout << "applyFootPointDriving: (high bound) a     = " << a << std::endl;
+      std::cout << "applyFootPointDriving: (high bound) b     = " << b << std::endl;
+      std::cout << "applyFootPointDriving: {high bound) num   = " << num << std::endl;
+      std::cout << "applyFootPointDriving: (high bound) dtau  = " << dtau << std::endl;
+      std::cout << "applyFootPointDriving: (high bound) t_cur = " << t_cur << std::endl;
+
       if (num == oldnum) {
     
+        int kdk            = 0;
         for (unsigned k = strt_idx; k < stop_idx; k++) {
-          O[k]             = (a * oldr[k]) + (b * newr[k]);
+          O[k]             = (a * roldub[kdk]) + (b * rnewub[kdk]);
           if (iu3 > 2) {
             Z[k]           = czero;
           }
+          ++kdk;
         }
       }
       else {
 
         int trcount;
         physics_data.fetch("trcount", &trcount);
-        physics_data.fetch("ffp",     &ffp);
+        run.palette.fetch("ffp",      &ffp);
         run.palette.fetch("kc",       &kc);
 
         for (unsigned k = 0; k < num - oldnum; k++) {
-//        for (unsigned l = 0; l < nc; l++) { oldr[l] = newr[l]; }
-//        for (unsigned l = 0; l < nc; l++ ) {
-//          if ( sqrt(k2[l]) < kc ) {
+          for (unsigned l = 0; l < nc; l++) { roldub[l] = rnewub[l]; }
+          for (unsigned l = 0; l < nc; l++ ) {
+            if ( sqrt(k2[l]) < kc ) {
 
-//              dummy      = rand();
-//              ++trcount;
-//              dummy      = rand();
-//              ++trcount;
-//          }
-//        }
+                dummy      = ((double) rand() / RAND_MAX);
+                ++trcount;
+                dummy      = ((double) rand() / RAND_MAX);
+                ++trcount;
+            }
+          }
 
-//        for (unsigned l = 0; l < nc; l++ ) {
-//          if ( sqrt(k2[l]) < kc ) {
+          for (unsigned l = 0; l < nc; l++ ) {
+            if ( sqrt(k2[l]) < kc ) {
 
-//              next_real  = ffp * (rand() * two - one);
-//              ++trcount;
-//              next_imag  = ffp * (rand() * two - one);
-//              ++trcount;
-//              tuple      = std::complex<double>(next_real, next_imag);
-//              newr[l]    = tuple;
+                next_real  = ffp * (((double) rand() / RAND_MAX ) * two - one);
+                ++trcount;
+                next_imag  = ffp * (((double) rand() / RAND_MAX ) * two - one);
+                ++trcount;
+                tuple      = std::complex<double>(next_real, next_imag);
+                rnewub[l]  = tuple;
 
-//          }
-//        }
+            }
+          }
         }
-//      physics_data.reset("trcount", trcount);
+        int kdk            = 0;
+        for (unsigned k = strt_idx; k < stop_idx; k++) {
+          O[k]             = (a * roldub[kdk]) + (b * rnewub[kdk]);
+          if (iu3 > 2) {
+            Z[k]           = czero;
+          }
+          ++kdk;
+        }
+        physics_data.reset("trcount", trcount);
       }
     }
-    
-//    if (num == oldnum) {
-//
-//      for (unsigned k = strt_idx; k < stop_idx; k++) {
-//    
-//        O[k]             = (a * oldr[k]) + (b * newr[k]);
-//        Z[k]               = czero;
-//    
-//      }
-//
-//    }
-//    else {
-//
-//      for (unsigned k = 0; k < num - numold; k++) { 
-//
-//        for (unsigned l = 0; l < nc; l++) { oldr[k] = newr[k]; }
-//
-//      }
-//
-//      /* ~ reset newr ~ */
-//      /* ~ increment either trcount or brcount and reset ~ */
-//
-//    }
   }
 }
 
