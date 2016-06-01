@@ -590,16 +590,19 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
   RealVar zl;
   palette.fetch(   "zl"  , &zl );
 
-//  z.reserve(iu2);
-  z.reserve(p3);
+// z.reserve(iu2);
+
+  z.reserve(p3 + 1);
 
   RealVar next_z;
 
-  for (int i = 0; i < p3-1; ++i) {
+  for (int i = 0; i < p3+1; ++i) {
 
     next_z   =  ((RealVar) (rank)) * (zl / ((RealVar) (np))) + (((RealVar) i) * dz);
     z.push_back(next_z);
  
+    if (rank == 0) {std::cout << "next_z = " << next_z << std::endl; }
+
   }
 }
 

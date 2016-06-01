@@ -104,7 +104,6 @@ class stack : public canvas
 
   void reportEnergyQs( double t_cur );        /* ~ write energy quantities to energyfile   ~ */
 
-
   std::string getLastDataFilename(int srun);
   std::string getNextDataFilename();
   void writeParameters();

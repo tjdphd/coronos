@@ -46,6 +46,7 @@ namespace constants {
 
 typedef long double ***                         InputOutputArray;
 typedef std::vector<long double>                RealArray;
+typedef std::vector<std::vector<long double>  > Real2DArray;
 typedef std::vector<std::complex<long double> > ComplexArray;
 
 typedef long double                             RealVar;
@@ -62,6 +63,7 @@ typedef std::complex<long double>               ComplexVar;
    static const long double two_pi              = two*pi;
    static const long double two_thirds          = two / three;
    static const long double teensy              = 1.0e-100L;
+   static const long double huge                = 1.0e+100L;
 
    static const std::complex<long double> iunit = std::complex<long double>(zero, one );
    static const std::complex<long double> czero = std::complex<long double>(zero, zero);
@@ -73,6 +75,7 @@ typedef std::complex<long double>               ComplexVar;
 
 typedef double ***                         InputOutputArray;
 typedef std::vector<double>                RealArray;
+typedef std::vector<std::vector<double> >  Real2DArray;
 typedef std::vector<std::complex<double> > ComplexArray;
 
 typedef double                             RealVar;
@@ -89,6 +92,7 @@ typedef std::complex<double>               ComplexVar;
    static const double two_pi              = two*pi;
    static const double two_thirds          = two / three;
    static const double teensy              = 1.0e-100L;
+   static const double huge                = 1.0e+100L;
 
    static const std::complex<double> iunit = std::complex<double>(zero, one );
    static const std::complex<double> czero = std::complex<double>(zero, zero);

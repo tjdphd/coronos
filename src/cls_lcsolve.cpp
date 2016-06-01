@@ -58,40 +58,36 @@ lcsolve::lcsolve( stack& run ) {
 
 void lcsolve::Loop( stack& run ) {
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
   redhallmhd physics ( run );
 
-  int n1n2;
-  run.stack_data.fetch("n1n2", &n1n2);
-  int n1n2c;
-  run.stack_data.fetch("n1n2c", &n1n2c);
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  int l, ndt,    iptest, nw;
-  RealVar tstart, t_cur, dt;
+  int     n1n2;  run.stack_data.fetch("n1n2",  &n1n2  );
+  int     n1n2c; run.stack_data.fetch("n1n2c", &n1n2c );
+  int     ndt;    run.palette.fetch("ndt",     &ndt   );
+  int     iptest; run.palette.fetch("iptest",  &iptest);
+  int     nw;     run.palette.fetch("nw",      &nw    );
 
-  run.palette.fetch("ndt",    &ndt   );
-  run.palette.fetch("tstart", &t_cur );
-  run.palette.fetch("iptest", &iptest);
-  run.palette.fetch("nw",     &nw    );
+  RealVar t_cur;  run.palette.fetch("tstart",  &t_cur );
+
+  RealVar dt;
+  int l;
 
   for (l = 0; l < ndt;l++) {
 
   /* ~ iptest conditional goes here              ~ */
 
+  physics.trackEnergies(     t_cur, run );
+  physics.trackQtyVsZ(       t_cur, run );
+//  physics.trackPowerSpectra( t_cur, run );
+
+  if (l % nw == 0 ) { 
+    run.reportEnergyQs( t_cur ); 
+                   }
+
   passAdjacentLayers( "predict", run );
   physics.applyBC(    "predict", run );
-  physics.trackEnergies(t_cur,   run );
-
   physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
-
-  if (l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
-
-
-
-
-  /* ~ bookkeeping goes here ?                   ~ */
 
   setS(               "predict", run, physics );   /* ~ set predictor S's                                       ~ */
   setB(               "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
@@ -110,10 +106,10 @@ void lcsolve::Loop( stack& run ) {
   Step(               "correct", run );            /* ~ execute corrector update                                ~ */
 
   run.palette.fetch("dt", &dt);
-  t_cur       = t_cur + dt;
+  t_cur = t_cur    + dt;
   physics.physics_data.reset("t_cur", t_cur);
 
-  physics.updateTimeInc(        run );
+  physics.updateTimeInc(         run );
 
   }
 
@@ -129,11 +125,13 @@ void lcsolve::Loop( stack& run ) {
 
   physics.fftw.fftwReverseAll(   run         );
 
+  physics.reportQtyVsZ( t_cur,   run         );
+
   run.palette.reset(   "tstart", t_cur       );
-  int srun;
-  run.palette.fetch(   "srun"   , &srun      );
+
+  int srun; run.palette.fetch("srun", &srun  );
   ++srun;
-  run.palette.reset(   "srun"   , srun       );
+  run.palette.reset(          "srun",  srun  );
 
   run.writeUData(                            );
   run.writeParameters(                       );
@@ -144,39 +142,30 @@ void lcsolve::Loop( stack& run ) {
 
 void lcsolve::passAdjacentLayers( std::string str_step, stack& run ) {
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Status * status = 0;
 
-  ComplexArray& O     = run.U0;                    /* ~ for predictor case                          ~ */
-  ComplexArray& H     = run.U1;                    /* ~ un-updated values are transferred           ~ */
+  ComplexArray& O     = run.U0;                           /* ~ for predictor case                          ~ */
+  ComplexArray& H     = run.U1;                           /* ~ un-updated values are transferred           ~ */
   ComplexArray& Z     = run.U2;
   ComplexArray& V     = run.U3;
 
-  ComplexArray& tO    = run.tU0;                   /* ~ for corrector case                          ~ */
-  ComplexArray& tH    = run.tU1;                   /* ~ results from predictor step are transferred ~ */
+  ComplexArray& tO    = run.tU0;                          /* ~ for corrector case                          ~ */
+  ComplexArray& tH    = run.tU1;                          /* ~ results from predictor step are transferred ~ */
   ComplexArray& tZ    = run.tU2;
   ComplexArray& tV    = run.tU3;
 
-  int np;
-  run.palette.fetch(   "np"   , &np      );       /* ~ number of processes                         ~ */
+  int np;       run.palette.fetch(   "np",    &np      ); /* ~ number of processes                         ~ */
+  int n1n2c;    run.stack_data.fetch("n1n2c", &n1n2c   ); /* ~ number of complex elements in a layer       ~ */
+  int n_layers; run.stack_data.fetch("n3"   , &n_layers); /* ~ number of layers in stack                   ~ */
 
-  int n1n2c;
-  run.stack_data.fetch("n1n2c", &n1n2c   );       /* ~ number of complex elements in a layer       ~ */
+  unsigned n3_idx     =   n_layers       * n1n2c;         /* ~ starting index for n3'th layer              ~ */
+  unsigned atop_idx   = ( n_layers + 1 ) * n1n2c;         /* ~ starting index for top boundary layer       ~ */
+  unsigned abot_idx   =                    n1n2c;         /* ~ starting index for first layer              ~ */
 
-  int n_layers;
-  run.stack_data.fetch("n3"   , &n_layers);       /* ~ number of layers in stack                   ~ */
+  std::string model; run.palette.fetch("model", &model);
 
-  unsigned n3_idx     =   n_layers       * n1n2c; /* ~ starting index for n3'th layer              ~ */
-  unsigned atop_idx   = ( n_layers + 1 ) * n1n2c; /* ~ starting index for top boundary layer       ~ */
-  unsigned abot_idx   =                    n1n2c; /* ~ starting index for first layer              ~ */
-
-
-  std::string model;
-  run.palette.fetch("model", &model);
-
-  if (str_step.compare("predict") == 0) {         /* ~ predictor case                              ~ */
+  if (str_step.compare("predict") == 0) {                 /* ~ predictor case                              ~ */
 
     if (rank != 0 ) {
       if (rank != np - 1) {
@@ -268,8 +257,7 @@ void lcsolve::passAdjacentLayers( std::string str_step, stack& run ) {
 
 void lcsolve::setS( std::string str_step, stack& run, redhallmhd& physics ) {
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   std::string model;
   run.palette.fetch("model", &model);
@@ -366,23 +354,17 @@ void lcsolve::setS( std::string str_step, stack& run, redhallmhd& physics ) {
 
 void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  int n1n2;
-  run.stack_data.fetch( "n1n2" ,&n1n2  );
-  int n1n2c; 
-  run.stack_data.fetch( "n1n2c",&n1n2c );
-  int iu2;
-  run.stack_data.fetch( "iu2"  ,&iu2   );
+  int n1n2;  run.stack_data.fetch( "n1n2" , &n1n2  );
+  int n1n2c; run.stack_data.fetch( "n1n2c", &n1n2c );
+  int iu2;   run.stack_data.fetch( "iu2"  , &iu2   );
 
   unsigned kstop   = n1n2c * iu2;
 
-  RealVar rho;
-  physics.physics_data.fetch(  "rho", &rho );             /* ~ gyro-radius parameter                                      ~ */
-  RealVar beta, rtbeta;                           
-  run.palette.fetch( "beta" , &beta  );                   /* ~ zero'th-order plasma-beta                                  ~ */
-  rtbeta           = sqrt(beta);
+  RealVar rho;  physics.physics_data.fetch(  "rho", &rho  );  /* ~ gyro-radius parameter                                      ~ */
+  RealVar beta; run.palette.fetch(          "beta", &beta );  /* ~ zero'th-order plasma-beta                                  ~ */
+  RealVar rtbeta   = sqrt(beta);
 
   ComplexArray BrKt;
   BrKt.reserve(n1n2c * iu2);
@@ -419,108 +401,108 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
   std::string model;
   run.palette.fetch("model", &model);
 
-  partialsInXandY( run, physics, P, d1x, d1y);                /* ~ d1x, d1y hold real-space partials in x and y of P        ~ */
+  partialsInXandY( run, physics, P, d1x, d1y);                  /* ~ d1x, d1y hold real-space partials in x and y of P          ~ */
 
   maxU[0]          = maxdU(         d1x, d1y, -1, iu2);
 
 if (str_step.compare("predict"     ) == 0) {
-  partialsInXandY( run, physics, O, d2x, d2y);              /* ~ d2x, d2y hold real-space partials in x and y of O  ~ */
+  partialsInXandY( run, physics, O, d2x, d2y);                  /* ~ d2x, d2y hold real-space partials in x and y of O          ~ */
 }
 else if (str_step.compare("correct") == 0) {
-  partialsInXandY( run, physics, tO,     d2x, d2y);         /* ~ d2x, d2y hold real-space partials in x and y of tO ~ */
+  partialsInXandY( run, physics, tO,     d2x, d2y);             /* ~ d2x, d2y hold real-space partials in x and y of tO         ~ */
 }
 
-bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);           /* ~ calculate [phi, Omega]                             ~ */
+bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);               /* ~ calculate [phi, Omega]                                     ~ */
 
-for (unsigned k = 0; k < kstop; k++) { B0[k] = - BrKt[k]; } /* ~ place result in B0                                 ~ */
+for (unsigned k = 0; k < kstop; k++) { B0[k] = - BrKt[k]; }     /* ~ place result in B0                                         ~ */
 
 if (model.compare("hall") == 0 ) {
 
    if (str_step.compare("predict"     ) == 0) {
-     partialsInXandY( run, physics, Z, d2x, d2y);           /* ~ d2x, d2y hold real-space partials in x and y of Z  ~ */
-     maxU[2]       = maxdU(        d2x, d2y, -1, iu2);      /* ~                                                    ~ */
+     partialsInXandY( run, physics, Z, d2x, d2y);               /* ~ d2x, d2y hold real-space partials in x and y of Z          ~ */
+     maxU[2]       = maxdU(        d2x, d2y, -1, iu2);          /* ~                                                            ~ */
    }
    else if (str_step.compare("correct") == 0) {
-     partialsInXandY( run, physics, tZ, d2x, d2y);          /* ~ d2x, d2y hold real-space partials in x and y of tZ ~ */
+     partialsInXandY( run, physics, tZ, d2x, d2y);              /* ~ d2x, d2y hold real-space partials in x and y of tZ         ~ */
    }
-   bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);        /* ~ calculate [phi, Z]                                 ~ */
-   for (unsigned k = 0; k < kstop; k++) { B2[k] = - BrKt[k]; } /* ~ place result in B2                              ~ */
+   bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);            /* ~ calculate [phi, Z]                                         ~ */
+   for (unsigned k = 0; k < kstop; k++) { B2[k] = - BrKt[k]; }  /* ~ place result in B2                                         ~ */
 }
 
-averageAcrossLayers( run, -1, d1x, d1y );                   /* ~ calculate averages of phi_x & phi_y across adj't layers ~ */
+averageAcrossLayers( run, -1, d1x, d1y );                       /* ~ calculate ave's of phi_x & phi_y across adj't lyr's        ~ */
 
 if (str_step.compare("predict"     ) == 0) {
 
-  partialsInXandY( run, physics, H, d3x, d3y);              /* ~ d3x, d3y hold real-space partials in x and y of H       ~ */
+  partialsInXandY( run, physics, H, d3x, d3y);                  /* ~ d3x, d3y hold real-space partials in x and y of H          ~ */
 
   maxU[1]          = maxdU(         d3x, d3y, 1, iu2);
 }
 else if (str_step.compare("correct") == 0) {
-  partialsInXandY( run, physics, tH, d3x, d3y);           /* ~ d3x, d3y hold real-space partials in x and y of tH        ~ */
+  partialsInXandY( run, physics, tH, d3x, d3y);                 /* ~ d3x, d3y hold real-space partials in x and y of tH         ~ */
 }
 
-bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);                       /* ~ calculate [phibar, H]                                     ~ */
-for (unsigned k = 0; k < kstop; k++) { B1[k] = - BrKt[k]; }  /* ~ place result in B1                                        ~ */
+bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);               /* ~ calculate [phibar, H]                                      ~ */
+for (unsigned k = 0; k < kstop; k++) { B1[k] = - BrKt[k]; }     /* ~ place result in B1                                         ~ */
 
 if (model.compare("hall") == 0 ) {
 
   if (str_step.compare("predict"     ) == 0) {
-    partialsInXandY( run, physics, V, d3x, d3y);             /* ~ d3x, d3y hold real-space partials in x and y of V          ~ */
-    maxU[3]        = maxdU(             d3x, d3y, 1, iu2);   /* ~                                                            ~ */
+    partialsInXandY( run, physics, V, d3x, d3y);                /* ~ d3x, d3y hold real-space partials in x and y of V          ~ */
+    maxU[3]        = maxdU(             d3x, d3y, 1, iu2);      /* ~                                                            ~ */
   }
   else if (str_step.compare("correct") == 0) {
-    partialsInXandY( run, physics, tV, d3x, d3y);            /* ~ d3x, d3y hold real-space partials in x and y of tV         ~ */
+    partialsInXandY( run, physics, tV, d3x, d3y);               /* ~ d3x, d3y hold real-space partials in x and y of tV         ~ */
   }
-  bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);          /* ~ calculate [phibar, V]                                      ~ */
-  for (unsigned k = 0; k < kstop; k++) { B3[k] = -BrKt[k]; } /* ~ place result in B3                                         ~ */
-  averageAcrossLayers( run,  -1, d2x, d2y );                 /* ~ calculate averages of Z_x & Z_y across adjacent layers     ~ */
+  bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);             /* ~ calculate [phibar, V]                                      ~ */
+  for (unsigned k = 0; k < kstop; k++) { B3[k] = -BrKt[k]; }    /* ~ place result in B3                                         ~ */
+  averageAcrossLayers( run,  -1, d2x, d2y );                    /* ~ calculate ave's of Z_x & Z_y across adjacent lyr's         ~ */
 
-  partialsInXandY( run, physics, A, d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
+  partialsInXandY( run, physics, A, d1x, d1y);                  /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
 
-//     maxu? = maxdU(               d1x, d1y);               /* ~ might be interesting to do this calculation                ~ */
+//     maxu? = maxdU(               d1x, d1y);                  /* ~ might be interesting to do this calculation                ~ */
 
-  bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);          /* ~ calculate [A, Zbar]                                        ~ */
+  bracket( run, physics, BrKt, d1x, d1y, d2x, d2y);             /* ~ calculate [A, Zbar]                                        ~ */
   for (unsigned k = 0; k < kstop; k++) { 
     B1[k]          = B1[k] - (rho  * BrKt[k]);
-  }                                                          /* ~ B1 = - [phibar, H] - rho * [A, Zbar]                       ~ */
+  }                                                             /* ~ B1 = - [phibar, H] - rho * [A, Zbar]                       ~ */
   for (unsigned k = 0; k < kstop; k++) { 
     B3[k] = B3[k] + (half * rtbeta * BrKt[k]); 
-  }                                                          /* ~ B3 = - [phibar, V] - (1/2) * sqrt{beta} * [A, Zbar]        ~ */
+  }                                                             /* ~ B3 = - [phibar, V] - (1/2) * sqrt{beta} * [A, Zbar]        ~ */
 
 }
 else if(model.compare("rmhd") == 0 || model.compare("inhm") == 0) {
-  partialsInXandY( run, physics, A, d1x, d1y);               /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
+  partialsInXandY( run, physics, A, d1x, d1y);                  /* ~ d1x, d1y hold real-space partials in x and y of A          ~ */
 }
 
-averageAcrossLayers( run,  +1, d1x, d1y );             /* ~ calculate averages of A_x & A_y across adjacent layers       ~ */
+averageAcrossLayers( run,  +1, d1x, d1y );                      /* ~ calculate ave's of A_x & A_y across adjacent lyr's         ~ */
 
 if (model.compare("hall") == 0 ) { 
 
-  averageAcrossLayers( run,  +1, d3x, d3y );           /* ~ calculate averages of V_x & V_y across adjacent layers     ~ */
-  bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);    /* ~ calculate [Abar, Vbar]                                     ~ */
-  for (unsigned k = 0; k < kstop; k++) { 
-    B2[k]          = B2[k] + rtbeta * BrKt[k];         /* ~ add result to B2                                           ~ */ 
+  averageAcrossLayers( run,  +1, d3x, d3y );                    /* ~ calculate ave's of V_x & V_y across adjacent layers        ~ */
+  bracket( run, physics, BrKt, d1x, d1y, d3x, d3y);             /* ~ calculate [Abar, Vbar]                                     ~ */
+  for (unsigned k = 0; k < kstop; k++) {
+    B2[k]          = B2[k] + rtbeta * BrKt[k];                  /* ~ add result to B2                                           ~ */ 
   }
 }
 
-partialsInXandY( run, physics, J, d3x, d3y );          /* ~ d3x, d3y hold real-space partials in x and y of J          ~ */
-averageAcrossLayers( run,  +1, d3x, d3y );             /* ~ calculate averages of J_x & J_y across adjacent layers     ~ */
+partialsInXandY( run, physics, J, d3x, d3y );                   /* ~ d3x, d3y hold real-space partials in x and y of J          ~ */
+averageAcrossLayers( run,  +1, d3x, d3y );                      /* ~ calculate ave's of J_x & J_y across adjacent layers        ~ */
 
-bracket( run, physics, BrKt, d1x, d1y,  d3x, d3y );    /* ~ calculate [Abar, Jbar]                                     ~ */
+bracket( run, physics, BrKt, d1x, d1y,  d3x, d3y );             /* ~ calculate [Abar, Jbar]                                     ~ */
 
-for (unsigned k = 0; k < kstop; k++) {                 /* ~ B0 = -[phi, Omega] + [Abar, Jbar]                          ~ */
+for (unsigned k = 0; k < kstop; k++) {                          /* ~ B0 = -[phi, Omega] + [Abar, Jbar]                          ~ */
   B0[k] = B0[k] + BrKt[k];
 }
 
 if (model.compare("hall") == 0 ) { 
 
   for (unsigned k = 0; k < kstop; k++) { 
-    B2[k]          = B2[k] - (two * rho * BrKt[k]);         /* ~ B2 = -[phi, Z]+sqrt{beta}*[Abar, Vbar]-2*rho*[Abar, Jbar]  ~ */
+    B2[k]          = B2[k] - (two * rho * BrKt[k]);             /* ~ B2 = -[phi, Z]+sqrt{beta}*[Abar, Vbar]-2*rho*[Abar, Jbar] ~ */
   }
 
 }
 
-int n_flds;                                                 /* ~ set rank 0 maxU                                            ~ */
+int n_flds;                                                     /* ~ set rank 0 maxU                                            ~ */
 run.stack_data.fetch("iu3", &n_flds);
 
 if (str_step.compare("predict") == 0) { MPI_Allreduce(MPI_IN_PLACE, &maxU.front(), n_flds, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);}
@@ -530,53 +512,6 @@ d2x.resize(0);
 d2y.resize(0);
 d3x.resize(0);
 d3y.resize(0);
-
-  /* ~ bracket collection order ~ */ 
-
-  /* ~ -> [phi, Omega] ( for O equation    - B0    ) ... done with omega containers ~ (+2 - 1)     [2]  (phi    | Omega ) */
-  /* ~ -> [phi, Z    ] ( for Z equation    - B2    )                                ~ ( 1 + 1)     [2]  (phi, Z         ) */ 
-  /* ~ -> [phibar, H ] ( for H equation    - B1    ) ... done with H containers     ~ ( 2 + 1 - 1) [3]  (phi, Z |  H    ) */
-  /* ~ -> [phibar, V ] ( for V equation    - B3    ) ... done with phi containers   ~ ( 2 + 1 - 1) [3]  (V,   Z |  phi  ) */ 
-  /* ~ -> [A, Zbar   ] ( for H/V equations - B1/B3 ) ... done with Z containers     ~ ( 2 + 1 - 1) [3]  (V,   A |  Z    ) */ 
-  /* ~ -> [Abar, Vbar] ( for Z equation    - B2    ) ... done with V containers     ~ ( 2 - 1    ) [2]  (A      |  V    ) */ 
-
-  /* ~ -> [Abar, Jbar] ( for O equation    - B0    ) ... done with all containers   ~ ( 1 + 1 - 2) [2]  (       |  A, J ) */ 
-
-  /* ~ Sequence: ~ */
-
-  /* ~  1.) calculate phi_x, phi_y, Omega_x, Omega_y ~ */ 
-  /* ~  2.) get maxb from phi (Omega?)               ~ */
-  /* ~  3.) calculate [phi, Omega]                   ~ */
-  /* ~  4.) place result of 3 in B0                  ~ */
-  /* ~  5.) get Z_x, Z_y                             ~ */
-  /* ~  6.) get maxb from Z                          ~ */
-  /* ~  7.) calculate [phi, Z]                       ~ */
-  /* ~  8.) place result of  7 in B2                 ~ */
-  /* ~  9.) get phibar_x, phibar_y, H_x, H_y         ~ */
-  /* ~ 10.) get maxb from H (A?)                     ~ */
-  /* ~ 11.) calculate [phibar,H]                     ~ */
-  /* ~ 12.) place result of 11 in B1                 ~ */
-  /* ~ 13.) get V_x, V_y                             ~ */
-  /* ~ 14.) get maxb from V                          ~ */
-  /* ~ 15.) calculate [phibar, V]                    ~ */
-  /* ~ 16.) place result of 15 in B3                 ~ */
-  /* ~ 17.) get Zbar_x, Zbar_y, A_x, A_y             ~ */
-  /* ~ 18.) calculate [A, Zbar]                      ~ */
-  /* ~ 19.) add result of 18 to B1 and B3            ~ */
-  /* ~ 20.) get Abar_x, Abar_y, Vbar_x, Vbar_y       ~ */
-  /* ~ 21.) calculate [Abar, Vbar]                   ~ */
-  /* ~ 22.) add result of 21 to B2                   ~ */
-  /* ~ 23.) get Jbar_x, Jbar_y                       ~ */
-  /* ~ 24.) calculate [Abar, Jbar]                   ~ */
-  /* ~ 25.) add result of 24 to B0 & B2              ~ */
-
-  /* ~ fxy sequence ~ */
-
-  /* ~ a. ) for field f - multiply f by i            ~ */
-  /* ~ b1.) for f_x multiply result of a by kx       ~ */
-  /* ~ b2.) then inverse transform result            ~ */
-  /* ~ c1.) for f_y multiply result a by ky          ~ */
-  /* ~ c2.) then inverse transform result            ~ */
 
 }
 

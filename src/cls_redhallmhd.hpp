@@ -122,6 +122,8 @@ class redhallmhd
 
   RealArray maxU;                                                     /* ~ for time-step determination               ~ */
 
+  Real2DArray QtyVsZ;
+
   void updatePAJ( std::string str_step, stack& run );
   void applyBC(   std::string str_step, stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
   void updateTimeInc(                   stack& run );
@@ -133,16 +135,26 @@ class redhallmhd
   void evalValf(                        stack& run );                 /* ~ calculate Va at each layer                ~ */
   void evalUmean(                       stack& run );                 /* ~ calculate Va at each layer                ~ */
 
-  void trackEnergies(double t_cur,      stack& run );                 /* ~ update energy quantities between steps    ~ */
+                                                                      /* ~ Energy etc time-series related            ~ */
+
+  void trackEnergies(    RealVar t_cur, stack& run );                 /* ~ update energy quantities between steps    ~ */
   void reportEnergyQs(                  stack& run );
 
-  double evalTotalKineticEnergy(        stack& run);
-  double evalTotalMagneticEnergy(       stack& run);
-  double evalTotalVorticitySqd(         stack& run);
-  double evalTotalCurrentSqd(           stack& run);
-  double evalTotalGradCurrentSqd(       stack& run);
-  double evalTotalFootPointKE(          stack& run);                  /* ~ Misnomer?                                 ~ */
-  double evalTotalPoyntingFlux(         stack& run);                  /* ~ Poynting Flux                             ~ */
+  double evalTotalKineticEnergy(        stack& run );
+  double evalTotalMagneticEnergy(       stack& run );
+  double evalTotalVorticitySqd(         stack& run );
+  double evalTotalCurrentSqd(           stack& run );
+  double evalTotalGradCurrentSqd(       stack& run );
+  double evalTotalFootPointKE(          stack& run );                 /* ~ Misnomer?                                 ~ */
+  double evalTotalPoyntingFlux(         stack& run );                 /* ~ Poynting Flux                             ~ */
+
+                                                                      /* ~ Qty's vs z related                        ~ */
+  void trackQtyVsZ(      RealVar t_cur, stack& run );                
+  void reportQtyVsZ(     RealVar t_cur, stack& run );
+                                                                      /* ~ Power Spectra related                     ~ */
+  void trackPowerSpectra(RealVar t_cur, stack& run );
+  void reportPowerSpectra(              stack& run );
+
 
   void physicsFinalize(                 stack& run );                 /* ~ end of subrun bookkeeping                 ~ */
                                                                       /* ~ this is just a stub right now, but will   ~ */

@@ -27,7 +27,7 @@
  *
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* 
- *        FILE: Implemenation of class "redhallmhd"
+ *        FILE: Implementation of class "redhallmhd"
  *
  * DESCRIPTION: For defining and implementing the reduced mhd Hall physics for
  *              coronos. this class is responsible for "filling" lcsolve's data
@@ -130,6 +130,14 @@ void redhallmhd::initU( stack& run ) {
     else           { readUData( run ); }
 
   }
+
+  int n3; run.palette.fetch("p3", &n3);
+  int np; run.palette.fetch("np", &np);
+
+  RealArray Qlayer;
+  Qlayer.assign(15,zero);
+  QtyVsZ.assign(np*n3, Qlayer);
+
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -471,7 +479,7 @@ void redhallmhd::pLinzEnv( stack& run ) {
   int i, j;
 
   for (i = 0; i < n1n2; ++i) {
-    for (j = 0; j < n3+1; ++j) {
+    for (j = 1; j < n3+1; ++j) {
 
       U[i][j][0]        = U[i][j][0] * (1.0 - (std::abs(z[j] - (0.5*zl))/(0.5*zl)));
 
@@ -1376,6 +1384,145 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+void redhallmhd::trackPowerSpectra(RealVar t_cur, stack& run ) {
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::trackQtyVsZ(RealVar t_cur, stack& run ) {
+
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int   n3; run.palette.fetch("p3",   &n3    );
+
+  static const int i_z   =  0;
+  static const int i_ae  =  1;
+  static const int i_pe  =  2;
+  static const int i_ch  =  3;
+  static const int i_ep  =  4;
+  static const int i_em  =  5;
+  static const int i_ce  =  6;
+  static const int i_oe  =  7;
+  static const int i_zp  =  8;
+  static const int i_zm  =  9;
+  static const int i_nch = 10;
+  static const int i_km  = 11;
+  static const int i_kp  = 12;
+  static const int i_kzp = 13;
+  static const int i_kzm = 14;
+
+  RealVar dz; run.stack_data.fetch("dz",&dz    );
+  RealArray& z           = run.z;
+
+  RealArray aevsz;
+  RealArray pevsz;
+  RealArray chvsz;
+  RealArray cevsz;
+  RealArray oevsz;
+  RealArray zpvsz;
+  RealArray zmvsz;
+  RealArray zepvsz;
+  RealArray zemvsz;
+
+  RealArray nchvsz;
+  RealArray kcvsz;
+  RealArray kovsz;
+  RealArray kzpvsz;
+  RealArray kzmvsz;
+
+  aevsz.assign( n3,zero);
+  pevsz.assign( n3,zero);
+  chvsz.assign( n3,zero);
+  cevsz.assign( n3,zero);
+  oevsz.assign( n3,zero);
+  zpvsz.assign( n3,zero);
+  zmvsz.assign( n3,zero);
+  zepvsz.assign(n3,zero);
+  zemvsz.assign(n3,zero);
+  nchvsz.assign(n3,zero);
+  kcvsz.assign( n3,zero);
+  kovsz.assign( n3,zero);
+  kzpvsz.assign(n3,zero);
+  kzmvsz.assign(n3,zero);
+
+  int kdx;
+  RealArray& k2 = run.k2;
+  int n1n2c     = k2.capacity();
+
+  for (unsigned l = 0; l < n3; l++) {
+
+    kdx         = 0;
+
+    for ( unsigned k = ((l+1) * n1n2c) ; k < ((l+2) * n1n2c); k++ ) {
+
+      aevsz[l]  = dz*(aevsz[l] + k2[kdx] * pow(std::norm(A[k]),2));             /* ~ Magnetic Energy layer l  ~ */
+      pevsz[l]  = dz*(pevsz[l] + k2[kdx] * pow(std::norm(P[k]),2));             /* ~ Kinetic  Energy layer l  ~ */
+
+      chvsz[l]  = dz*(chvsz[l] + k2[kdx] * (P[k].real() * A[k].real()) + (P[k].imag() * A[k].imag())) * two; 
+      cevsz[l]  = dz*(cevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(A[k]),2) );
+      oevsz[l]  = dz*(oevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(P[k]),2) );
+      zpvsz[l]  = dz*(zpvsz[l] + k2[kdx] * pow(std::norm((A[k] + P[k])),2 ) );
+      zmvsz[l]  = dz*(zmvsz[l] + k2[kdx] * pow(std::norm((A[k] - P[k])),2 ) );
+
+      ++kdx;
+
+    }
+
+    zepvsz[l] = aevsz[l] + pevsz[l] + chvsz[l];
+    zemvsz[l] = aevsz[l] + pevsz[l] - chvsz[l];
+
+    if ( (abs(aevsz[l]) >= teensy) || (abs(pevsz[l])  >= teensy) ) {
+      nchvsz[l] = chvsz[l] / (aevsz[l] + pevsz[l]) ;
+    }
+    else { nchvsz[l] = zero; }
+    if ( abs(aevsz[l]) >= teensy ) {
+       kcvsz[l] = cevsz[l] / aevsz[l];
+       if ( (abs(kcvsz[l]) < teensy) || (abs(kcvsz[l]) > huge)) { kcvsz[l] = zero; }
+    }
+    else{ kcvsz[l] = zero;}
+    if ( abs(pevsz[l]) >= teensy) {
+      kovsz[l]  = oevsz[l] / pevsz[l];
+      if ((abs(kovsz[l]) < teensy) || (abs(kovsz[l]) > huge)) { kovsz[l] = zero; }
+    }
+    else {kovsz[l] = zero ;}
+    if (abs(zepvsz[l]) >= teensy) {
+      kzpvsz[l] = zpvsz[l] / zepvsz[l];
+      if ((abs(kzpvsz[l]) < teensy) || (abs(kzpvsz[l]) > huge) ) {kzpvsz[l] = zero; }
+    }
+    else{kzpvsz[l] =zero;}
+    if (abs(zemvsz[l]) >= teensy) {
+      kzmvsz[l] = zmvsz[l] / zemvsz[l];
+      if ((abs(kzmvsz[l]) < teensy) || (abs(kzmvsz[l]) > huge) ) {kzmvsz[l] = zero; }
+    }
+
+    else{ kzmvsz[l] =zero; }
+
+    QtyVsZ[(rank*n3) + l][ 0]   = z[l + 1];
+    QtyVsZ[(rank*n3) + l][ 1]   = QtyVsZ[(rank*n3) + l][ 1] + aevsz[ l];
+    QtyVsZ[(rank*n3) + l][ 2]   = QtyVsZ[(rank*n3) + l][ 2] + pevsz[ l];
+    QtyVsZ[(rank*n3) + l][ 3]   = QtyVsZ[(rank*n3) + l][ 3] + chvsz[ l];
+    QtyVsZ[(rank*n3) + l][ 4]   = QtyVsZ[(rank*n3) + l][ 4] + cevsz[ l];
+    QtyVsZ[(rank*n3) + l][ 5]   = QtyVsZ[(rank*n3) + l][ 5] + oevsz[ l];
+    QtyVsZ[(rank*n3) + l][ 6]   = QtyVsZ[(rank*n3) + l][ 6] + zpvsz[ l];
+    QtyVsZ[(rank*n3) + l][ 7]   = QtyVsZ[(rank*n3) + l][ 7] + zmvsz[ l];
+    QtyVsZ[(rank*n3) + l][ 8]   = QtyVsZ[(rank*n3) + l][ 8] + zepvsz[l];
+    QtyVsZ[(rank*n3) + l][ 9]   = QtyVsZ[(rank*n3) + l][ 9] + zemvsz[l];
+    QtyVsZ[(rank*n3) + l][10]   = QtyVsZ[(rank*n3) + l][10] + nchvsz[l];
+    QtyVsZ[(rank*n3) + l][11]   = QtyVsZ[(rank*n3) + l][11] + kcvsz[ l];
+    QtyVsZ[(rank*n3) + l][12]   = QtyVsZ[(rank*n3) + l][12] + kovsz[ l];
+    QtyVsZ[(rank*n3) + l][13]   = QtyVsZ[(rank*n3) + l][13] + kzpvsz[l];
+    QtyVsZ[(rank*n3) + l][14]   = QtyVsZ[(rank*n3) + l][14] + kzmvsz[l];
+
+  }
+    if (rank == 0) {
+      for (int m = 0; m < n3; ++m) {
+        std::cout << "trackQ: z[" << rank*n3 + m  << "] = " << QtyVsZ[(rank*n3)+m][0] << std::endl;
+      }
+    }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 void redhallmhd::reportEnergyQs ( stack& run ) {
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
@@ -1407,6 +1554,58 @@ void redhallmhd::reportEnergyQs ( stack& run ) {
 
     }
     else {std::cout << "reportEnergyQs: Warning - could not open file " << energy_data_file << std::endl;}
+  }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::reportPowerSpectra ( stack& run ) {
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
+
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+
+  int   nw; run.palette.fetch("nw",   &nw    );
+  int   n3; run.palette.fetch("p3",   &n3    );
+  int   np; run.palette.fetch("np",   &np    );
+
+  const char *c_qty_vs_z_out_file;
+  std::ofstream ofs;
+
+  RealVar nw_m1 = one / (RealVar (nw));
+
+  MPI_Allreduce(MPI_IN_PLACE, &QtyVsZ[0][0], n3*np*15,  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+  if (rank == 0 ) {
+
+    std::string qout_prefix;  run.palette.fetch(   "qout_pref", &qout_prefix);
+    std::string res_str;      run.stack_data.fetch("res_str",   &res_str    );
+    std::string run_label;    run.palette.fetch(   "run_label", &run_label  );
+    int srun;                 run.palette.fetch(   "srun",      &srun       );
+    std::string srn_str = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
+
+    std::string qty_vs_z_out_file = qout_prefix + "_" + res_str + ".o" + run_label + srn_str;
+    c_qty_vs_z_out_file = qty_vs_z_out_file.c_str();
+
+    std::cout << "reportQtyVsZ: qty_vs_z_out_file = " << qty_vs_z_out_file << std::endl;
+
+    ofs.open( c_qty_vs_z_out_file, std::ios::out );
+
+    if (ofs.good() ) {
+      ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << t_cur << std::endl;
+      for (unsigned l = 0; l < np*n3; l++) {
+        for (unsigned k = 0; k < 15; k++) { 
+          if (k > 0) { QtyVsZ[l][k] = nw_m1 * QtyVsZ[l][k]; }
+          ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << QtyVsZ[l][k] << " ";
+        }
+        ofs << std::endl;
+      }
+    }
+    ofs.close();
   }
 }
 
@@ -1648,7 +1847,6 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
 
   if (rank     == 0) {
 
-    int idx           = 0;
     int kstart        = 0;
     int kstop         = n1n2c;
 
@@ -1968,7 +2166,7 @@ void redhallmhd::applyLineTiedBC( std::string str_step, stack& run ) {
 
   for (unsigned k  = strt_idx; k < stop_idx; k++) {
 
-    if (str_step.compare("predict") == 0 ) {
+    if (str_step.compare("predict") == 0 || str_step.compare("finalize") == 0) {
       O[k]         = czero;
     }
     else if (str_step.compare("correct") == 0 ) {
@@ -1979,7 +2177,7 @@ void redhallmhd::applyLineTiedBC( std::string str_step, stack& run ) {
     }
 
     if (model.compare("hall") == 0 ) {
-      if (str_step.compare("predict") == 0 ) {
+      if (str_step.compare("predict") == 0 || str_step.compare("finalize") == 0) {
         Z[k]       = czero;
       }
       else if (str_step.compare("correct") == 0 ) {

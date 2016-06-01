@@ -1,0 +1,47 @@
+; idl batch script - 'evsz_batch' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;                                                                               ;
+; Author: Timothy J. Dennis                                                     ;
+;         tdennis@gi.alaska.edu                                                 ;
+;                                                                               ;
+; Developed for use with the family of Heliosph eric Physics codes originating  ;
+; with the work of C.S. Ng and including 'rmct_ np,' and 'fourfields,'          ;
+; 'rmct2-cuda,' and 'ff-cuda.'                                                  ;
+;                                                                               ;
+; Description: This is a batch script to be read into an instantiation of IDL   ;
+;              running on a login node. The reading in of this script           ;
+;              (and the instantiation of IDL on the  node) is                   ;
+;              accomplished via the execution of a 'parent' c-shell script      ;
+;              called 'evsz_idl.s'. Prospective users are forewarned not to try ;
+;              'feeding' this script to IDL any other way unless they know      ;
+;              what they're doing. Otherwise confusion and frustration are      ;
+;              certain to ensue. You're much better off reading the             ;
+;              documentation in cts_idl.s first.                                ;
+;                                                                               ;
+;              The purpose of this script is to execute the IDL procedure       ;
+;              'evsz' which, as of this writing, ...                            ;
+;                                                                               ;
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+
+idl_src_dir = GETENV('IDL_PATH')                    ; Directory where the required IDL
+                                                    ; sources reside
+evsz_dsc_lab    = GETENV('EVSZ_DSC_LAB')            ;
+evsz_efld       = GETENV('EVSZ_EFLD')               ;
+evsz_first_step = GETENV('EVSZ_FIRST_STEP')         ;
+evsz_last_step  = GETENV('EVSZ_LAST_STEP')          ;
+evsz_minmax_mode = GETENV('EVSZ_MINMAX_MODE')       ;
+
+evsz_first_step = UINT(evsz_first_step)
+evsz_last_step  = UINT(evsz_last_step)
+
+.run scan_parameters.pro                            ; compile
+.run fetch_datafile.pro
+.run fetch_layer.pro
+.run calc_extE.pro
+.run global_efld_minmax.pro
+.run open_evsz_data_file.pro
+.run run_ave_evsz.pro
+
+run_ave_evsz, evsz_dsc_lab, evsz_efld, evsz_first_step, evsz_last_step, evsz_minmax_mode ; run
+
+retall                                              ; get ready to exit
+exit
