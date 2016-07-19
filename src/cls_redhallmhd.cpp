@@ -67,7 +67,7 @@ redhallmhd::redhallmhd(stack& run ) {
 
   initBoundaries(        run   );   /* ~ initialization of quantities needed for     ~ */
 
-  int srun; run.palette.fetch("srun", &srun);
+  int srun; run.palette.fetch( "srun", &srun );
 
   if (srun == 1) {
 
@@ -122,7 +122,7 @@ void redhallmhd::initU( stack& run ) {
       if (ilnr != 0 && init.compare("from_data") !=0 ) pLinzEnv( run );
 
     }
-    else           { readUData( run ); }
+    else           { readUData(   run ); }
   }
   else if (scenario.compare("parker") == 0 ) {
 
@@ -131,13 +131,46 @@ void redhallmhd::initU( stack& run ) {
 
   }
 
-  int n3; run.palette.fetch("p3", &n3);
-  int np; run.palette.fetch("np", &np);
 
-  RealArray Qlayer;
-  Qlayer.assign(15,zero);
-  QtyVsZ.assign(np*n3, Qlayer);
+  int n3;      run.palette.fetch("p3", &n3);
+  int np;      run.palette.fetch("np", &np);
 
+  int calcqvz; run.palette.fetch("calcqvz", &calcqvz);
+  int calcsvz; run.palette.fetch("calcsvz", &calcsvz);
+
+  if (calcqvz == 1) {
+
+    RealArray Qlayer; Qlayer.assign(15,zero); QtyVsZ.assign(np*n3, Qlayer);
+//    RealArray Qlayer; Qlayer.assign(np*n3,zero); QtyVsZ.assign(15, Qlayer);
+
+  }
+
+  if (calcsvz == 1) {
+
+
+    int n1;      run.stack_data.fetch("n1", &n1);
+    int n2;      run.stack_data.fetch("n2", &n2);
+
+    isp    = n2/2;
+    dk     = (pi * n1) / isp;
+    dk_m1  = one / dk;
+
+    kb     = two * pi;
+    kf     = kb + (isp * dk);
+
+    ikb    = 1 + (int) (kb * dk_m1);
+    ikf    = 1 + (int) (kf * dk_m1);
+
+    nk  = ikf - ikb + 1;
+
+//  RealArray     SpcLayer; SpcLayer.assign(n3,zero);
+//  Real2DArray   SpcSet;   SpcSet.assign(7,SpcLayer); 
+//  SpcVsZ.assign(isp,SpcSet);
+
+    ke.assign(isp+1,zero);
+    for (unsigned k = 0; k < nk; ++k) { ke[k] = log((k+ikb)*dk); }
+
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -388,6 +421,7 @@ void redhallmhd::readUData( stack& run ) {
   if ( ifs.good() ) {
 
     InputOutputArray& U                  = run.U;
+    InputOutputArray& AUX                = run.AUX;
     
     int iu3;  run.stack_data.fetch("iu3",  &iu3 );
     int n1;   run.stack_data.fetch("n1",   &n1  );
@@ -405,9 +439,11 @@ void redhallmhd::readUData( stack& run ) {
 
     RealVar next_p; 
     RealVar next_a; 
-
     RealVar next_bz; 
     RealVar next_vz;
+
+    RealVar next_o;
+    RealVar next_j;
     
     while ( !ifs.eof() ) {
 
@@ -415,22 +451,35 @@ void redhallmhd::readUData( stack& run ) {
 
       ifs >> next_p;
       ++point_count;
-
       ifs >> next_a;
       ++point_count;
 
       U[to_row_maj_idx][slab_index][0]   = next_p;
       U[to_row_maj_idx][slab_index][1]   = next_a;
 
-      if(iu3 > 2) {
+      if(iu3 <= 2) {
+        ifs >> next_o;
+        ifs >> next_j;
+
+        AUX[to_row_maj_idx][slab_index][0] = next_o;
+        AUX[to_row_maj_idx][slab_index][1] = next_j;
+
+      }
+      else if(iu3 > 2) {
 
         ifs >> next_bz;
         ++point_count;
         ifs >> next_vz;
         ++point_count;
 
+        ifs >> next_o;
+        ifs >> next_j;
+
         U[to_row_maj_idx][slab_index][2] = next_bz;
         U[to_row_maj_idx][slab_index][3] = next_vz;
+
+        AUX[to_row_maj_idx][slab_index][0] = next_o;
+        AUX[to_row_maj_idx][slab_index][1] = next_j;
 
       }
 
@@ -1217,15 +1266,15 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
   double aeold;
   double peold;
 
-  pe                     = evalTotalKineticEnergy(  run );
-  ae                     = evalTotalMagneticEnergy( run );
-  oe                     = evalTotalVorticitySqd(   run );
-  ce                     = evalTotalCurrentSqd(     run );
-  cee                    = evalTotalGradCurrentSqd( run );
-  fp                     = evalTotalFootPointKE(    run );
-  fe                     = evalTotalPoyntingFlux(   run );
+    pe                   = evalTotalKineticEnergy(  run );
+    ae                   = evalTotalMagneticEnergy( run );
+    oe                   = evalTotalVorticitySqd(   run );
+    ce                   = evalTotalCurrentSqd(     run );
+    cee                  = evalTotalGradCurrentSqd( run );
+    fp                   = evalTotalFootPointKE(    run );
+    fe                   = evalTotalPoyntingFlux(   run );
 
-  if (EnergyQs.size() >= i_fp ) {
+  if ( EnergyQs.size() >= i_fp ) {
 
     t_old                = EnergyQs[i_tcr];
     dt_old               = EnergyQs[i_dt];
@@ -1244,7 +1293,12 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
     imj                  = zero;
     jmj                  = zero;
 /* ~ ce evaluated above ~ */
-    if (rank == 0 ){
+    if (rank == 0 ) {
+
+      RealVar AVEz;  run.palette.fetch("AVEz",  &AVEz );
+      RealVar AVEpv; run.palette.fetch("AVEpv", &AVEpv);
+      RealVar AVEpn; run.palette.fetch("AVEpn", &AVEpn);
+      RealVar AVEpe; run.palette.fetch("AVEpe", &AVEpe);
 
       noe                = nu  * oe;
       ece                = eta * ce;
@@ -1255,6 +1309,17 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
       irc                = (ae - aeold + pe - peold) / dt_old;
       gml                = ftp - eds;
       cns                = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+
+      AVEz               = AVEz  + cns * dt_old;
+      AVEpv              = AVEpv + noe * dt_old;
+      AVEpn              = AVEpn + ece * dt_old;
+      AVEpe              = AVEpe + fp  * dt_old;
+
+      run.palette.reset("AVEz",  AVEz );
+      run.palette.reset("AVEpv", AVEpv);
+      run.palette.reset("AVEpn", AVEpn);
+      run.palette.reset("AVEpe", AVEpe);
+
       ttc                = t_cur / tauC; 
       run.palette.fetch("dt",&dt);
       dtv                = dtvb;
@@ -1271,289 +1336,427 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
       }
       else { vkt         = zero; }
-        avm              = pow(EnergyQs[i_avm],2) * t_old;
-        avm              = sqrt((avm + ae * dt_old)       / t_cur);
-        avp              = half * pow(EnergyQs[i_avp],2)  * t_old;
-        avp              = sqrt(two * (avp + fp * dt_old) / t_cur);
 
-    EnergyQs[ i_tcr ]    = tcr;
-    EnergyQs[ i_pe  ]    = pe ;
-    EnergyQs[ i_ae  ]    = ae ;
-    EnergyQs[ i_mo  ]    = mo ;
-    EnergyQs[ i_imo ]    = imo;
-    EnergyQs[ i_jmo ]    = jmo;
-    EnergyQs[ i_oe  ]    = oe ;
-    EnergyQs[ i_mj  ]    = mj ;
-    EnergyQs[ i_imj ]    = imj;
-    EnergyQs[ i_jmj ]    = jmj;
-    EnergyQs[ i_ce  ]    = ce ;
-    EnergyQs[ i_noe ]    = noe;      
-    EnergyQs[ i_ece ]    = ece;
-    EnergyQs[ i_fe  ]    = fe ;
-    EnergyQs[ i_ftp ]    = ftp;
-    EnergyQs[ i_eds ]    = eds;
-    EnergyQs[ i_dng ]    = dng;
-    EnergyQs[ i_irc ]    = irc;
-    EnergyQs[ i_gml ]    = gml;
-    EnergyQs[ i_cns ]    = cns;
-    EnergyQs[ i_ttc ]    = ttc;
-    EnergyQs[ i_dt  ]    = dt ;
-    EnergyQs[ i_dtv ]    = dtv;
-    EnergyQs[ i_coc ]    = coc;
-    EnergyQs[ i_vkt ]    = vkt;
-    EnergyQs[ i_avm ]    = avm;
-    EnergyQs[ i_avp ]    = avp;
-    EnergyQs[ i_fp  ]    =  fp;
+      avm                = pow(EnergyQs[i_avm],2) * t_old;
+      avm                = sqrt((avm + ae * dt_old)       / t_cur);
+//    avp                = half * pow(EnergyQs[i_avp],2)  * t_old;
+//    avp                = sqrt(two * (avp + fp * dt_old) / t_cur);
+      avp                = sqrt(two * (AVEpe + fp * dt_old) / t_cur);
+
+      EnergyQs[ i_tcr ]  = tcr;
+      EnergyQs[ i_pe  ]  = pe ;
+      EnergyQs[ i_ae  ]  = ae ;
+      EnergyQs[ i_mo  ]  = mo ;
+      EnergyQs[ i_imo ]  = imo;
+      EnergyQs[ i_jmo ]  = jmo;
+      EnergyQs[ i_oe  ]  = oe ;
+      EnergyQs[ i_mj  ]  = mj ;
+      EnergyQs[ i_imj ]  = imj;
+      EnergyQs[ i_jmj ]  = jmj;
+      EnergyQs[ i_ce  ]  = ce ;
+      EnergyQs[ i_noe ]  = noe;      
+      EnergyQs[ i_ece ]  = ece;
+      EnergyQs[ i_fe  ]  = fe ;
+      EnergyQs[ i_ftp ]  = ftp;
+      EnergyQs[ i_eds ]  = eds;
+      EnergyQs[ i_dng ]  = dng;
+      EnergyQs[ i_irc ]  = irc;
+      EnergyQs[ i_gml ]  = gml;
+      EnergyQs[ i_cns ]  = cns;
+      EnergyQs[ i_ttc ]  = ttc;
+      EnergyQs[ i_dt  ]  = dt ;
+      EnergyQs[ i_dtv ]  = dtv;
+      EnergyQs[ i_coc ]  = coc;
+      EnergyQs[ i_vkt ]  = vkt;
+      EnergyQs[ i_avm ]  = avm;
+      EnergyQs[ i_avp ]  = avp;
+      EnergyQs[ i_fp  ]  =  fp;
 
     }
   }
+
   else {
 
-    run.palette.fetch("dt", &dt_old);
-    t_old                = t_cur;
+    int srun; run.palette.fetch("srun", &srun);
 
-    aeold                = zero;
-    peold                = zero;
+    if (srun == 1) {
 
-    tcr                  = t_cur;
-/* ~ pe evaluated above ~ */
-/* ~ ae evaluated above ~ */
-    mo                   = zero;
-    imo                  = zero;
-    jmo                  = zero;
-/* ~ oe evaluated above ~ */
-    mj                   = zero;
-    imj                  = zero;
-    jmj                  = zero;
-/* ~ ce evaluated above ~ */
-    if (rank == 0 ){
+      run.palette.fetch("dt", &dt_old);
+      t_old                = t_cur;
 
-      noe                = nu  * oe;
-      ece                = eta * ce;
-/* ~ fe evaluated above ~ */
-      ftp                = zero;
-      eds                = zero;
-      dng                = zero;
-      irc                = (ae - aeold + pe - peold) / dt_old;
-      gml                = (ae - aeold + pe - peold )/ dt_old;
-      cns                = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
-      ttc                = t_cur / tauC; 
-      dt                 = dt_old;
-      dtv                = dtvb;
-      if (cee == zero){
-        coc              = zero; 
+      aeold                = zero;
+      peold                = zero;
+
+      tcr                  = t_cur;
+/* ~   pe evaluated above ~ */
+/* ~   ae evaluated above ~ */
+      mo                   = zero;
+      imo                  = zero;
+      jmo                  = zero;
+/* ~   oe evaluated above ~ */
+      mj                   = zero;
+      imj                  = zero;
+      jmj                  = zero;
+/* ~   ce evaluated above ~ */
+      if (rank == 0 ){
+
+        noe                = nu  * oe;
+        ece                = eta * ce;
+/* ~   fe evaluated above ~ */
+        ftp                = zero;
+        eds                = zero;
+        dng                = zero;
+        irc                = (ae - aeold + pe - peold) / dt_old;
+        gml                = (ae - aeold + pe - peold )/ dt_old;
+        cns                = abs(  ( ( fe - noe - ece ) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+        ttc                = t_cur / tauC; 
+        dt                 = dt_old;
+        dtv                = dtvb;
+        if (cee == zero){
+          coc              = zero; 
+        }
+        else {
+          coc              = sqrt(ce/cee);
+        }
+        vkt                = zero;
+        avm                = zero;
+        avp                = zero;
+
+        EnergyQs.push_back(tcr);
+        EnergyQs.push_back(pe );
+        EnergyQs.push_back(ae );
+        EnergyQs.push_back(mo );
+        EnergyQs.push_back(imo);
+        EnergyQs.push_back(jmo);
+        EnergyQs.push_back(oe );
+        EnergyQs.push_back(mj );
+        EnergyQs.push_back(imj);
+        EnergyQs.push_back(jmj);
+        EnergyQs.push_back(ce );
+        EnergyQs.push_back(noe);
+        EnergyQs.push_back(ece);
+        EnergyQs.push_back(fe );
+        EnergyQs.push_back(ftp);
+        EnergyQs.push_back(eds);
+        EnergyQs.push_back(dng);
+        EnergyQs.push_back(irc);
+        EnergyQs.push_back(gml);
+        EnergyQs.push_back(cns);
+        EnergyQs.push_back(ttc);
+        EnergyQs.push_back(dt );
+        EnergyQs.push_back(dtv);
+        EnergyQs.push_back(coc);
+        EnergyQs.push_back(vkt);
+        EnergyQs.push_back(avm);
+        EnergyQs.push_back(avp);
+        EnergyQs.push_back(fp );
+
       }
-      else {
-        coc              = sqrt(ce/cee);
-      }
-      vkt                = zero;
-      avm                = zero;
-      avp                = zero;
-
-      EnergyQs.push_back(tcr);
-      EnergyQs.push_back(pe );
-      EnergyQs.push_back(ae );
-      EnergyQs.push_back(mo );
-      EnergyQs.push_back(imo);
-      EnergyQs.push_back(jmo);
-      EnergyQs.push_back(oe );
-      EnergyQs.push_back(mj );
-      EnergyQs.push_back(imj);
-      EnergyQs.push_back(jmj);
-      EnergyQs.push_back(ce );
-      EnergyQs.push_back(noe);
-      EnergyQs.push_back(ece);
-      EnergyQs.push_back(fe );
-      EnergyQs.push_back(ftp);
-      EnergyQs.push_back(eds);
-      EnergyQs.push_back(dng);
-      EnergyQs.push_back(irc);
-      EnergyQs.push_back(gml);
-      EnergyQs.push_back(cns);
-      EnergyQs.push_back(ttc);
-      EnergyQs.push_back(dt );
-      EnergyQs.push_back(dtv);
-      EnergyQs.push_back(coc);
-      EnergyQs.push_back(vkt);
-      EnergyQs.push_back(avm);
-      EnergyQs.push_back(avp);
-      EnergyQs.push_back(fp );
     }
-  }
-}
+    else {
+           if (rank == 0) {
+
+             std::string prefix;    run.palette.fetch(   "prefix",    &prefix   );
+             std::string run_label; run.palette.fetch(   "run_label", &run_label);
+             std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
+
+             std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
+             const char *c_data_file      = energy_data_file.c_str();
+
+             std::ifstream ifs;
+             ifs.open( c_data_file, std::ios::in );
+
+             if (ifs.good()) {
+
+               unsigned esize                = 28;
+
+               std::streampos begin, end;
+               std::streamoff bytes_per_line = (esize*24 + 27);
+               RealVar nextE;
+               begin                         = ifs.tellg();
+               ifs.seekg(-bytes_per_line, ios::end);
+               for (unsigned k = 0; k < esize; k++) {
+
+                 ifs >> nextE;
+                 EnergyQs.push_back(nextE);
+
+                 std::cout << "trackEnergies: nextE = " << nextE << std::endl;
+
+               }
+
+               ifs.close();
+
+             } // ifs if good
+             else {std::cout << "trackEnergyQs: Warning - could not open file " << energy_data_file << std::endl;}
+           } // rank is zero
+    } // srun is not 1
+  } // i_fp is zero
+}  // end function
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::trackPowerSpectra(RealVar t_cur, stack& run ) {
 
+  int calcsvz; run.palette.fetch("calcsvz", &calcsvz);
+  if (calcsvz == 1) {
+
+     int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+     int   n3; run.palette.fetch("p3",   &n3    );
+
+     static const int i_k     = 0;
+     static const int i_spe   = 1;
+     static const int i_sae   = 2;
+     static const int i_ts    = 3;
+     static const int i_szp   = 4;
+     static const int i_szm   = 5;
+     static const int i_tz    = 6;
+
+     int n1n2c; run.stack_data.fetch("n1n2c", &n1n2c);
+
+     RealArray& k2            = run.k2;
+     int ksize                = k2.capacity();
+
+     RealArray spe;
+     RealArray sae;
+     RealArray szp;
+     RealArray szm;
+
+
+     assert(n1n2c == ksize);
+
+     
+     for (unsigned l = 1; l < n3 + 1; ++l ) {
+
+       spe.assign(isp+1,zero);
+       sae.assign(isp+1,zero);
+       szp.assign(isp+1,zero);
+       szm.assign(isp+1,zero);
+
+       int m;
+       int idx;
+       for (unsigned k = 0; k < n1n2c; ++k) {
+
+         m       = 1 + sqrt(k2[k]) * dk_m1;
+         idx     = (l*n1n2c) + k;
+
+         spe[m]  = spe[m] + k2[k] * ( pow(std::norm(P[idx]),         2) );
+         sae[m]  = sae[m] + k2[k] * ( pow(std::norm(A[idx]),         2) );
+         szp[m]  = szp[m] + k2[k] * ( pow(std::norm(P[idx] + A[idx]),2) );
+         szm[m]  = szm[m] + k2[k] * ( pow(std::norm(P[idx] - A[idx]),2) );
+
+       }
+
+       for (unsigned j = 0; j < isp+1; ++j) {
+
+         spe[j] = two * spe[j] * dk_m1;
+         sae[j] = two * sae[j] * dk_m1;
+         szp[j] = two * szp[j] * dk_m1;
+         szm[j] = two * szm[j] * dk_m1;
+
+       }
+
+//     for (unsigned j = 0; j < isp+1; ++j) {
+//
+//       SpcVsZ[j][0][0] = j * dk;
+//       if (rank == 0) { std::cout << "j = " << j << "jmax = " << isp+1 << std::endl; }
+//         SpcVsZ[j][i_k  ][l] = j * dk;
+//         SpcVsZ[j][i_spe][l] = SpcVsZ[j][i_spe][l] + spe[j];
+//         SpcVsZ[j][i_sae][l] = SpcVsZ[j][i_sae][l] + sae[j];
+//         SpcVsZ[j][i_ts ][l] = SpcVsZ[j][i_ts ][l] + spe[j] + sae[j];
+//         SpcVsZ[j][i_szp][l] = SpcVsZ[j][i_szp][l] + szp[j];
+//         SpcVsZ[j][i_szm][l] = SpcVsZ[j][i_szm][l] + szm[j];
+//         SpcVsZ[j][i_tz ][l] = SpcVsZ[j][i_tz ][l] + szp[j] + szm[j];
+//
+//     }
+
+     }
+
+     // need dk and dk_m1
+     //  isp -> defaults to n2/2    
+     //  kb  -> defaults to 2 pi
+     //  dk  -> defaults (pi *n1) / isp
+     //  kf  -> defaults to kb + isp * dk 
+     //  nk  -> given by krange
+     //  ke  -> given by krange
+     //  ikb -> given by krange also (?) defaults to kb / dk
+     //  ikf -> given by krange
+
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::trackQtyVsZ(RealVar t_cur, stack& run ) {
 
-  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  int   n3; run.palette.fetch("p3",   &n3    );
+  int calcqvz; run.palette.fetch("calcqvz", &calcqvz);
 
-  static const int i_z   =  0;
-  static const int i_ae  =  1;
-  static const int i_pe  =  2;
-  static const int i_ch  =  3;
-  static const int i_ep  =  4;
-  static const int i_em  =  5;
-  static const int i_ce  =  6;
-  static const int i_oe  =  7;
-  static const int i_zp  =  8;
-  static const int i_zm  =  9;
-  static const int i_nch = 10;
-  static const int i_km  = 11;
-  static const int i_kp  = 12;
-  static const int i_kzp = 13;
-  static const int i_kzm = 14;
+  if (calcqvz == 1) {
+    int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    int   n3; run.palette.fetch("p3",   &n3    );
 
-  RealVar dz; run.stack_data.fetch("dz",&dz    );
-  RealArray& z           = run.z;
+    static const int i_z   =  0;
+    static const int i_ae  =  1;
+    static const int i_pe  =  2;
+    static const int i_ch  =  3;
+    static const int i_ep  =  4;
+    static const int i_em  =  5;
+    static const int i_ce  =  6;
+    static const int i_oe  =  7;
+    static const int i_zp  =  8;
+    static const int i_zm  =  9;
+    static const int i_nch = 10;
+    static const int i_km  = 11;
+    static const int i_kp  = 12;
+    static const int i_kzp = 13;
+    static const int i_kzm = 14;
 
-  RealArray aevsz;
-  RealArray pevsz;
-  RealArray chvsz;
-  RealArray cevsz;
-  RealArray oevsz;
-  RealArray zpvsz;
-  RealArray zmvsz;
-  RealArray zepvsz;
-  RealArray zemvsz;
+    RealVar dz; run.stack_data.fetch("dz",&dz    );
+    RealArray& z           = run.z;
 
-  RealArray nchvsz;
-  RealArray kcvsz;
-  RealArray kovsz;
-  RealArray kzpvsz;
-  RealArray kzmvsz;
+    RealArray aevsz;
+    RealArray pevsz;
+    RealArray chvsz;
+    RealArray cevsz;
+    RealArray oevsz;
+    RealArray zpvsz;
+    RealArray zmvsz;
+    RealArray zepvsz;
+    RealArray zemvsz;
 
-  aevsz.assign( n3,zero);
-  pevsz.assign( n3,zero);
-  chvsz.assign( n3,zero);
-  cevsz.assign( n3,zero);
-  oevsz.assign( n3,zero);
-  zpvsz.assign( n3,zero);
-  zmvsz.assign( n3,zero);
-  zepvsz.assign(n3,zero);
-  zemvsz.assign(n3,zero);
-  nchvsz.assign(n3,zero);
-  kcvsz.assign( n3,zero);
-  kovsz.assign( n3,zero);
-  kzpvsz.assign(n3,zero);
-  kzmvsz.assign(n3,zero);
+    RealArray nchvsz;
+    RealArray kcvsz;
+    RealArray kovsz;
+    RealArray kzpvsz;
+    RealArray kzmvsz;
 
-  int kdx;
-  RealArray& k2 = run.k2;
-  int n1n2c     = k2.capacity();
+    aevsz.assign( n3,zero);
+    pevsz.assign( n3,zero);
+    chvsz.assign( n3,zero);
+    cevsz.assign( n3,zero);
+    oevsz.assign( n3,zero);
+    zpvsz.assign( n3,zero);
+    zmvsz.assign( n3,zero);
+    zepvsz.assign(n3,zero);
+    zemvsz.assign(n3,zero);
+    nchvsz.assign(n3,zero);
+    kcvsz.assign( n3,zero);
+    kovsz.assign( n3,zero);
+    kzpvsz.assign(n3,zero);
+    kzmvsz.assign(n3,zero);
 
-  for (unsigned l = 0; l < n3; l++) {
+    int kdx;
+    RealArray& k2 = run.k2;
+    int n1n2c     = k2.capacity();
 
-    kdx         = 0;
+    for (unsigned l = 0; l < n3; l++) {
 
-    for ( unsigned k = ((l+1) * n1n2c) ; k < ((l+2) * n1n2c); k++ ) {
+      kdx         = 0;
 
-      aevsz[l]  = dz*(aevsz[l] + k2[kdx] * pow(std::norm(A[k]),2));             /* ~ Magnetic Energy layer l  ~ */
-      pevsz[l]  = dz*(pevsz[l] + k2[kdx] * pow(std::norm(P[k]),2));             /* ~ Kinetic  Energy layer l  ~ */
+      for ( unsigned k = ((l+1) * n1n2c) ; k < ((l+2) * n1n2c); k++ ) {
 
-      chvsz[l]  = dz*(chvsz[l] + k2[kdx] * (P[k].real() * A[k].real()) + (P[k].imag() * A[k].imag())) * two; 
-      cevsz[l]  = dz*(cevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(A[k]),2) );
-      oevsz[l]  = dz*(oevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(P[k]),2) );
-      zpvsz[l]  = dz*(zpvsz[l] + k2[kdx] * pow(std::norm((A[k] + P[k])),2 ) );
-      zmvsz[l]  = dz*(zmvsz[l] + k2[kdx] * pow(std::norm((A[k] - P[k])),2 ) );
+        aevsz[l]  = dz*(aevsz[l] + k2[kdx] * pow(std::norm(A[k]),2));             /* ~ Magnetic Energy layer l  ~ */
+        pevsz[l]  = dz*(pevsz[l] + k2[kdx] * pow(std::norm(P[k]),2));             /* ~ Kinetic  Energy layer l  ~ */
 
-      ++kdx;
+        chvsz[l]  = dz*(chvsz[l] + k2[kdx] * (P[k].real() * A[k].real()) + (P[k].imag() * A[k].imag())) * two; 
+        cevsz[l]  = dz*(cevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(A[k]),2) );
+        oevsz[l]  = dz*(oevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(P[k]),2) );
+        zpvsz[l]  = dz*(zpvsz[l] + k2[kdx] * pow(std::norm((A[k] + P[k])),2 ) );
+        zmvsz[l]  = dz*(zmvsz[l] + k2[kdx] * pow(std::norm((A[k] - P[k])),2 ) );
 
-    }
+        ++kdx;
 
-    zepvsz[l] = aevsz[l] + pevsz[l] + chvsz[l];
-    zemvsz[l] = aevsz[l] + pevsz[l] - chvsz[l];
-
-    if ( (abs(aevsz[l]) >= teensy) || (abs(pevsz[l])  >= teensy) ) {
-      nchvsz[l] = chvsz[l] / (aevsz[l] + pevsz[l]) ;
-    }
-    else { nchvsz[l] = zero; }
-    if ( abs(aevsz[l]) >= teensy ) {
-       kcvsz[l] = cevsz[l] / aevsz[l];
-       if ( (abs(kcvsz[l]) < teensy) || (abs(kcvsz[l]) > huge)) { kcvsz[l] = zero; }
-    }
-    else{ kcvsz[l] = zero;}
-    if ( abs(pevsz[l]) >= teensy) {
-      kovsz[l]  = oevsz[l] / pevsz[l];
-      if ((abs(kovsz[l]) < teensy) || (abs(kovsz[l]) > huge)) { kovsz[l] = zero; }
-    }
-    else {kovsz[l] = zero ;}
-    if (abs(zepvsz[l]) >= teensy) {
-      kzpvsz[l] = zpvsz[l] / zepvsz[l];
-      if ((abs(kzpvsz[l]) < teensy) || (abs(kzpvsz[l]) > huge) ) {kzpvsz[l] = zero; }
-    }
-    else{kzpvsz[l] =zero;}
-    if (abs(zemvsz[l]) >= teensy) {
-      kzmvsz[l] = zmvsz[l] / zemvsz[l];
-      if ((abs(kzmvsz[l]) < teensy) || (abs(kzmvsz[l]) > huge) ) {kzmvsz[l] = zero; }
-    }
-
-    else{ kzmvsz[l] =zero; }
-
-    QtyVsZ[(rank*n3) + l][ 0]   = z[l + 1];
-    QtyVsZ[(rank*n3) + l][ 1]   = QtyVsZ[(rank*n3) + l][ 1] + aevsz[ l];
-    QtyVsZ[(rank*n3) + l][ 2]   = QtyVsZ[(rank*n3) + l][ 2] + pevsz[ l];
-    QtyVsZ[(rank*n3) + l][ 3]   = QtyVsZ[(rank*n3) + l][ 3] + chvsz[ l];
-    QtyVsZ[(rank*n3) + l][ 4]   = QtyVsZ[(rank*n3) + l][ 4] + cevsz[ l];
-    QtyVsZ[(rank*n3) + l][ 5]   = QtyVsZ[(rank*n3) + l][ 5] + oevsz[ l];
-    QtyVsZ[(rank*n3) + l][ 6]   = QtyVsZ[(rank*n3) + l][ 6] + zpvsz[ l];
-    QtyVsZ[(rank*n3) + l][ 7]   = QtyVsZ[(rank*n3) + l][ 7] + zmvsz[ l];
-    QtyVsZ[(rank*n3) + l][ 8]   = QtyVsZ[(rank*n3) + l][ 8] + zepvsz[l];
-    QtyVsZ[(rank*n3) + l][ 9]   = QtyVsZ[(rank*n3) + l][ 9] + zemvsz[l];
-    QtyVsZ[(rank*n3) + l][10]   = QtyVsZ[(rank*n3) + l][10] + nchvsz[l];
-    QtyVsZ[(rank*n3) + l][11]   = QtyVsZ[(rank*n3) + l][11] + kcvsz[ l];
-    QtyVsZ[(rank*n3) + l][12]   = QtyVsZ[(rank*n3) + l][12] + kovsz[ l];
-    QtyVsZ[(rank*n3) + l][13]   = QtyVsZ[(rank*n3) + l][13] + kzpvsz[l];
-    QtyVsZ[(rank*n3) + l][14]   = QtyVsZ[(rank*n3) + l][14] + kzmvsz[l];
-
-  }
-    if (rank == 0) {
-      for (int m = 0; m < n3; ++m) {
-        std::cout << "trackQ: z[" << rank*n3 + m  << "] = " << QtyVsZ[(rank*n3)+m][0] << std::endl;
       }
+
+      zepvsz[l] = aevsz[l] + pevsz[l] + chvsz[l];
+      zemvsz[l] = aevsz[l] + pevsz[l] - chvsz[l];
+
+      if ( (abs(aevsz[l]) >= teensy) || (abs(pevsz[l])  >= teensy) ) {
+        nchvsz[l] = chvsz[l] / (aevsz[l] + pevsz[l]) ;
+      }
+      else { nchvsz[l] = zero; }
+      if ( abs(aevsz[l]) >= teensy ) {
+         kcvsz[l] = cevsz[l] / aevsz[l];
+         if ( (abs(kcvsz[l]) < teensy) || (abs(kcvsz[l]) > huge)) { kcvsz[l] = zero; }
+      }
+      else{ kcvsz[l] = zero;}
+      if ( abs(pevsz[l]) >= teensy) {
+        kovsz[l]  = oevsz[l] / pevsz[l];
+        if ((abs(kovsz[l]) < teensy) || (abs(kovsz[l]) > huge)) { kovsz[l] = zero; }
+      }
+      else {kovsz[l] = zero ;}
+      if (abs(zepvsz[l]) >= teensy) {
+        kzpvsz[l] = zpvsz[l] / zepvsz[l];
+        if ((abs(kzpvsz[l]) < teensy) || (abs(kzpvsz[l]) > huge) ) {kzpvsz[l] = zero; }
+      }
+      else{kzpvsz[l] =zero;}
+      if (abs(zemvsz[l]) >= teensy) {
+        kzmvsz[l] = zmvsz[l] / zemvsz[l];
+        if ((abs(kzmvsz[l]) < teensy) || (abs(kzmvsz[l]) > huge) ) {kzmvsz[l] = zero; }
+      }
+      else{ kzmvsz[l] =zero; }
+
+      QtyVsZ[(rank*n3) + l][ 0]   = z[l + 1];
+      QtyVsZ[(rank*n3) + l][ 1]   = QtyVsZ[(rank*n3) + l][ 1] + aevsz[ l];
+      QtyVsZ[(rank*n3) + l][ 2]   = QtyVsZ[(rank*n3) + l][ 2] + pevsz[ l];
+      QtyVsZ[(rank*n3) + l][ 3]   = QtyVsZ[(rank*n3) + l][ 3] + chvsz[ l];
+      QtyVsZ[(rank*n3) + l][ 4]   = QtyVsZ[(rank*n3) + l][ 4] + cevsz[ l];
+      QtyVsZ[(rank*n3) + l][ 5]   = QtyVsZ[(rank*n3) + l][ 5] + oevsz[ l];
+      QtyVsZ[(rank*n3) + l][ 6]   = QtyVsZ[(rank*n3) + l][ 6] + zpvsz[ l];
+      QtyVsZ[(rank*n3) + l][ 7]   = QtyVsZ[(rank*n3) + l][ 7] + zmvsz[ l];
+      QtyVsZ[(rank*n3) + l][ 8]   = QtyVsZ[(rank*n3) + l][ 8] + zepvsz[l];
+      QtyVsZ[(rank*n3) + l][ 9]   = QtyVsZ[(rank*n3) + l][ 9] + zemvsz[l];
+      QtyVsZ[(rank*n3) + l][10]   = QtyVsZ[(rank*n3) + l][10] + nchvsz[l];
+      QtyVsZ[(rank*n3) + l][11]   = QtyVsZ[(rank*n3) + l][11] + kcvsz[ l];
+      QtyVsZ[(rank*n3) + l][12]   = QtyVsZ[(rank*n3) + l][12] + kovsz[ l];
+      QtyVsZ[(rank*n3) + l][13]   = QtyVsZ[(rank*n3) + l][13] + kzpvsz[l];
+      QtyVsZ[(rank*n3) + l][14]   = QtyVsZ[(rank*n3) + l][14] + kzmvsz[l];
+
     }
+      if (rank == 0) {
+        for (int m = 0; m < n3; ++m) {
+          std::cout << "trackQ: z[" << rank*n3 + m  << "] = " << QtyVsZ[(rank*n3)+m][0] << std::endl;
+        }
+      }
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::reportEnergyQs ( stack& run ) {
 
+  int calcqvz; run.palette.fetch("calcqvz", &calcqvz);
+
   int rank; MPI_Comm_rank(MPI_COMM_WORLD,&rank  );
 
-  if (rank == 0) {
+  if (calcqvz == 1) {
+     if (rank == 0) {
 
-    RealArray&  EnergyQs         = run.EnergyQs;
+       RealArray&  EnergyQs         = run.EnergyQs;
 
-    std::string prefix;    run.palette.fetch(   "prefix",    &prefix   );
-    std::string run_label; run.palette.fetch(   "run_label", &run_label);
-    std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
+       std::string prefix;    run.palette.fetch(   "prefix",    &prefix   );
+       std::string run_label; run.palette.fetch(   "run_label", &run_label);
+       std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
 
-    std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
-    const char *c_data_file      = energy_data_file.c_str();
+       std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
+       const char *c_data_file      = energy_data_file.c_str();
 
-    std::ofstream ofs;
-    ofs.open( c_data_file, std::ios::out | std::ios::app );
+       std::ofstream ofs;
+       ofs.open( c_data_file, std::ios::out | std::ios::app );
 
-    if (ofs.good()) {
+       if (ofs.good()) {
 
-      unsigned esize             = EnergyQs.size();
-      for (unsigned k = 0; k < esize; k++) {
+         unsigned esize             = EnergyQs.size();
+         for (unsigned k = 0; k < esize; k++) {
 
-        ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << EnergyQs[k] << " ";
+           ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << EnergyQs[k] << " ";
 
-      }
-      ofs   << std::endl;
-      ofs.close();
+         }
+         ofs   << std::endl;
+         ofs.close();
 
-    }
-    else {std::cout << "reportEnergyQs: Warning - could not open file " << energy_data_file << std::endl;}
+       }
+       else {std::cout << "reportEnergyQs: Warning - could not open file " << energy_data_file << std::endl;}
+     }
   }
 }
 
@@ -1561,6 +1764,10 @@ void redhallmhd::reportEnergyQs ( stack& run ) {
 
 void redhallmhd::reportPowerSpectra ( stack& run ) {
 
+  int calcsvz; run.palette.fetch("calcsvz", &calcsvz);
+  if (calcsvz == 1) {
+
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1568,6 +1775,7 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
 void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+  MPI_Status * status = 0;
 
   int   nw; run.palette.fetch("nw",   &nw    );
   int   n3; run.palette.fetch("p3",   &n3    );
@@ -1578,7 +1786,18 @@ void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
 
   RealVar nw_m1 = one / (RealVar (nw));
 
-  MPI_Allreduce(MPI_IN_PLACE, &QtyVsZ[0][0], n3*np*15,  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+ /*  ~ It should be possible to do the following with an MPI_Gather call, but for the life of me
+  *  ~ I can't make it work.
+  */
+
+ for (unsigned l = 0; l < n3; l++) {
+
+   if (rank != 0 ) { MPI_Send(&QtyVsZ[rank*n3 + l].front(), 15, MPI_DOUBLE, 0, rank, MPI_COMM_WORLD); }
+   else { for (unsigned rnk_k = 1; rnk_k < np; rnk_k++) {
+            MPI_Recv(&QtyVsZ[rnk_k*n3+l].front(), 15, MPI_DOUBLE, rnk_k, rnk_k, MPI_COMM_WORLD, status);
+          }
+        }
+ }
 
   if (rank == 0 ) {
 
@@ -1845,19 +2064,24 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
   double fp           = zero;
   double fp_sum       = zero;
 
+  assert(dz > 0.0);
+
   if (rank     == 0) {
 
+    ComplexArray& O   = run.U0;
     int kstart        = 0;
     int kstop         = n1n2c;
 
     for (unsigned kdx = kstart; kdx < kstop; kdx++) {
 
-      fp              = fp + k2[kdx] * pow(abs(P[kdx]), 2);
+//      fp              = fp + k2[kdx] * pow(abs(P[kdx]), 2);
+      fp              = fp + k2[kdx] * pow(abs(O[kdx]), 2);
     }
 
     fp                = fp * dz;
 
-//  fp                = two_thirds * fp;  /* ~ NOTE!:  do I need this? ~ */
+    fp                = two_thirds * fp;  /* ~ NOTE!:  do I need this? ~ */
+                                          /* ~ ANS! :  yes, but I don't know why ~ */
 
   }
 

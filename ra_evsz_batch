@@ -22,13 +22,13 @@
 ;                                                                               ;
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
 
-idl_src_dir = GETENV('IDL_PATH')                    ; Directory where the required IDL
+idl_src_dir  = GETENV('IDL_PATH')                   ; Directory where the required IDL
                                                     ; sources reside
+
 evsz_dsc_lab    = GETENV('EVSZ_DSC_LAB')            ;
 evsz_efld       = GETENV('EVSZ_EFLD')               ;
 evsz_first_step = GETENV('EVSZ_FIRST_STEP')         ;
 evsz_last_step  = GETENV('EVSZ_LAST_STEP')          ;
-evsz_minmax_mode = GETENV('EVSZ_MINMAX_MODE')       ;
 
 evsz_first_step = UINT(evsz_first_step)
 evsz_last_step  = UINT(evsz_last_step)
@@ -36,12 +36,27 @@ evsz_last_step  = UINT(evsz_last_step)
 .run scan_parameters.pro                            ; compile
 .run fetch_datafile.pro
 .run fetch_layer.pro
+.run getSliceRange.pro
+.run calcKK.pro
+.run getResString.pro
+.run calcGofx.pro
+.run calc_lpm.pro
 .run calc_extE.pro
 .run global_efld_minmax.pro
 .run open_evsz_data_file.pro
 .run run_ave_evsz.pro
 
-run_ave_evsz, evsz_dsc_lab, evsz_efld, evsz_first_step, evsz_last_step, evsz_minmax_mode ; run
+; Next we tell idl to add 'idl_src_dir' to its value for IDL_PATH. I don't     ;
+; completely understand this - particularly since it comes after               ;
+; the compilation, but it's essential                                          ;
 
-retall                                              ; get ready to exit
+PREF_SET, 'IDL_PATH', 'idl_src_dir:<IDL_DEFAULT>', /COMMIT
+
+run_ave_evsz, evsz_dsc_lab,    $
+              evsz_efld,       $
+              evsz_first_step, $
+              evsz_last_step
+
+retall
+
 exit

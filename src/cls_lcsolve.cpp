@@ -73,48 +73,48 @@ void lcsolve::Loop( stack& run ) {
   RealVar dt;
   int l;
 
+  int srun; run.palette.fetch("srun", &srun  );
+
   for (l = 0; l < ndt;l++) {
 
   /* ~ iptest conditional goes here              ~ */
 
   physics.trackEnergies(     t_cur, run );
   physics.trackQtyVsZ(       t_cur, run );
-//  physics.trackPowerSpectra( t_cur, run );
+  physics.trackPowerSpectra( t_cur, run );
 
-  if (l % nw == 0 ) { 
-    run.reportEnergyQs( t_cur ); 
-                   }
+  if ( l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
 
-  passAdjacentLayers( "predict", run );
-  physics.applyBC(    "predict", run );
-  physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
-
-  setS(               "predict", run, physics );   /* ~ set predictor S's                                       ~ */
-  setB(               "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
-  setD(               "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
-  setAi(                         run, physics );   /* ~ set predictor A's                                       ~ */
-  Step(               "predict", run );            /* ~ execute predictor update                                ~ */
-
-  passAdjacentLayers( "correct", run );
-  physics.applyBC(    "correct", run );
-  physics.updatePAJ(  "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
-
-  setS(               "correct", run, physics );   /* ~ set corrector S's                                       ~ */
-  setB(               "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
-  setD(               "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
-  setAi(                         run, physics );   /* ~ set corrector A's                                       ~ */
-  Step(               "correct", run );            /* ~ execute corrector update                                ~ */
-
-  run.palette.fetch("dt", &dt);
-  t_cur = t_cur    + dt;
-  physics.physics_data.reset("t_cur", t_cur);
-
-  physics.updateTimeInc(         run );
+    passAdjacentLayers( "predict", run );
+    physics.applyBC(    "predict", run );
+    physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
+  
+    setS(               "predict", run, physics );   /* ~ set predictor S's                                       ~ */
+    setB(               "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
+    setD(               "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
+    setAi(                         run, physics );   /* ~ set predictor A's                                       ~ */
+    Step(               "predict", run );            /* ~ execute predictor update                                ~ */
+  
+    passAdjacentLayers( "correct", run );
+    physics.applyBC(    "correct", run );
+    physics.updatePAJ(  "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
+  
+    setS(               "correct", run, physics );   /* ~ set corrector S's                                       ~ */
+    setB(               "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
+    setD(               "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
+    setAi(                         run, physics );   /* ~ set corrector A's                                       ~ */
+    Step(               "correct", run );            /* ~ execute corrector update                                ~ */
+  
+    run.palette.fetch("dt", &dt);
+    t_cur = t_cur    + dt;
+    physics.physics_data.reset("t_cur", t_cur);
+  
+    physics.updateTimeInc(       run         );
 
   }
 
-  physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
   physics.applyBC(   "finalize", run         );
+  physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
 
   physics.fftw.fftwReverseAll(run, physics.J );
 
@@ -129,7 +129,6 @@ void lcsolve::Loop( stack& run ) {
 
   run.palette.reset(   "tstart", t_cur       );
 
-  int srun; run.palette.fetch("srun", &srun  );
   ++srun;
   run.palette.reset(          "srun",  srun  );
 

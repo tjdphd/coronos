@@ -233,6 +233,8 @@ bool parameter_map::fetch(std::string par_name, std::string *val) {
      std::string val_str;
 
      pmtr    = parameters[par_name];
+     if (pmtr.name.compare("empty") == 0) 
+     { std::cout << "fetch: WARNING - pmtr is empty for parameter " << par_name << std::endl;}
      val_str = pmtr.value;
         *val = val_str;
 
@@ -245,6 +247,8 @@ bool parameter_map::fetch(std::string par_name, int         *val) {
      std::string  val_str;
 
      pmtr    = parameters[par_name];
+     if (pmtr.name.compare("empty") == 0) 
+     { std::cout << "fetch: WARNING - pmtr is empty for parameter " << par_name << std::endl;}
      val_str = pmtr.value;
      *val    = atoi(val_str.c_str());
 
@@ -257,6 +261,8 @@ bool parameter_map::fetch(std::string par_name, float       *val) {
      std::string  val_str;
 
      pmtr    = parameters[par_name];
+     if (pmtr.name.compare("empty") == 0) 
+     { std::cout << "fetch: WARNING - pmtr is empty for parameter " << par_name << std::endl;}
      val_str = pmtr.value;
      *val    = atof(val_str.c_str());
 
@@ -269,6 +275,8 @@ bool parameter_map::fetch(std::string par_name, double      *val) {
      std::string  val_str;
 
      pmtr    = parameters[par_name];
+     if (pmtr.name.compare("empty") == 0) 
+     { std::cout << "fetch: WARNING - pmtr is empty for parameter " << par_name << std::endl;}
      val_str = pmtr.value;
      *val    = atof(val_str.c_str());
 
@@ -281,6 +289,8 @@ bool parameter_map::fetch(std::string par_name, long double      *val) {
      std::string  val_str;
 
      pmtr    = parameters[par_name];
+     if (pmtr.name.compare("empty") == 0) 
+     { std::cout << "fetch: WARNING - pmtr is empty for parameter " << par_name << std::endl;}
      val_str = pmtr.value;
      *val    = atof(val_str.c_str());
 
@@ -293,6 +303,8 @@ bool parameter_map::fetch(std::string par_name, bool        *val) {
      std::string  val_str;
 
      pmtr    = parameters[par_name];
+     if (pmtr.name.compare("empty") == 0) 
+     { std::cout << "fetch: WARNING - pmtr is empty for parameter " << par_name << std::endl;}
      val_str = pmtr.value;
 
      if (val_str.compare("true")      == 0) {

@@ -4,7 +4,7 @@
  *
  * (S)ynthesized  (O)bject-based (N)umerical (O)bservatory for (R)HMHD [also RMHD and IRHMD] with (O)ptional (C)UDA-acceleration
  *
- * AUTHOR: Timothy J. Dennis
+ *AUTHOR: Timothy J. Dennis
  *         tdennis10@alaska.edu
  *
  * CONTRIBUTORS:
@@ -191,7 +191,7 @@ void stack::allocUi() {              /* ~ U is the input/output array for the fi
   int n1n2c;
   stack_data.fetch("n1n2c", &n1n2c);
   std::string model;
-  stack_data.fetch("model", &model);
+  palette.fetch("model", &model);
   U0.reserve(n1n2c * iu2);
   U1.reserve(n1n2c * iu2);
   if (model.compare("hall") == 0) { 
@@ -366,9 +366,12 @@ void stack::writeUData() {
 
       ofs   << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_p << " ";
       ofs   << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_a << " ";
+
       if (iu3 < 3)  {
+
         ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_o << " ";
         ofs << std::setw(24) << std::right << std::setprecision(16) << std::scientific << next_j << " ";
+
       }
 
       if (iu3 > 2)  {
@@ -414,7 +417,7 @@ void stack::writeUData() {
   }
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void stack::reportEnergyQs( double t_cur ) {
 

@@ -46,7 +46,6 @@ setenv EVSZ_RES_STR     $2 #
 setenv EVSZ_EFLD        $3 # - string coding for information about the data
 setenv EVSZ_FIRST_STEP  $4 # - First data-set in series to be plotted
 setenv EVSZ_LAST_STEP   $5 # - Last data-set in series to be plotted
-setenv EVSZ_MINMAX_MODE $6 # - either 'global' or 'local'
                            #
 ############################
 #
@@ -71,19 +70,19 @@ endif                                      #
 # Next we load the idl module, tell it where to find IDL sources and
 # tell it the name of the batch script we want it to execute
 #
-######################################
-                                     #
-source /etc/profile.d/modules.csh    #
-module load idl                      # load idl onto the compute node
-                                     #
-set SRCDIR=$PWD/idl/evsz             #
-setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
-echo "IDL_PATH = " $IDL_PATH         #
-setenv IDL_STARTUP $PWD/ra_evsz_batch   # idl batch script to execute
-                                     #
-idl                                  # invoke idl
-                                     #
-######################################
+#######################################
+                                      #
+module load idl                       # load idl onto the compute node
+                                      #
+set SRCDIR=$PWD/idl/evsz              #
+echo "SRCDIR = " $SRCDIR              #
+setenv IDL_PATH $IDL_DIR/lib:$SRCDIR  #
+echo "IDL_PATH = " $IDL_PATH          #
+setenv IDL_STARTUP $PWD/ra_evsz_batch # idl batch script to execute
+                                      #
+idl                                   # invoke idl
+                                      #
+#######################################
 #
 # Now clean things up.
 #
@@ -96,7 +95,6 @@ unsetenv EVSZ_RES_STR              #
 unsetenv EVSZ_EFLD                 #
 unsetenv EVSZ_FIRST_STEP           #
 unsetenv EVSZ_LAST_STEP            #
-unsetenv EVSZ_MINMAX_MODE          #
                                    #
 exit 0                             #
                                    #

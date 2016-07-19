@@ -27,7 +27,7 @@ FILE="coronos.in"
 k=1
 while read line                                  # Loop over lines of coronos.in
 do
-  for seek in "prefix" "run_label" "p1" "p2" "p3" "np" "nnodes" "ppn"
+  for seek in "nprofile" "prefix" "run_label" "p1" "p2" "p3" "np" "nnodes" "ppn"
   do
     if [ `expr "$line" : $seek` -ne 0 ]          # find line containing current seek string
     then
@@ -38,7 +38,7 @@ do
          "p1"        )        p1=$val ;;
          "p2"        )        p2=$val ;;
          "p3"        )        p3=$val ;;
-         "np"        )        np=$val ;;
+         "np"       )         np=$val ;;
          "nnodes"    )    nnodes=$val ;;
          "ppn"       )       ppn=$val ;;
        esac
@@ -50,6 +50,10 @@ done < $FILE
 xres=$((2**$p1))                                 # calculate resolution in x
 yres=$((2**$p2))                                 # calculate resolution in y
 zres=$(($p3*$np))                                # calculate resolution in z
+
+echo "zres = " $zres
+echo "p3   = " $p3
+echo "np   = " $n3
 
 if [[ "$xres" -eq "$yres" ]]
 then
@@ -80,22 +84,30 @@ read run_wall
 echo -n "specify archive wall time (nn:nn:nn):"
 read arch_wall
 
+if  [ "$ppn" -le 12 ] 
+then
+  cores=12
+elif [ "$ppn" -gt 12 ]
+then
+  cores=16
+fi
+
 for j in `seq $start $stop`
 do
 #
    subr=$job_name$j".pbs"
 subarch=$arch_name$(($j-1))".pbs"
 #
-echo "#!/bin/bash"                     > $subr
-echo "#PBS -W group_list=mhdturb"     >> $subr
-echo "#PBS -q standard_$ppn"          >> $subr
-echo "#PBS -l nodes=$nnodes:ppn=$np"  >> $subr
-echo "#PBS -l walltime=$run_wall"     >> $subr
-echo "#PBS -r n"                      >> $subr
-echo " "                              >> $subr
-echo "cd \$PBS_O_WORKDIR"             >> $subr
-echo "mpirun -np $np src/coronos"       >> $subr
-echo "qsub $subarch"                  >> $subr
+echo "#!/bin/bash"                        > $subr
+echo "#PBS -W group_list=mhdturb"        >> $subr
+echo "#PBS -q standard_$cores"           >> $subr
+echo "#PBS -l nodes=$nnodes:ppn=$ppn"    >> $subr
+echo "#PBS -l walltime=$run_wall"        >> $subr
+echo "#PBS -r n"                         >> $subr
+echo " "                                 >> $subr
+echo "cd \$PBS_O_WORKDIR"                >> $subr
+echo "mpirun -np $np src/coronos"        >> $subr
+echo "qsub $subarch"                     >> $subr
 #
  nextsr=$job_name$(($j+1))".pbs"
 echo "#!/bin/bash"                     > $subarch

@@ -1,0 +1,50 @@
+idl_src_dir  = GETENV('IDL_PATH')        ; Directory where the required IDL
+                                         ; sources reside
+
+desc_label   = GETENV('GLEX_DESC_LABEL') ; descriptive "run label"
+res_str      = GETENV('GLEX_RES_STR')    ; resolution string
+qty          = GETENV('GLEX_QTY')
+first_step   = GETENV('GLEX_FIRST_STP')  ; first time step   in time-series
+last_step    = GETENV('GLEX_LAST_STP')   ; last  time step   in time-series
+first_slice  = GETENV('GLEX_FIRST_SLC')  ; first data-slice  in each time-step
+last_slice   = GETENV('GLEX_LAST_SLC')   ; last  data-slice  in each time-step
+
+first_step   = UINT(first_step)
+last_step    = UINT(last_step)
+first_slice  = UINT(first_slice)
+last_slice   = UINT(last_slice)
+
+; The next step after obtaining arguments is to compile the required sources  ;
+; The order of compilation reflects the various dependencies of the sources   ;
+; upon one another                                                            ;
+
+.run scan_parameters.pro
+.run fetch_datafile.pro
+.run calcKK.pro
+.run fetch_layer.pro
+.run global_q_minmax_by_slice.pro
+.run getSliceRange.pro
+.run global_q_minmax.pro
+.run glb_ext.pro
+                                                                               ;
+; Next we tell idl to add 'idl_src_dir' to its value for IDL_PATH. I don't     ;
+; completely understand this - particularly since it comes after               ;
+; the compilation, but it's essential                                          ;
+
+PREF_SET, 'IDL_PATH', 'idl_src_dir:<IDL_DEFAULT>', /COMMIT
+
+; Next we set the keyword values - note some cruft here:                       ;
+;                                                                              ;
+
+preval  ='rmct2'
+lab_run = desc_label
+
+glb_ext, lab_run,     $
+         qty   ,      $
+         first_step,  $
+         last_step,   $
+         first_slice, $
+         last_slice
+retall
+
+exit

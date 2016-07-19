@@ -124,6 +124,19 @@ class redhallmhd
 
   Real2DArray QtyVsZ;
 
+  Real3DArray SpcVsZ;
+
+  RealArray   ke;
+  RealVar     dk;
+  RealVar     dk_m1;
+  RealVar     kb;
+  RealVar     kf;
+
+  int         isp;
+  int         ikb;
+  int         ikf;
+  int         nk;
+
   void updatePAJ( std::string str_step, stack& run );
   void applyBC(   std::string str_step, stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
   void updateTimeInc(                   stack& run );

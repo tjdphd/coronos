@@ -44,9 +44,11 @@ namespace constants {
 
 #ifdef LD_PRECISION_H
 
-typedef long double ***                         InputOutputArray;
-typedef std::vector<long double>                RealArray;
-typedef std::vector<std::vector<long double>  > Real2DArray;
+typedef long double ***                                      InputOutputArray;
+
+typedef std::vector<long double>                             RealArray;
+typedef std::vector<std::vector<long double>  >              Real2DArray;
+typedef std::vector<std::vector<std::vector<long double> > > Real3DArray;
 typedef std::vector<std::complex<long double> > ComplexArray;
 
 typedef long double                             RealVar;
@@ -73,9 +75,10 @@ typedef std::complex<long double>               ComplexVar;
 
 #elif defined OD_PRECISION_H
 
-typedef double ***                         InputOutputArray;
-typedef std::vector<double>                RealArray;
-typedef std::vector<std::vector<double> >  Real2DArray;
+typedef double ***                                        InputOutputArray;
+typedef std::vector<double>                               RealArray;
+typedef std::vector<std::vector<double> >                 Real2DArray;
+typedef std::vector<std::vector<std::vector< double> > >  Real3DArray;
 typedef std::vector<std::complex<double> > ComplexArray;
 
 typedef double                             RealVar;
