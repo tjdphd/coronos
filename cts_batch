@@ -47,24 +47,19 @@
 
 idl_src_dir = GETENV('IDL_PATH')         ; Directory where the required IDL
                                          ; sources reside
-cont_fld    = GETENV('CTS_CONT_FLD')     ; field for which contours/color maps
-                                         ; will be generated (see description)
 desc_label  = GETENV('CTS_DESC_LABEL')   ; descriptive "run label"
-num_cont    = GETENV('CTS_NUM_CONT')     ; Number of contour levels for plots
+qty         = GETENV('CTS_QTY')          ; field for which contours/color maps
+n_slice     = GETENV('CTS_SLC')          ; which slice to contour
 first_step  = GETENV('CTS_FIRST_STEP')   ; first data-frame in time-series
 last_step   = GETENV('CTS_LAST_STEP')    ; last data-frame in time-series
-tot_steps   = GETENV('CTS_TOT_STPS')     ; total number of steps upon which to
+n_cntrs     = GETENV('CTS_NUM_CONT')     ; Number of contour levels for plots
+
+global_in_minmax = GETENV('CTS_GLB_EXT') ;
                                          ; base contour levels
-n_slc       = GETENV('CTS_SLC')          ; which slice to contour
 first_step  = UINT(first_step)           ; convert these to 
 last_step   = UINT(last_step)            ; integer values
-tot_steps   = UINT(tot_steps)
-n_slc       = UINT(n_slc)
-
-print, 'cts_batch: n_slc = ', n_slc
-
-print, 'cts_batch: first_step = ', first_step
-print, 'cts_batch: last_step  = ', last_step
+n_slice     = UINT(n_slice)
+n_cntrs     = UINT(n_cntrs)
 
 ; The next step after obtaining arguments is to compile the required sources  ;
 ; The order of compilation reflects the various dependencies of the sources   ;
@@ -73,15 +68,16 @@ print, 'cts_batch: last_step  = ', last_step
 .run scan_parameters.pro
 .run construct_eps_outfile_name.pro
 .run fetch_datafile.pro
-.run fetch_slices.pro
-.run max_q.pro
-.run min_q.pro
-.run set_jcontour_levels.pro
-.run calc_jz.pro
-.run cfdp.pro
-.run construct_jcontour.pro
-;.run show_contour.pro
-.run single_slice_contour_time_series.pro 
+.run fetch_layer.pro
+.run getSliceRange.pro
+.run set_contour_levels.pro
+;.run calc_jz.pro
+;.run cfdp.pro
+.run construct_contour.pro
+.run calcKK.pro
+.run global_q_minmax.pro
+.run global_q_minmax_by_slice.pro
+.run cts.pro 
                                                                                ;
 ; Next we tell idl to add 'idl_src_dir' to its value for IDL_PATH. I don't     ;
 ; completely understand this - particularly since it comes after               ;
@@ -98,20 +94,13 @@ PREF_SET, 'IDL_PATH', 'idl_src_dir:<IDL_DEFAULT>', /COMMIT
 ;      variables in the appropriate places                                     ;
 ;                                                                              ;
 
-preval  = 'rmct2'                                  ; to be soft-coded
-str_res = 'y'                                      ; to be ELIMINATED
-lab_run = desc_label                          
-qty     = cont_fld
-n_cntrs =  num_cont
-out_dir = GETENV('PWD') + '/cts/' + qty + '/eps'   ; to be soft-coded - maybe
-
-single_slice_contour_time_series, first_step, last_step, preval,  /INC_PREFIX,  $
-                                  str_res,   /INC_RES_STR, $
-                                  lab_run,   /INC_RUN_LAB, $
-                                  out_dir,   /INC_OUT_DIR, $
-                                  n_slc,     /INC_N_SLC,   $
-                                  qty,       /INC_QTY,     $
-                                  n_cntrs,   /INC_N_CNTRS, $
-                                  tot_steps, /INC_TOT_STEPS
+cts, desc_label,       $
+     qty,              $
+     n_slice,          $
+     first_step,       $
+     last_step,        $
+     global_in_minmax, $
+     PREFIX  = prefix, $
+     N_CNTRS = n_cntrs
 retall
 exit

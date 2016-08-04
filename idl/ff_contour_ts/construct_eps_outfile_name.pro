@@ -1,5 +1,4 @@
-FUNCTION construct_eps_outfile_name, prefix, suffix, n_slice, n_step, tot_steps
-COMMON loc, eps_out_dir
+FUNCTION construct_eps_outfile_name, qty, prefix, suffix, n_slice, n_step, tot_steps
 
 str_n_slice     = STRTRIM(n_slice, 2)
 
@@ -35,11 +34,7 @@ IF (zero_pad NE 0) THEN BEGIN
 ENDIF
 str_n_step      = zero_str + str_n_step
 
-IF (STRLEN(eps_out_dir) EQ 0) THEN BEGIN
-   out_dir      = GETENV('PWD')
-ENDIF ELSE BEGIN
-   out_dir      = eps_out_dir
-      ENDELSE
+out_dir         = GETENV('PWD') + '/cts' + '/' + qty +'/eps'
 PRINT, 'eps output will be place in the directory: ', out_dir
 eps_file_out    = out_dir + '/' + prefix + '_slc-' + str_n_slice + '_stp-' + str_n_step + suffix + '.eps'
 

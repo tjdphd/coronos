@@ -7,7 +7,7 @@ epratio    0.000000000000000e+00     dbl rfx
 eta        5.000000000000000e-04     dbl rfx 
 ffp        0.000000000000000e+00     dbl sfx 
 igen       1                         int rfx 
-ilnr       0                         int rfx 
+ilnr       1                         int rfx 
 initMode   fourierspace              str rfx 
 scenario   reconnection              str rfx
 qout_pref  en_vs_z                   str rfx
@@ -21,7 +21,7 @@ nprofile   flat                      str rfx
 uprofile   noflow                    str rfx 
 ninf       0.09                      dbl rfx
 n0         5.0e+01                   dbl rfx
-ndt        50                        int rfx 
+ndt        100                       int rfx 
 nw         1                         int rfx 
 nf         0                         int sfx 
 nnodes     1                         int rfx 

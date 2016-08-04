@@ -47,15 +47,17 @@
 #
 ###########################
                           #
-setenv CTS_CONT_FLD   $1  # - contoured field - 'p', 'a', 'bz', 'vz', or 'j'
-setenv CTS_DESC_LABEL $2  # - string coding for information about the data
-setenv CTS_NUM_CONT   $3  # - Nominal number of contours to include in plots
+setenv CTS_DESC_LABEL $1  # - string coding for information about the data
+setenv CTS_QTY        $2  # - contoured field - 'p', 'a', 'bz', 'vz', or 'j'
+setenv CTS_SLC        $3  # - Which layer or "slice" to be contoured
 setenv CTS_FIRST_STEP $4  # - First data-set in series to be contoured
 setenv CTS_LAST_STEP  $5  # - Last data-set in series to be contoured
-setenv CTS_RES_STR    $6  # - String indicating run-resolution
-setenv CTS_TOT_STPS   $7  # - Total number of steps upon which to base contour
+setenv CTS_N_CNTRS    $6  # - Nominal number of contours to include in plots
                           #   levels
-setenv CTS_SLC        $8  # - Which layer or "slice" to be contoured
+if( -e glb_ext.out) then  # - if global extrema data is available
+  setenv CTS_GLB_EXT 'y'  #
+endif                     #
+setenv CTS_PFX rmct2      #
                           #
 ###########################
 #
@@ -63,31 +65,31 @@ setenv CTS_SLC        $8  # - Which layer or "slice" to be contoured
 # that is assumed to exist by the batch script will in fact
 # exist.
 #
-############################################
-                                           #
-if( ! -d cts) then                         # upon first run the output
-  mkdir cts                                # directory will not yet exist
-  mkdir cts/$CTS_CONT_FLD                  # so we create it and whichever
-  mkdir cts/$CTS_CONT_FLD/eps              # sub-directories not-yet 
-else if( ! -d cts/$CTS_CONT_FLD) then      # created so we have place for
-  mkdir cts/$CTS_CONT_FLD                  # for eps output
-  mkdir cts/$CTS_CONT_FLD/eps              # 
-else if( ! -d cts/$CTS_CONT_FLD/eps ) then # 
-  mkdir cts/$CTS_CONT_FLD/eps              # 
-endif                                      #
-                                           #
-############################################
+#######################################
+                                      #
+if( ! -d cts) then                    # upon first run the output
+  mkdir cts                           # directory will not yet exist
+  mkdir cts/$CTS_QTY                  # so we create it and whichever
+  mkdir cts/$CTS_QTY/eps              # sub-directories not-yet 
+else if( ! -d cts/$CTS_QTY) then      # created so we have place for
+  mkdir cts/$CTS_QTY                  # for eps output
+  mkdir cts/$CTS_QTY/eps              # 
+else if( ! -d cts/$CTS_QTY/eps ) then # 
+  mkdir cts/$CTS_QTY/eps              # 
+endif                                 #
+                                      #
+#######################################
 #
 # Next we load the idl module, tell it where to find IDL sources and
 # tell it the name of the batch script we want it to execute
 #
 ######################################
                                      #
-#source /etc/profile.d/modules.csh    #
+#source /etc/profile.d/modules.csh   #
 module load idl                      # load idl onto the compute node
                                      #
 set SRCDIR=$PWD/idl/ff_contour_ts    # idl script source directory
-echo "SRCDIR = " $SRCDIR             #
+echo "SRCDIR   = " $SRCDIR           #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
 echo "IDL_PATH = " $IDL_PATH         #
 setenv IDL_STARTUP $PWD/cts_batch    # idl batch script to execute
@@ -100,7 +102,7 @@ idl                                  # invoke idl
 #
 ##################################################################
                                                                  #
-./cts_anim.s $CTS_CONT_FLD $CTS_RES_STR $CTS_DESC_LABEL $CTS_SLC #
+#./cts_anim.s $CTS_QTY $CTS_RES_STR $CTS_DESC_LABEL $CTS_SLC     #
                                                                  #
 ##################################################################
 #
@@ -110,13 +112,11 @@ idl                                  # invoke idl
                                    #
 module unload idl                  #
 unsetenv IDL_STARTUP               #
-unsetenv CTS_CONT_FLD              #
 unsetenv CTS_DESC_LABEL            #
-unsetenv CTS_NUM_CONT              #
+unsetenv CTS_QTY                   #
+unsetenv CTS_N_CNTRS               #
 unsetenv CTS_FIRST_STEP            #
 unsetenv CTS_LAST_STEP             #
-unsetenv CTS_RES_STR               #
-unsetenv CTS_TOT_STPS              #
 unsetenv CTS_SLC                   #
                                    #
 exit 0                             #

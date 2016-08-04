@@ -17,8 +17,11 @@ FUNCTION max_diff, qty, I_step, first_slab, last_slab, str_res, lab_one, lab_two
    SLCONE                    = fetch_layer( J, I_step, lab_one )
    SLCTWO                    = fetch_layer( J, I_step, lab_two )
    
-   size_one                  = SIZE(SLCONE)
-   size_two                  = SIZE(SLCTWO)
+   size_one                  = SIZE(SLCONE,/DIMENSIONS)
+   size_two                  = SIZE(SLCTWO,/DIMENSIONS)
+
+;  PRINT, "size_one = ", size_one
+;  PRINT, "size_two = ", size_two
 
    IF (size_one[1] EQ size_two[1]) THEN BEGIN
 
@@ -46,26 +49,30 @@ FUNCTION max_diff, qty, I_step, first_slab, last_slab, str_res, lab_one, lab_two
      ave_mean                = 0.5*(slc_one_mean + slc_two_mean)
      ave_min                 = 0.5*(slc_one_min  + slc_two_min )
 
-     PRINT, ""
+;    PRINT, ""
 ;    PRINT, "slc_one_mean         = ", slc_one_mean
 ;    PRINT, "slc_one_max          = ", slc_one_max
-     PRINT, "slc_one_min          = ", slc_one_min
-     PRINT, ""
+;    PRINT, "slc_one_min          = ", slc_one_min
+;    PRINT, ""
 ;    PRINT, "slc_one_mean_max_rat = ", slc_one_mean_max_ratio
 ;    PRINT, "slc_one_min_max_rat  = ", slc_one_min_max_ratio
 ;    PRINT, "slc_one_ratio_ratio  = ", slc_one_ratio_ratio
-     PRINT, ""
+;    PRINT, ""
 ;    PRINT, "slc_two_mean         = ", slc_two_mean
 ;    PRINT, "slc_two_max          = ", slc_two_max
-     PRINT, "slc_two_min          = ", slc_two_min
-     PRINT, ""
+;    PRINT, "slc_two_min          = ", slc_two_min
+;    PRINT, ""
 ;    PRINT, "slc_two_mean_max_rat = ", slc_two_mean_max_ratio
 ;    PRINT, "slc_two_min_max_rat  = ", slc_two_min_max_ratio
 ;    PRINT, "slc_two_ratio_ratio  = ", slc_two_ratio_ratio
-     PRINT, ""
-     PRINT, "ave_min              = ", ave_min
+;    PRINT, ""
+;    PRINT, "ave_min              = ", ave_min
 
-     SLCDIFF                 = ABS(SLCONE[*,idx] - SLCTWO[*,idx])
+;    SLCDIFF                 = ABS(SLCONE[*,idx] - SLCTWO[*,idx])
+     SLCDIFF                 = ABS(SLCONE[*,*] - SLCTWO[*,*])
+
+;    PRINT, "size_slcdiff = ", SIZE(SLCDIFF,/DIMENSIONS)
+;    PRINT, "idx          = ", idx
 
      nz_one_n_two            = WHERE(ABS(SLCONE[*, idx])  GE 1.0E-14 AND $
                                      ABS(SLCTWO[*, idx])  GE 1.0E-14 AND $
