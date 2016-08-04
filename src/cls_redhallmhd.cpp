@@ -131,7 +131,6 @@ void redhallmhd::initU( stack& run ) {
 
   }
 
-
   int n3;      run.palette.fetch("p3", &n3);
   int np;      run.palette.fetch("np", &np);
 
@@ -141,12 +140,10 @@ void redhallmhd::initU( stack& run ) {
   if (calcqvz == 1) {
 
     RealArray Qlayer; Qlayer.assign(15,zero); QtyVsZ.assign(np*n3, Qlayer);
-//    RealArray Qlayer; Qlayer.assign(np*n3,zero); QtyVsZ.assign(15, Qlayer);
 
   }
 
   if (calcsvz == 1) {
-
 
     int n1;      run.stack_data.fetch("n1", &n1);
     int n2;      run.stack_data.fetch("n2", &n2);
@@ -599,7 +596,7 @@ void redhallmhd::initFootPointDriving( stack& run ) {
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
 
-  MPI_Status * status = 0;
+  MPI_Status * status   = 0;
 
   int tag_old           = 0;
   int tag_new           = 1;
@@ -1266,15 +1263,15 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
   double aeold;
   double peold;
 
-    pe                   = evalTotalKineticEnergy(  run );
-    ae                   = evalTotalMagneticEnergy( run );
-    oe                   = evalTotalVorticitySqd(   run );
-    ce                   = evalTotalCurrentSqd(     run );
-    cee                  = evalTotalGradCurrentSqd( run );
-    fp                   = evalTotalFootPointKE(    run );
-    fe                   = evalTotalPoyntingFlux(   run );
+  pe                     = evalTotalKineticEnergy(  run );
+  ae                     = evalTotalMagneticEnergy( run );
+  oe                     = evalTotalVorticitySqd(   run );
+  ce                     = evalTotalCurrentSqd(     run );
+  cee                    = evalTotalGradCurrentSqd( run );
+  fp                     = evalTotalFootPointKE(    run );
+  fe                     = evalTotalPoyntingFlux(   run );
 
-  if ( EnergyQs.size() >= i_fp ) {
+  if ( EnergyQs.size()  >= i_fp ) {
 
     t_old                = EnergyQs[i_tcr];
     dt_old               = EnergyQs[i_dt];
@@ -1283,16 +1280,22 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
     peold                = EnergyQs[i_pe];
 
     tcr                  = t_cur;
+
 /* ~ pe evaluated above ~ */
 /* ~ ae evaluated above ~ */
+
     mo                   = zero;
     imo                  = zero;
     jmo                  = zero;
+
 /* ~ oe evaluated above ~ */
+
     mj                   = zero;
     imj                  = zero;
     jmj                  = zero;
+
 /* ~ ce evaluated above ~ */
+
     if (rank == 0 ) {
 
       RealVar AVEz;  run.palette.fetch("AVEz",  &AVEz );
@@ -1302,7 +1305,9 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
       noe                = nu  * oe;
       ece                = eta * ce;
+
 /* ~ fe evaluated above ~ */
+
       ftp                = ((EnergyQs[i_ftp]*t_old) + fe          * dt_old)      / t_cur;
       eds                = ((EnergyQs[i_eds]*t_old) + (noe + ece) * dt_old)      / t_cur;
       dng                = ((EnergyQs[i_dng] * t_old) + (ae - aeold + pe - peold)) / t_cur;
@@ -1388,21 +1393,29 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
       peold                = zero;
 
       tcr                  = t_cur;
+
 /* ~   pe evaluated above ~ */
 /* ~   ae evaluated above ~ */
+
       mo                   = zero;
       imo                  = zero;
       jmo                  = zero;
+
 /* ~   oe evaluated above ~ */
+
       mj                   = zero;
       imj                  = zero;
       jmj                  = zero;
+
 /* ~   ce evaluated above ~ */
+
       if (rank == 0 ){
 
         noe                = nu  * oe;
         ece                = eta * ce;
+
 /* ~   fe evaluated above ~ */
+
         ftp                = zero;
         eds                = zero;
         dng                = zero;
@@ -1454,44 +1467,43 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
       }
     }
     else {
-           if (rank == 0) {
+      if (rank == 0) {
 
-             std::string prefix;    run.palette.fetch(   "prefix",    &prefix   );
-             std::string run_label; run.palette.fetch(   "run_label", &run_label);
-             std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
+        std::string prefix;    run.palette.fetch(   "prefix",    &prefix   );
+        std::string run_label; run.palette.fetch(   "run_label", &run_label);
+        std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
 
-             std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
-             const char *c_data_file      = energy_data_file.c_str();
+        std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
+        const char *c_data_file      = energy_data_file.c_str();
 
-             std::ifstream ifs;
-             ifs.open( c_data_file, std::ios::in );
+        std::ifstream ifs;
+        ifs.open( c_data_file, std::ios::in );
 
-             if (ifs.good()) {
+        if (ifs.good()) {
 
-               unsigned esize                = 28;
+          unsigned esize                = 28;
 
-               std::streampos begin, end;
-               std::streamoff bytes_per_line = (esize*24 + 27);
-               RealVar nextE;
-               begin                         = ifs.tellg();
-               ifs.seekg(-bytes_per_line, ios::end);
-               for (unsigned k = 0; k < esize; k++) {
+          std::streampos begin, end;
+          std::streamoff bytes_per_line = (esize*24 + 27);
+          RealVar nextE;
+          begin                         = ifs.tellg();
+          ifs.seekg(-bytes_per_line, ios::end);
 
-                 ifs >> nextE;
-                 EnergyQs.push_back(nextE);
+          for (unsigned k = 0; k < esize; k++) {
+            ifs >> nextE;
+            EnergyQs.push_back(nextE);
+          }
 
-                 std::cout << "trackEnergies: nextE = " << nextE << std::endl;
+          ifs.close();
 
-               }
+        } // ifs is good
 
-               ifs.close();
+        else { std::cout << "trackEnergyQs: Warning - could not open file " << energy_data_file << std::endl; }
 
-             } // ifs if good
-             else {std::cout << "trackEnergyQs: Warning - could not open file " << energy_data_file << std::endl;}
-           } // rank is zero
+      } // rank is zero
     } // srun is not 1
   } // i_fp is zero
-}  // end function
+} // end function
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -1832,48 +1844,46 @@ void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
 
 double redhallmhd::evalTotalKineticEnergy ( stack& run ) {
 
-  int rank;  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int        rank;  MPI_Comm_rank(MPI_COMM_WORLD,  &rank  );
   
-  RealArray& k2       = run.k2;
+  int        np;    run.palette.fetch(   "np",     &np    );
 
-  int np;    run.palette.fetch(   "np",     &np    );
+  int        n1n2c; run.stack_data.fetch("n1n2c",  &n1n2c );
+  int        iu2;   run.stack_data.fetch("iu2"   , &iu2   );
+  int        n3;    run.stack_data.fetch("n3"   ,  &n3    );
+  double     dz;    run.stack_data.fetch("dz"   ,  &dz    );
 
-  int n1n2c; run.stack_data.fetch("n1n2c",  &n1n2c );
-  int iu2;   run.stack_data.fetch("iu2"   , &iu2   );
-  int n3;    run.stack_data.fetch("n3"   ,  &n3    );
-  double dz; run.stack_data.fetch("dz"   ,  &dz    );
+  double     pe     = zero;
+  double     pe_sum = zero;
+  int        idx    = 0;
+  int        kstart;
+  int        kstop;
 
-  double pe           = zero;
-  double pe_sum       = zero;
-
-  int idx             = 0;
-
-  int kstart;
-  int kstop;
+  RealArray& k2     = run.k2;
 
   if (rank  == 0) { kstart = 0;     }
   else            { kstart = n1n2c; }
 
-  kstop               = n1n2c * (iu2 - 1);
+  kstop             = n1n2c * (iu2 - 1);
 
   for (unsigned kdx = kstart; kdx < kstop; kdx++){
 
     if (kdx % n1n2c == 0) { idx = 0; }
 
-      pe              = pe +        k2[idx] * pow(abs(P[kdx]), 2);
+      pe            = pe +        k2[idx] * pow(abs(P[kdx]), 2);
 
-      if (( rank == np - 1 ) && ( kdx >= (four * n1n2c) )) {
-        pe            = pe + half * k2[idx] * pow(abs(P[kdx]), 2);
+      if (( rank    == np - 1 ) && ( kdx >= (four * n1n2c) )) {
+        pe          = pe + half * k2[idx] * pow(abs(P[kdx]), 2);
       }
-      if ((rank  == 0      ) && ( kdx <   n1n2c         )) {
-        pe            = pe - half * k2[idx] * pow(abs(P[kdx]), 2);
+      if ((rank     == 0      ) && ( kdx <   n1n2c         )) {
+        pe          = pe - half * k2[idx] * pow(abs(P[kdx]), 2);
       }
 
       ++idx;
   }
 
-//  pe                = two_thirds * pe * dz;
-  pe                  = pe * dz;
+//  pe              = two_thirds * pe * dz;
+  pe                = pe * dz;
 
   int i_red = MPI_Reduce(&pe, &pe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
@@ -2055,10 +2065,10 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
 
   RealArray& k2       = run.k2;
 
-  int np;    run.palette.fetch(   "np",    &np    );
+  int    np; run.palette.fetch(   "np",    &np    );
   int n1n2c; run.stack_data.fetch("n1n2c", &n1n2c );
-  int iu2;   run.stack_data.fetch("iu2",   &iu2   );
-  int n3;    run.stack_data.fetch("n3",    &n3    );
+  int   iu2; run.stack_data.fetch("iu2",   &iu2   );
+  int    n3; run.stack_data.fetch("n3",    &n3    );
   double dz; run.stack_data.fetch("dz",    &dz    );
 
   double fp           = zero;
@@ -2074,14 +2084,15 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
 
     for (unsigned kdx = kstart; kdx < kstop; kdx++) {
 
-//      fp              = fp + k2[kdx] * pow(abs(P[kdx]), 2);
-      fp              = fp + k2[kdx] * pow(abs(O[kdx]), 2);
+//    fp              = fp + k2[kdx] * pow(abs(P[kdx]), 2);
+      fp              = fp + pow(abs(O[kdx]), 2);
     }
 
+// or
+//  fp                = three * fp * dz;
     fp                = fp * dz;
 
-    fp                = two_thirds * fp;  /* ~ NOTE!:  do I need this? ~ */
-                                          /* ~ ANS! :  yes, but I don't know why ~ */
+//  fp                = two_thirds * fp;  /* ~ NOTE!:  do I need this? ~ */
 
   }
 
@@ -2161,7 +2172,7 @@ void redhallmhd::applyBC( std::string str_step, stack& run ) {
   if ( rank == 0 || rank == np - 1) {
 
     if (bdrys > 0 ) {
-      if (!str_step.compare("finalize") == 0) { applyFootPointDrivingBC(   run ); }
+      if (!str_step.compare("finalize") == 0) { applyFootPointDrivingBC( str_step, run ); }
     }
     else            { applyLineTiedBC( str_step, run );                           }
 
@@ -2170,7 +2181,7 @@ void redhallmhd::applyBC( std::string str_step, stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::applyFootPointDrivingBC( stack& run ) {
+void redhallmhd::applyFootPointDrivingBC( std::string str_step, stack& run ) {
 
   int rank;       MPI_Comm_rank(MPI_COMM_WORLD, &rank      );
 
@@ -2203,6 +2214,7 @@ void redhallmhd::applyFootPointDrivingBC( stack& run ) {
   if ( rank  == 0 || rank == (np - 1) ) {         /* ~ pevol "starts" here        ~ */
 
     RealArray&    k2         = run.k2;
+
     ComplexArray& O          = run.U0;
     ComplexArray& Z          = run.U2; 
 
@@ -2418,6 +2430,9 @@ void redhallmhd::applyLineTiedBC( std::string str_step, stack& run ) {
 
 void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
 
+  int rank;     MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+  int  np;      MPI_Comm_size(MPI_COMM_WORLD, &np);
+
   int n1n2c;    run.stack_data.fetch("n1n2c", &n1n2c);    /* ~ number complex elements in layer            ~ */
   int n_layers; run.stack_data.fetch("iu2",   &n_layers); /* ~ number of layers in stack                   ~ */
 
@@ -2435,7 +2450,8 @@ void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
   unsigned kstart    = 0;                                 /* ~ lower and upper loop limits on k            ~ */
   unsigned kstop     = n_layers * n1n2c;                  /* ~ note: pbot and atop boundary layers incl.'d ~ */
 
-  unsigned idx = 0;                                       /* ~ index for k2 and inv_k2                     ~ */
+  unsigned idx       = 0;                                 /* ~ index for k2 and inv_k2                     ~ */
+
   if (    str_step.compare("predict") == 0 ) {            /* ~ PRIOR to predictor step                     ~ */
     for (unsigned k = kstart; k < kstop; k++) { 
 
@@ -2454,8 +2470,18 @@ void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
 
       if (k % n1n2c == 0){ idx = 0;}
 
+      if (rank != 0 && rank != np-1) {
       P[k] = inv_k2[idx] * tO[k];                         /* ~ P, A, and J are now ready for use in        ~ */
-      A[k] = tH[k] / ( one + ssqd*k2[idx] );              /* ~ corrector step                              ~ */
+      }
+      else {
+        if (rank == 0 && k < n1n2c ) {
+          P[k] = inv_k2[idx] * tO[k];                     /* ~ P, A, and J are now ready for use in        ~ */
+        }
+        else if (rank == np-1 && k < 4*n1n2c ) {
+          P[k] = inv_k2[idx] * tO[k];                     /* ~ P, A, and J are now ready for use in        ~ */
+        }
+      }
+      A[k] = tH[k] / ( one + ssqd*k2[idx] );
       J[k] = k2[idx] * A[k];
 
       ++idx;

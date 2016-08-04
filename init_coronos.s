@@ -107,7 +107,7 @@ echo "#PBS -r n"                         >> $subr
 echo " "                                 >> $subr
 echo "cd \$PBS_O_WORKDIR"                >> $subr
 echo "mpirun -np $np src/coronos"        >> $subr
-echo "qsub $subarch"                     >> $subr
+#echo "qsub $subarch"                     >> $subr
 #
  nextsr=$job_name$(($j+1))".pbs"
 echo "#!/bin/bash"                     > $subarch

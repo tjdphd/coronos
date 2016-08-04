@@ -89,7 +89,7 @@ class redhallmhd
   void JfromA(                          stack& run );                 /* ~ Obtain J from A                           ~ */
 
 
-  void applyFootPointDrivingBC(         stack& run );                 /* ~ "pevol"                                   ~ */
+  void applyFootPointDrivingBC(std::string str_stp, stack& run );     /* ~ "pevol"                                   ~ */
   void applyLineTiedBC( std::string str_step, stack& run );           /* ~ pbot and p(:,n3) set to zero              ~ */
 
   void finalizeBoundaries(              stack& run );

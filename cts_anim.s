@@ -66,28 +66,28 @@ fi
 
 trunc=$pfx'/eps/'
 
-for plot in $cts_eps; do
-        plot=${plot#$trunc}
-    len_plot=${#plot}                                    # Get the file's basename and create a gif version
-           n=`expr $len_plot - 4`                        # with convert
-   base_name=${plot:0:$n}
-   echo "creating = " $base_name'.gif'
-   convert -density 144x144 $pfx/eps/$base_name.eps $pfx/gif/$base_name.gif
-done
+#for plot in $cts_eps; do
+#        plot=${plot#$trunc}
+#    len_plot=${#plot}                                    # Get the file's basename and create a gif version
+#           n=`expr $len_plot - 4`                        # with convert
+#   base_name=${plot:0:$n}
+#   echo "creating = " $base_name'.gif'
+#   convert -density 144x144 $pfx/eps/$base_name.eps $pfx/gif/$base_name.gif
+#done
 
 cts_gif=`ls $pfx/gif/$1_contour*stp-*ff-spec.gif`
 
 cts_anim=$1'_cts_'$res_str'_'$desc_label'-anim.gif'
-convert -delay 10 -loop 0 -coalesce -background white -dispose 1 $cts_gif $cts_anim
+#convert -delay 10 -loop 0 -coalesce -background white -dispose 1 $cts_gif $cts_anim
 
-for plot in $cts_eps; do
-        plot=${plot#$trunc}
-    len_plot=${#plot}                                    # Get the file's basename and create a gif version
-           n=`expr $len_plot - 4`                        # with convert
-   base_name=${plot:0:$n}
-   echo "creating = " $base_name'.jpg'
-   convert -density 144x144 $pfx/eps/$base_name.eps $pfx/jpg/$base_name.jpg
-done
+#for plot in $cts_eps; do
+#        plot=${plot#$trunc}
+#    len_plot=${#plot}                                    # Get the file's basename and create a gif version
+#           n=`expr $len_plot - 4`                        # with convert
+#   base_name=${plot:0:$n}
+#   echo "creating = " $base_name'.jpg'
+#   convert -density 144x144 $pfx/eps/$base_name.eps $pfx/jpg/$base_name.jpg
+#done
 
 
 sep=`expr index $res_str '_'`
@@ -106,7 +106,7 @@ len_dif=`expr $len_z_res - $len_n_slc`
 
 echo 'len_dif   = ' $len_dif
 
-if [$len_dif -eq 0]
+if [ $len_dif -eq 0 ]
 then
   zero_str=''
 else

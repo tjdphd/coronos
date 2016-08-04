@@ -1,9 +1,8 @@
-
-LAST UPDATED: 26 January 2016
+LAST UPDATED: 19 July 2016
 
 0.) Scut work ( Low Priority )
 
-    a.) beautification
+*   a.) beautification..................................................ongoing
 
     b.) I'd really like to disassociate fftw from physics. Seems to me the only way to do this
         is to turn fftw into a namespace instead of a class which physics and solve can "use."
@@ -16,14 +15,16 @@ LAST UPDATED: 26 January 2016
 
 1.) Priority Development Work
 
-    a.) start documentation
-    b.) upload to github
-    c.) complete CPU RMHD reproduction including:
+*   a.) start documentation...............................................small steps taken
+*   b.) upload to github..................................................Done
+*   c.) complete CPU RMHD reproduction including:..........................Done
 
-        i.) Longcope boundary conditions (based on LiWei's cuda port)
-       ii.) energy, evsz, spectral et al calculations
-      iii.) recording of vorticity and current density in output
-       iv.) Parker heating test
+*       i.) Longcope boundary conditions (based on LiWei's cuda port).......Done
+*      ii.) energy, evsz, spectral et al calculations.......................mostly done
+*     iii.) recording of vorticity and current density in output.............done
+*      iv.) Parker heating test...........................................mostly done
+
+    d.) complete CPU IRMHD addition - In progress
 
     d.) CPU Hall RMHD including:
 
@@ -31,7 +32,7 @@ LAST UPDATED: 26 January 2016
        ii.) update electron inertia portion to reflect correction
       iii.) compare runs neglecting electron inertia against CPU "fourfield" code.
 
-    e.) commence gpu implementation where possible given progress on other fronts.
+*   e.) commence gpu implementation where possible given progress on other fronts....small steps taken
 
     f.) profiling / optimizing
  
@@ -39,15 +40,16 @@ LAST UPDATED: 26 January 2016
 
 2.) Related priority Theoretical Work
 
-    a.) Reproduce Hazeltine 85 and 87 (and 86 if necessary).
+*   a.) Reproduce Hazeltine 85 and 87 (and 86 if necessary)................In progress
     b.) Use results of a to check current form of four-field model
     c.) check model against Morrison(?) 2010.
+    d.) also look for work by Chaston
 
 3.) Wish List
 
     a.) (non-?)optional Binary - possibly hdf5 output for all data.
     b.) more comprehensive output such as B-field components etc
-    c.) the option to output datafiles without having to compete a run first
+    c.) the option to output datafiles without having to complete a run first
     d.) an IDL widget application analogous to what I've put together for 
         the hybrid code.
     e.) possible provisions for other graphical post-processing options, particularly

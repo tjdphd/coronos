@@ -60,80 +60,75 @@ void lcsolve::Loop( stack& run ) {
 
   redhallmhd physics ( run );
 
-  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int     rank  ; MPI_Comm_rank(MPI_COMM_WORLD   , &rank   );
+  int     n1n2  ; run.stack_data.fetch( "n1n2"   , &n1n2   );
+  int     n1n2c ; run.stack_data.fetch( "n1n2c"  ,  &n1n2c );
+  int     ndt   ; run.palette.fetch(    "ndt"    , &ndt    );
+  int     iptest; run.palette.fetch(    "iptest" , &iptest );
+  int     nw    ; run.palette.fetch(    "nw"     , &nw     );
+  int     srun  ; run.palette.fetch(    "srun"   , &srun   );
 
-  int     n1n2;  run.stack_data.fetch("n1n2",  &n1n2  );
-  int     n1n2c; run.stack_data.fetch("n1n2c", &n1n2c );
-  int     ndt;    run.palette.fetch("ndt",     &ndt   );
-  int     iptest; run.palette.fetch("iptest",  &iptest);
-  int     nw;     run.palette.fetch("nw",      &nw    );
+  RealVar t_cur ; run.palette.fetch(    "tstart" , &t_cur  );
+  RealVar dt    ;
 
-  RealVar t_cur;  run.palette.fetch("tstart",  &t_cur );
-
-  RealVar dt;
-  int l;
-
-  int srun; run.palette.fetch("srun", &srun  );
-
-  for (l = 0; l < ndt;l++) {
+  for (unsigned l = 0; l < ndt;l++) {
 
   /* ~ iptest conditional goes here              ~ */
 
-  physics.trackEnergies(     t_cur, run );
-  physics.trackQtyVsZ(       t_cur, run );
-  physics.trackPowerSpectra( t_cur, run );
+    passAdjacentLayers( "predict", run            );
+    physics.applyBC(    "predict", run            );
+    physics.updatePAJ(  "predict", run            );   /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
-  if ( l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
+    physics.trackEnergies(     t_cur, run         );
+    physics.trackQtyVsZ(       t_cur, run         );
+    physics.trackPowerSpectra( t_cur, run         );
+    if ( l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
+  
+    setS(               "predict", run, physics   );   /* ~ set predictor S's                                       ~ */
+    setB(               "predict", run, physics   );   /* ~ set predictor Brackets                                  ~ */
+    setD(               "predict", run, physics   );   /* ~ set predictor finite differences                        ~ */
+    setAi(                         run, physics   );   /* ~ set predictor A's                                       ~ */
 
-    passAdjacentLayers( "predict", run );
-    physics.applyBC(    "predict", run );
-    physics.updatePAJ(  "predict", run );            /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
+    Step(               "predict", run            );   /* ~ execute predictor update                                ~ */
+
+    passAdjacentLayers( "correct", run            );
+    physics.updatePAJ(  "correct", run            );   /* ~ P, A, and J now contain predictor-updated values        ~ */
+
+    setS(               "correct", run, physics   );   /* ~ set corrector S's                                       ~ */
+    setB(               "correct", run, physics   );   /* ~ set corrector Brackets                                  ~ */
+    setD(               "correct", run, physics   );   /* ~ set corrector finite differences                        ~ */
+    setAi(                         run, physics   );   /* ~ set corrector A's                                       ~ */
+    Step(               "correct", run            );   /* ~ execute corrector update                                ~ */
   
-    setS(               "predict", run, physics );   /* ~ set predictor S's                                       ~ */
-    setB(               "predict", run, physics );   /* ~ set predictor Brackets                                  ~ */
-    setD(               "predict", run, physics );   /* ~ set predictor finite differences                        ~ */
-    setAi(                         run, physics );   /* ~ set predictor A's                                       ~ */
-    Step(               "predict", run );            /* ~ execute predictor update                                ~ */
+    run.palette.fetch(         "dt",   &dt        );
+    t_cur = t_cur + dt;
+    physics.physics_data.reset("t_cur", t_cur     );
   
-    passAdjacentLayers( "correct", run );
-    physics.applyBC(    "correct", run );
-    physics.updatePAJ(  "correct", run );            /* ~ P, A, and J now contain predictor-updated values        ~ */
-  
-    setS(               "correct", run, physics );   /* ~ set corrector S's                                       ~ */
-    setB(               "correct", run, physics );   /* ~ set corrector Brackets                                  ~ */
-    setD(               "correct", run, physics );   /* ~ set corrector finite differences                        ~ */
-    setAi(                         run, physics );   /* ~ set corrector A's                                       ~ */
-    Step(               "correct", run );            /* ~ execute corrector update                                ~ */
-  
-    run.palette.fetch("dt", &dt);
-    t_cur = t_cur    + dt;
-    physics.physics_data.reset("t_cur", t_cur);
-  
-    physics.updateTimeInc(       run         );
+    physics.updateTimeInc(         run            );
 
   }
 
-  physics.applyBC(   "finalize", run         );
-  physics.updatePAJ(  "predict", run         );   /* ~ P, A, and J contain final corrector-updated values      ~ */
+  physics.applyBC(   "finalize",   run            );
+  physics.updatePAJ(  "predict",   run            );   /* ~ P, A, and J contain final corrector-updated values      ~ */
 
-  physics.fftw.fftwReverseAll(run, physics.J );
+  physics.fftw.fftwReverseAll(     run, physics.J );
 
-  physics.PfromO (               run         );   /* ~ O still in U0. Replacing with P for Primary data output ~ */
-  physics.AfromH (               run         );   /* ~ H still in U1. Replacing with A for Primary data output ~ */
+  physics.PfromO (                 run            );   /* ~ O still in U0. Replacing with P for Primary data output ~ */
+  physics.AfromH (                 run            );   /* ~ H still in U1. Replacing with A for Primary data output ~ */
 
-  physics.physicsFinalize(       run         );
+  physics.physicsFinalize(         run            );
 
-  physics.fftw.fftwReverseAll(   run         );
+  physics.fftw.fftwReverseAll(     run            );
 
-  physics.reportQtyVsZ( t_cur,   run         );
+  physics.reportQtyVsZ( t_cur,     run            );
 
-  run.palette.reset(   "tstart", t_cur       );
+  run.palette.reset(   "tstart", t_cur            );
 
   ++srun;
-  run.palette.reset(          "srun",  srun  );
+  run.palette.reset(   "srun"  , srun             );
 
-  run.writeUData(                            );
-  run.writeParameters(                       );
+  run.writeUData(                                 );
+  run.writeParameters(                            );
 
 }
 
@@ -952,46 +947,39 @@ void lcsolve::averageAcrossLayers( stack& run, int shift_sign, ComplexArray& dx 
 
 void lcsolve::Step( std::string str_step, stack& run ) {
 
-  std::string model;
-  run.palette.fetch(   "model", &model );          /* ~ one of "hall" or "rmhd", or "inhm"          ~ */
-
-  int n1n2c;
-  run.stack_data.fetch("n1n2c" ,&n1n2c );          /* ~ number of complex elements per layer        ~ */
-  int iu2;
-  run.stack_data.fetch("iu2"   ,&iu2   );          /* ~ number layers                               ~ */
-
-  RealVar dt; 
-  run.palette.fetch("dt"    ,&dt    );             /* ~ current time increment                      ~ */
-  RealVar pfrac; 
-  run.palette.fetch("pfrac" ,&pfrac );             /* ~ fraction of dt to use for predictor-        ~ */
-                                                   /* ~ step                                        ~ */
-  if (str_step.compare("predict") == 0 ) {         /* ~ use partial step in predictor case          ~ */
-    dt              = pfrac * dt;                  /* ~ dt is local so no problem here              ~ */
+  std::string model; run.palette.fetch(   "model" , &model ); /* ~ one of "hall" or "rmhd", or "inhm"          ~ */
+  int n1n2c;         run.stack_data.fetch("n1n2c" , &n1n2c ); /* ~ number of complex elements per layer        ~ */
+  int iu2;           run.stack_data.fetch("iu2"   , &iu2   ); /* ~ number layers                               ~ */
+  RealVar dt;        run.palette.fetch(   "dt"    , &dt    ); /* ~ current time increment                      ~ */
+  RealVar pfrac;     run.palette.fetch(   "pfrac" , &pfrac ); /* ~ fraction of dt to use for predictor-        ~ */
+                                                              /* ~ step                                        ~ */
+  if (str_step.compare("predict") == 0 ) {                    /* ~ use partial step in predictor case          ~ */
+    dt              = pfrac * dt;                             /* ~ dt is local so no problem here              ~ */
   }
 
-  int kstart        = n1n2c;                       /* ~ stepping is only done for layers 1          ~ */
-  int kstop         = n1n2c * (iu2 - 1);           /* ~ through iu2 - 2                             ~ */
-                                                   /* ~ layers 0 and iu2 - 1 are for the            ~ */
-                                                   /* ~ boundaries and overlaps                     ~ */
-  int idx;                                         /* ~ an index for the S's which are              ~ */
-                                                   /* ~ field-independent and thus the same         ~ */
-                                                   /* ~ across layers                               ~ */
+  int kstart        = n1n2c;                                  /* ~ stepping is only done for layers 1          ~ */
+  int kstop         = n1n2c * (iu2 - 1);                      /* ~ through iu2 - 2                             ~ */
+                                                              /* ~ layers 0 and iu2 - 1 are for the            ~ */
+                                                              /* ~ boundaries and overlaps                     ~ */
+  int idx;                                                    /* ~ an index for the S's which are              ~ */
+                                                              /* ~ field-independent and thus the same         ~ */
+                                                              /* ~ across layers                               ~ */
 
-  ComplexArray& U0  = run.U0;                      /* ~ for predictor case                          ~ */
-  ComplexArray& U1  = run.U1;                      /* ~ un-updated values are transferred           ~ */
+  ComplexArray& U0  = run.U0;                                 /* ~ for predictor case                          ~ */
+  ComplexArray& U1  = run.U1;                                 /* ~ un-updated values are transferred           ~ */
   ComplexArray& U2  = run.U2;
   ComplexArray& U3  = run.U3;
 
-  ComplexArray& tU0 = run.tU0;                     /* ~ for corrector case                          ~ */
-  ComplexArray& tU1 = run.tU1;                     /* ~ results from predictor step are transferred ~ */
+  ComplexArray& tU0 = run.tU0;                                /* ~ for corrector case                          ~ */
+  ComplexArray& tU1 = run.tU1;                                /* ~ results from predictor step are transferred ~ */
   ComplexArray& tU2 = run.tU2;
   ComplexArray& tU3 = run.tU3;
 
   for (unsigned k   = kstart; k < kstop; k++) {
 
-    if (k % kstart  == 0 ) { idx = 0; }            /* ~ reset idx when starting new layer           ~ */
+    if (k % kstart  == 0 ) { idx = 0; }                      /* ~ reset idx when starting new layer            ~ */
 
-      if (     str_step.compare("predict") == 0) { /* ~ the predictor case                          ~ */
+      if (     str_step.compare("predict") == 0) {           /* ~ the predictor case                           ~ */
 
           tU0[k]    = (SE0[idx] * U0[k] + (dt * (B0[k] + D0[k] + A0[k]))) * SI0[idx];
           tU1[k]    = (SE1[idx] * U1[k] + (dt * (B1[k] + D1[k] + A1[k]))) * SI1[idx];
