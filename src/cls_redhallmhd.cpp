@@ -67,6 +67,8 @@ redhallmhd::redhallmhd(stack& run ) {
 
   initBoundaries(        run   );   /* ~ initialization of quantities needed for     ~ */
 
+  evalValf(              run   );
+
   int srun; run.palette.fetch( "srun", &srun );
 
   if (srun == 1) {
@@ -953,7 +955,7 @@ void redhallmhd::HfromA( stack& run )  {
     A.reserve(usize);                                        /* ~ members A and J (current density) needed   ~ */
     J.reserve(usize);                                        /* ~ throughout run                             ~ */
   
-    RealVar ssqd;      physics_data.fetch( "ssqd", &ssqd  ); /* ~ parameter sigma^2 needed for H             ~ */
+    RealVar ssqd;      run.palette.fetch(  "ssqd",  &ssqd ); /* ~ parameter sigma^2 needed for H             ~ */
     std::string model; run.palette.fetch(  "model", &model); 
   
     for (unsigned k = 0; k < usize; k++) {A[k] = U1[k];}     /* ~ preserve flux function in A                ~ */
@@ -1037,7 +1039,7 @@ void redhallmhd::AfromH( stack& run )  {
   H.reserve(usize);
                                                           /* ~ note: current values of A and J are known  ~ */
 
-  RealVar ssqd;      physics_data.fetch("ssqd",  &ssqd ); /* ~ parameter sigma^2 needed for A             ~ */
+  RealVar ssqd;      run.palette.fetch("ssqd",   &ssqd ); /* ~ parameter sigma^2 needed for A             ~ */
   std::string model; run.palette.fetch( "model", &model);
 
   for (unsigned k = 0; k < usize; k++) {H[k] = U1[k];}
@@ -1071,14 +1073,14 @@ void redhallmhd::evalElls(    stack& run ) {
   std::string nprofile; run.palette.fetch("nprofile", &nprofile);
   int p3;               run.palette.fetch("p3",       &p3      );
 
-  Elln.assign(p3,zero);
-  EllA.assign(p3,zero);
-  EllB.assign(p3,zero);
+  Elln.assign(p3+1,zero);
+  EllA.assign(p3+1,zero);
+  EllB.assign(p3+1,zero);
 
-   h11.assign(p3,zero);
-   h12.assign(p3,zero);
-   h21.assign(p3,zero);
-   h22.assign(p3,zero);
+   h11.assign(p3+1,zero);
+   h12.assign(p3+1,zero);
+   h21.assign(p3+1,zero);
+   h22.assign(p3+1,zero);
 
   int i_profile;
 
@@ -1089,34 +1091,34 @@ void redhallmhd::evalElls(    stack& run ) {
 
   switch(i_profile) {
 
-  case(0) : Elln.assign(p3, zero); 
-            EllA.assign(p3, zero);
-            EllB.assign(p3, zero);
+  case(0) : Elln.assign(p3+1, zero); 
+            EllA.assign(p3+1, zero);
+            EllB.assign(p3+1, zero);
             break;
-  case(1) : for ( int k = 0; k <  p3;  ++k) {
+  case(1) : for ( int k = 0; k <  p3+1;  ++k) {
 
               EllA[k] = abs( dvalfdz[k] / (two  * valfven[k]) );
               Elln[k] = abs( dndz[k]    / (four * nofz[k]   ) );
 
             }
-            EllB.assign(p3, zero);
+            EllB.assign(p3+1, zero);
             break;
-  case(2) : Elln.assign(p3, zero);
-            EllA.assign(p3, zero);
-            EllB.assign(p3, zero);
+  case(2) : Elln.assign(p3+1, zero);
+            EllA.assign(p3+1, zero);
+            EllB.assign(p3+1, zero);
             break;
 
   default :
 
     std::cout << "evalN: WARNING - the profile " << nprofile << " is not implemented. Assuming a flat profile." << std::endl;
 
-    Elln.assign(p3, zero);
-    EllA.assign(p3, zero);
-    EllB.assign(p3, zero);
+    Elln.assign(p3+1, zero);
+    EllA.assign(p3+1, zero);
+    EllB.assign(p3+1, zero);
 
   }
 
-  for ( int k = 0; k <  p3;  ++k) {
+  for ( int k = 0; k <  p3+1;  ++k) {
 
     h11[k] =  umean[k]   * ( EllA[k] + EllB[k] - Elln[k] );
     h12[k] = -valfven[k] * ( EllA[k] + EllB[k] + Elln[k] );
@@ -1131,59 +1133,80 @@ void redhallmhd::evalElls(    stack& run ) {
 
 void redhallmhd::evalValf( stack& run ) {
   
-  std::string nprofile; run.palette.fetch("nprofile", &nprofile); /* ~ specification for density profile    ~ */
-  int    p3;            run.palette.fetch("p3",       &p3      ); /* ~ layers per stack not incl. ghosts    ~ */
-  double zl;            run.palette.fetch("zl",       &zl      ); /* ~ size of domain along z               ~ */
-  double ninf;          run.palette.fetch("ninf",     &ninf    ); /* ~ density at z = +/- infinity          ~ */
-  double n0;            run.palette.fetch("n0",       &n0      ); /* ~ density at z_0 (i.e. z = zl / 2)     ~ */
+  std::string model; run.palette.fetch("model",    &model   ); /* ~ specification for density profile    ~ */
+  int         p3;    run.palette.fetch("p3",       &p3      ); /* ~ layers per stack not incl. ghosts    ~ */
 
-  double H0;                                                      /* ~ density scale-height constant        ~ */
+  if (model.compare("rmhd") == 0) {
+    valfven.assign(p3+1, one  );
+    dvalfdz.assign(p3+1, zero );
+    nofz.assign(   p3+1, one  );
+    dndz.assign(   p3+1, zero );
+  }
 
-  RealArray& z = run.z;
+  else {
 
-  int    i_profile;
-  if      (nprofile.compare("flat")   == 0) { i_profile =  0; }   /* ~ switch statements don't like strings ~ */
-  else if (nprofile.compare("torus")  == 0) { i_profile =  1; }
-  else if (nprofile.compare("cloop")  == 0) { i_profile =  2; }
-  else                                      { i_profile = -1; }
+    std::string nprofile; run.palette.fetch("nprofile", &nprofile); /* ~ specification for density profile    ~ */
+    double zl;            run.palette.fetch("zl",       &zl      ); /* ~ size of domain along z               ~ */
+    double ninf;          run.palette.fetch("ninf",     &ninf    ); /* ~ density at z = +/- infinity          ~ */
+    double n0;            run.palette.fetch("n0",       &n0      ); /* ~ density at z_0 (i.e. z = zl / 2)     ~ */
+    double valfmax;       run.palette.fetch("valfmax",  &valfmax );
+    double valfmin;
+    double H0;                                                      /* ~ density scale-height constant        ~ */
 
-  switch(i_profile) {
+    RealArray& z = run.z;
 
-  case(0) : valfven.assign(p3, one );
-            dvalfdz.assign(p3, zero);
-               nofz.assign(p3, one );
-               dndz.assign(p3, zero);
-            break;
-  case(1) : H0            = zl / sqrt( - eight * log( (one - ninf) / (n0 - ninf) ));
+    int    i_profile;
+    if      (nprofile.compare("flat")   == 0) { i_profile =  0; }   /* ~ switch statements don't like strings ~ */
+    else if (nprofile.compare("torus")  == 0) { i_profile =  1; }
+    else if (nprofile.compare("cloop")  == 0) { i_profile =  2; }
+    else                                      { i_profile = -1; }
 
-            std::cout << "evalValf: H0 = " << H0 << std::endl;    /* ~ maybe add this to physics_data? ~ */
+    switch(i_profile) {
 
-               nofz.assign(p3,one );
-               dndz.assign(p3,zero);
-            valfven.assign(p3,one );
-            dvalfdz.assign(p3,zero);
+    case(0) : valfven.assign(p3+1, one );
+              dvalfdz.assign(p3+1, zero);
+                 nofz.assign(p3+1, one );
+                 dndz.assign(p3+1, zero);
+              break;
+    case(1) : H0            = zl / sqrt( - eight * log( (one - ninf) / (n0 - ninf) ));
+              valfmin       = valfmax / sqrt(n0);
 
-            for (unsigned k = 0; k < p3; ++k) {
+              std::cout << "evalValf: H0      = " << H0      << std::endl;    /* ~ maybe add this to physics_data? ~ */
+//            std::cout << "evalValf: valfmin = " << valfmin << std::endl;    /* ~ maybe add this to physics_data? ~ */
 
-               nofz[k]    = ninf + ((n0 - ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two))));
-               dndz[k]    = -(n0 - ninf) * exp( -half * pow(((z[k]-(half*zl))/H0),2)) * (z[k] - (half*zl)) / ( pow(H0,2) );
-               valfven[k] = sqrt( n0 / nofz[k] );
-               dvalfdz[k] = -half * valfven[k] * dndz[k] / nofz[k];
+                 nofz.assign(p3+1,one );
+                 dndz.assign(p3+1,zero);
+              valfven.assign(p3+1,one );
+              dvalfdz.assign(p3+1,zero);
 
-            }
-            break;
-  case(2) : valfven.assign(p3, one ); 
-            dvalfdz.assign(p3, zero);
-               nofz.assign(p3, one );
-               dndz.assign(p3, zero);
-            break;
+              for (unsigned k = 0; k < p3+1; ++k) {
 
-  default : 
+                 nofz[k]    = ninf + ((n0 - ninf) * (exp(-half*pow((z[k] - (half*zl))/H0 ,two))));
+                 dndz[k]    = -(n0 - ninf) * exp( -half * pow(((z[k]-(half*zl))/H0),2)) * (z[k] - (half*zl)) / ( pow(H0,2) );
+                 valfven[k] = valfmin * sqrt( n0 / nofz[k] );
+                 dvalfdz[k] = -half * valfven[k] * dndz[k] / nofz[k];
 
-    std::cout << "evalValf: WARNING - the profile " << nprofile << " is not implemented. Assuming a flat profile." << std::endl;
-    valfven.assign(p3, one );
-    dvalfdz.assign(p3, zero);
+              }
+              break;
+    case(2) : valfven.assign(p3+1, one ); 
+              dvalfdz.assign(p3+1, zero);
+                 nofz.assign(p3+1, one );
+                 dndz.assign(p3+1, zero);
+              break;
 
+    default : 
+
+      std::cout << "evalValf: WARNING - the profile " << nprofile << " is not implemented. Assuming a flat profile." << std::endl;
+      valfven.assign(p3+1, one );
+      dvalfdz.assign(p3+1, zero);
+
+    }
+
+    int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+//  for (unsigned k = 0; k < p3+1; ++k) {
+//    std::cout << "evalValf:  rank = " << rank << ": valfven[" << k << "] =  " << valfven[k] << std::endl;
+//  }
   }
 }
 
@@ -1203,14 +1226,14 @@ void redhallmhd::evalUmean( stack& run ) {
 
   switch(i_profile) {
 
-  case(0) : umean.assign(p3, zero); break;
-  case(1) : umean.assign(p3, zero); break;
-  case(2) : umean.assign(p3, zero); break;
+  case(0) : umean.assign(p3+1, zero); break;
+  case(1) : umean.assign(p3+1, zero); break;
+  case(2) : umean.assign(p3+1, zero); break;
 
   default : 
 
     std::cout << "evalValf: WARNING - the profile " << uprofile << " is not implemented. Assuming a flat profile." << std::endl;
-    umean.assign(p3, one);
+    umean.assign(p3+1, one);
 
   }
 }
@@ -1218,6 +1241,7 @@ void redhallmhd::evalUmean( stack& run ) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void redhallmhd::trackEnergies(double t_cur, stack& run ) {
+
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -1251,6 +1275,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
   static const int i_avm = 25; double avm; /* ~ Time averaged magnetic field strength           ~ */
   static const int i_avp = 26; double avp; /* ~ Time-averaged footpoint velocity                ~ */
   static const int i_fp  = 27; double fp ; /* ~ Total footpoint kinetic energy at z = 0         ~ */                  
+  static const int i_he  = 28; double he ; /* ~ Total energy in helicity due to inhomogeneity   ~ */
 
   double dtvb; physics_data.fetch("dtvb", &dtvb);
   double tauC; run.palette.fetch( "tauC", &tauC);
@@ -1262,6 +1287,8 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
   double dt_old;
   double aeold;
   double peold;
+  double heold;
+
 
   pe                     = evalTotalKineticEnergy(  run );
   ae                     = evalTotalMagneticEnergy( run );
@@ -1271,13 +1298,23 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
   fp                     = evalTotalFootPointKE(    run );
   fe                     = evalTotalPoyntingFlux(   run );
 
-  if ( EnergyQs.size()  >= i_fp ) {
+  std::string model; run.palette.fetch("model", &model);
+
+  if (     model.compare("rmhd") == 0) { he = zero;                           }
+  else if (model.compare("inhm") == 0) { he = evalTotalHelicalEnergy(  run ); }
+
+//  if (rank == 0) {
+//    std::cout << "trackEnergies: he = " << he << std::endl;
+//  }
+
+  if ( EnergyQs.size()  >= i_he ) {
 
     t_old                = EnergyQs[i_tcr];
     dt_old               = EnergyQs[i_dt];
  
     aeold                = EnergyQs[i_ae];
     peold                = EnergyQs[i_pe];
+    heold                = EnergyQs[i_he];
 
     tcr                  = t_cur;
 
@@ -1308,12 +1345,12 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
 /* ~ fe evaluated above ~ */
 
-      ftp                = ((EnergyQs[i_ftp]*t_old) + fe          * dt_old)      / t_cur;
-      eds                = ((EnergyQs[i_eds]*t_old) + (noe + ece) * dt_old)      / t_cur;
-      dng                = ((EnergyQs[i_dng] * t_old) + (ae - aeold + pe - peold)) / t_cur;
-      irc                = (ae - aeold + pe - peold) / dt_old;
+      ftp                = ((EnergyQs[i_ftp]*t_old) + fe          * dt_old)        / t_cur;
+      eds                = ((EnergyQs[i_eds]*t_old) + (noe + ece) * dt_old)        / t_cur;
+      dng                = ( (EnergyQs[i_dng] * t_old) + (ae - aeold + pe - peold + he - heold) ) / t_cur;
+      irc                = (ae - aeold + pe - peold + he - heold) / dt_old;
       gml                = ftp - eds;
-      cns                = abs(  ( (fe - noe - ece) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+      cns                = abs(( (fe - noe - ece) - ( (ae - aeold + pe - peold + he - heold ) / dt_old )) * dt_old );
 
       AVEz               = AVEz  + cns * dt_old;
       AVEpv              = AVEpv + noe * dt_old;
@@ -1376,6 +1413,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
       EnergyQs[ i_avm ]  = avm;
       EnergyQs[ i_avp ]  = avp;
       EnergyQs[ i_fp  ]  =  fp;
+      EnergyQs[ i_he  ]  =  he;
 
     }
   }
@@ -1391,6 +1429,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
       aeold                = zero;
       peold                = zero;
+      heold                = zero;
 
       tcr                  = t_cur;
 
@@ -1463,6 +1502,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
         EnergyQs.push_back(avm);
         EnergyQs.push_back(avp);
         EnergyQs.push_back(fp );
+        EnergyQs.push_back(he );
 
       }
     }
@@ -1481,10 +1521,10 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
         if (ifs.good()) {
 
-          unsigned esize                = 28;
+          unsigned esize                = 29;
 
           std::streampos begin, end;
-          std::streamoff bytes_per_line = (esize*24 + 27);
+          std::streamoff bytes_per_line = (esize*24 + 28);
           RealVar nextE;
           begin                         = ifs.tellg();
           ifs.seekg(-bytes_per_line, ios::end);
@@ -1724,11 +1764,11 @@ void redhallmhd::trackQtyVsZ(RealVar t_cur, stack& run ) {
       QtyVsZ[(rank*n3) + l][14]   = QtyVsZ[(rank*n3) + l][14] + kzmvsz[l];
 
     }
-      if (rank == 0) {
-        for (int m = 0; m < n3; ++m) {
-          std::cout << "trackQ: z[" << rank*n3 + m  << "] = " << QtyVsZ[(rank*n3)+m][0] << std::endl;
-        }
-      }
+      //if (rank == 0) {
+      //  for (int m = 0; m < n3; ++m) {
+      //    std::cout << "trackQ: z[" << rank*n3 + m  << "] = " << QtyVsZ[(rank*n3)+m][0] << std::endl;
+      //  }
+      //}
   }
 }
 
@@ -2113,11 +2153,23 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
   int iu2;   run.stack_data.fetch("iu2",   &iu2   );
   int n3;    run.stack_data.fetch("n3",    &n3    );
   double dz; run.stack_data.fetch("dz",    &dz    );
+  double n0; run.palette.fetch("n0",       &n0    ); /* ~ density at z_0 (i.e. z = zl / 2)     ~ */
+
+  std::string model; run.palette.fetch("model",      &model);
 
   double fe           = zero;
   double dfe_r        = zero;
   double dfe_i        = zero;
   double fe_sum       = zero;
+
+  double Valf;
+  double valfmax;       run.palette.fetch("valfmax",  &valfmax );
+
+  if (      model.compare("rmhd") == 0) { Valf = one;              }
+  else if ( model.compare("inhm") == 0) {
+    if (      rank == 0     ) {           Valf = valfmax;          }
+    else if ( rank == np -1 ) {           Valf = valfven[ n3 ];    }
+  }
 
   int idx             = 0;
 
@@ -2129,6 +2181,7 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 
   kstop               = kstart + n1n2c;
   idx                 = 0;
+
   for (unsigned kdx = kstart; kdx < kstop; kdx++){
 
       if (( rank == np - 1 ) && ( kdx >= ( n3 * n1n2c) )) {
@@ -2137,6 +2190,7 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
         dfe_i         =       k2[idx] * ( (A[kdx].imag() * P[kdx].imag()) - (A[kdx].real() * P[kdx].real()) );
 
         fe            = fe + sqrt(pow(dfe_r,2) + pow(dfe_i,2));
+
       }
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
 
@@ -2149,7 +2203,7 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
       ++idx;
   }
 
-  fe                  = two * fe;
+  fe                  = two * Valf * fe;
 
   int i_red           = MPI_Reduce(&fe, &fe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
@@ -2157,6 +2211,65 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 // fe_sum = fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
 
   return fe_sum;
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+double redhallmhd::evalTotalHelicalEnergy ( stack& run ) {
+
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  
+  RealArray& k2       = run.k2;
+
+  int np;    run.palette.fetch(   "np",    &np    );
+  int n1n2c; run.stack_data.fetch("n1n2c", &n1n2c );
+  int iu2;   run.stack_data.fetch("iu2",   &iu2   );
+  int n3;    run.stack_data.fetch("n3",    &n3    );
+  double dz; run.stack_data.fetch("dz",    &dz    );
+
+  double he           = zero;
+  double dhe_r        = zero;
+  double dhe_i        = zero;
+  double he_sum       = zero;
+
+  int idx             = 0;
+  int ldx             = 0;
+
+  int kstart          = n1n2c;
+  int kstop           = (n3+1)*n1n2c;
+  RealVar lcoff;
+
+  for (unsigned kdx = kstart; kdx < kstop; kdx++){
+
+        if ( idx % n1n2c == 0) {
+          ++ldx;
+          std::cout << "" << std::endl;
+          std::cout << "evalTotalH: for rank = " << rank << ": Elln["    << ldx  <<   "]    = " << Elln[ldx]    << std::endl;
+          std::cout << "evalTotalH: for rank = " << rank << ": EllB["    << ldx  <<   "]    = " << EllB[ldx]    << std::endl;
+          std::cout << "evalTotalH: for rank = " << rank << ": EllA["    << ldx  <<   "]    = " << EllA[ldx]    << std::endl;
+          std::cout << "evalTotalH: for rank = " << rank << ": valfven[" << ldx  <<   "] = "    << valfven[ldx] << std::endl;
+          std::cout << "evalTotalH: for rank = " << rank << ": dvalfdz[" << ldx  <<   "] = "    << dvalfdz[ldx] << std::endl;
+
+          idx         = 0 ; 
+
+          lcoff       = (dvalfdz[ldx] + two * valfven[ldx] * (Elln[ldx] + EllB[ldx] + EllA[ldx] ));
+
+        }
+
+        dhe_r         =       k2[idx] * ( (A[kdx].imag() * P[kdx].real()) + (A[kdx].real() * P[kdx].imag()) );
+        dhe_i         =       k2[idx] * ( (A[kdx].imag() * P[kdx].imag()) - (A[kdx].real() * P[kdx].real()) );
+
+        he            = he + lcoff * sqrt(pow(dhe_r,2) + pow(dhe_i, 2));
+
+      ++idx;
+  }
+  
+  he                  = he * dz;
+
+  int i_red           = MPI_Reduce(&he, &he_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  return he_sum;
 
 }
 
@@ -2445,7 +2558,7 @@ void redhallmhd::updatePAJ( std::string str_step, stack& run ) {
   RealArray&      k2 = run.k2;                            /* ~ square-magnitude of k-space vectors         ~ */
   RealArray&  inv_k2 = run.inv_k2;                        /* ~ inverse square magnitude of k-space vectors ~ */
 
-  RealVar ssqd; physics_data.fetch(  "ssqd",  &ssqd);     /* ~ parameter sigma^2 relating A to H           ~ */
+  RealVar ssqd; run.palette.fetch(  "ssqd",  &ssqd);      /* ~ parameter sigma^2 relating A to H           ~ */
 
   unsigned kstart    = 0;                                 /* ~ lower and upper loop limits on k            ~ */
   unsigned kstop     = n_layers * n1n2c;                  /* ~ note: pbot and atop boundary layers incl.'d ~ */

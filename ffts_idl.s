@@ -96,13 +96,15 @@ if ($#argv < 2) then                                              #
   echo " 24 - aveK2/t                                          "  #
   echo " 25 - sqrt(aveME/t)                                    "  #
   echo " 26 - sqrt(2.*AVEpe/t)                                 "  #
-  echo " 27 - Parallel Kinetic Energy                          "  #
-  echo " 28 - Parallel Magnetic Energy                         "  #
-  echo " 29 - Internal Energy                                  "  #
-  echo " 30 - Square magnitude of Z Laplacian                  "  #
-  echo " 31 - Square magnitude of V_z Laplacian                "  #
-  echo " 32 - Parallel Conductive heat loss                    "  #
-  echo " 33 - Parallel viscous dissipation                     "  #
+  echo " 27 - Footpoint Energy (fp)                            "  #
+  echo " 28 - Internal Energy (he)                             "  #
+  echo " 29 - Parallel Kinetic Energy                          "  #
+  echo " 30 - Parallel Magnetic Energy                         "  #
+  echo " 31 - Internal Energy                                  "  #
+  echo " 32 - Square magnitude of Z Laplacian                  "  #
+  echo " 33 - Square magnitude of V_z Laplacian                "  #
+  echo " 34 - Parallel Conductive heat loss                    "  #
+  echo " 35 - Parallel viscous dissipation                     "  #
   echo " "                                                        #
   echo -n "field: "                                               # - interactive bits
                                                                   #

@@ -34,6 +34,9 @@ line         = ""
 READF, data_unit, line
 cols         = N_ELEMENTS(StrSplit(line))
 print, "cols = ", cols
+str_cols     = STRING(cols)
+str_fmt      = '(' + str_cols + '(e24.20,1x),:)'
+print, "str_fmt = ", str_fmt
 Point_Lun, data_unit, 0
 
 Eline        = FLTARR(cols, 1)
@@ -44,7 +47,8 @@ FOR I = 0, nlines - 1 DO BEGIN
 
 ;  READF, data_unit, FORMAT = '(4(e24.20,1x),2(I6,1x),:/)', Eline
 ;  READF, data_unit, FORMAT = '( 4(e24.20,1x),2(I6,1x),2(e24.20,1x),2(I6,1x),24(e24.20,1x),:/)', Eline
-   READF, data_unit, FORMAT = '( 28(e24.20,1x),:/)', Eline
+;  READF, data_unit, FORMAT = '( 28(e24.20,1x),:/)', Eline
+   READF, data_unit, FORMAT = str_fmt, Eline
 ;  READF, data_unit, FORMAT = '( 28(e24.16,1x),:/)', Eline
    E[*, I]    = Eline
   
