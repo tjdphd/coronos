@@ -1,14 +1,14 @@
 #!/bin/bash
 
- job_1=`qsub rmct2-64_16-1.pbs`
- job_2=`qsub -W depend=afterok:$job_1 rmct2-64_16-2.pbs`
- job_3=`qsub -W depend=afterok:$job_2 rmct2-64_16-3.pbs`
- job_4=`qsub -W depend=afterok:$job_3 rmct2-64_16-4.pbs`
- job_5=`qsub -W depend=afterok:$job_4 rmct2-64_16-5.pbs`
- job_6=`qsub -W depend=afterok:$job_5 rmct2-64_16-6.pbs`
- job_7=`qsub -W depend=afterok:$job_6 rmct2-64_16-7.pbs`
- job_8=`qsub -W depend=afterok:$job_7 rmct2-64_16-8.pbs`
- job_9=`qsub -W depend=afterok:$job_8 rmct2-64_16-9.pbs`
+job_1=`qsub rmct2-64_16-1.pbs`
+job_2=`qsub -W depend=afterok:$job_1 rmct2-64_16-2.pbs`
+job_3=`qsub -W depend=afterok:$job_2 rmct2-64_16-3.pbs`
+job_4=`qsub -W depend=afterok:$job_3 rmct2-64_16-4.pbs`
+job_5=`qsub -W depend=afterok:$job_4 rmct2-64_16-5.pbs`
+job_6=`qsub -W depend=afterok:$job_5 rmct2-64_16-6.pbs`
+job_7=`qsub -W depend=afterok:$job_6 rmct2-64_16-7.pbs`
+job_8=`qsub -W depend=afterok:$job_7 rmct2-64_16-8.pbs`
+job_9=`qsub -W depend=afterok:$job_8 rmct2-64_16-9.pbs`
 
 job_10=`qsub -W depend=afterok:$job_9  rmct2-64_16-10.pbs`
 job_11=`qsub -W depend=afterok:$job_10 rmct2-64_16-11.pbs`

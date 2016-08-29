@@ -160,6 +160,8 @@ class redhallmhd
   double evalTotalGradCurrentSqd(       stack& run );
   double evalTotalFootPointKE(          stack& run );                 /* ~ Misnomer?                                 ~ */
   double evalTotalPoyntingFlux(         stack& run );                 /* ~ Poynting Flux                             ~ */
+  double evalTotalHelicalEnergy(        stack& run );                 /* ~ volumetric energy contribution due to     ~ */
+                                                                      /* ~ density gradient                          ~ */
 
                                                                       /* ~ Qty's vs z related                        ~ */
   void trackQtyVsZ(      RealVar t_cur, stack& run );                

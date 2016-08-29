@@ -544,67 +544,34 @@ std::string stack::getLastDataFilename(int srun) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates of layers ~ */
+void stack::initxyz() {                     /* ~ Calculate x, y and z coordinates of layers ~ */
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int     rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+  int     n1;   stack_data.fetch("n1",        &n1   );
+  int     n2;   stack_data.fetch("n2",        &n2   );
+  int     iu2;  stack_data.fetch("iu2",       &iu2  );
+  int     np;   palette.fetch(   "np",        &np   );
+  int     p3;   palette.fetch(   "p3",        &p3   );
 
-  int n1; 
-  stack_data.fetch("n1",    &n1 );
+  RealVar dz;   stack_data.fetch("dz",        &dz   );
+  RealVar zl;   palette.fetch(   "zl",        &zl   );
+
   x.reserve(n1);
-
-  RealVar dx = one / ((RealVar) n1);
-
-
-  RealVar next_x;
-  for (int i = 0; i < n1; ++i) {
-
-    next_x   = ( (RealVar) i) * dx; 
-    x.push_back(next_x);
-
-  }
-
-
-  int n2;
-  stack_data.fetch("n2",    &n2 );
   y.reserve(n2);
-
-  RealVar dy = one / ((RealVar) n2);
-
-  RealVar next_y;
-
-  for (int j = 0; j < n2; ++j) {
-
-    next_y   = ( (RealVar) j) * dy;
-    y.push_back(next_y);
-
-  }
-
-
-  int np;
-  palette.fetch(   "np"  , &np );
-
-  int p3;
-  palette.fetch(   "p3"  , &p3 );
-  int    iu2;
-  stack_data.fetch("iu2" , &iu2 );
-  RealVar dz;
-  stack_data.fetch("dz"  , &dz );
-  RealVar zl;
-  palette.fetch(   "zl"  , &zl );
-
-// z.reserve(iu2);
-
   z.reserve(p3 + 1);
 
+  RealVar dx = one / ((RealVar) n1);
+  RealVar dy = one / ((RealVar) n2);
+
   RealVar next_z;
+
+  for (int i = 0; i < n1; ++i) { x.push_back( ( (RealVar) i ) * dx ); }
+  for (int j = 0; j < n2; ++j) { y.push_back( ( (RealVar) j ) * dy ); }
 
   for (int i = 0; i < p3+1; ++i) {
 
     next_z   =  ((RealVar) (rank)) * (zl / ((RealVar) (np))) + (((RealVar) i) * dz);
     z.push_back(next_z);
- 
-    if (rank == 0) {std::cout << "next_z = " << next_z << std::endl; }
 
   }
 }
@@ -613,8 +580,7 @@ void stack::initxyz() {                     /* ~ Calculate x- and y-coordinates 
 
 void stack::writeParameters() {
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+  int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
 
   if (rank == 0) {palette.report("coronos.in"); }
 
@@ -624,17 +590,11 @@ void stack::writeParameters() {
 
 void stack::writeParameters(int srun) {
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank );
+  int         rank;      MPI_Comm_rank(MPI_COMM_WORLD, &rank      );
 
-  std::string prefix;
-  palette.fetch(   "prefix",  &prefix );
-
-  std::string res_str;
-  stack_data.fetch("res_str", &res_str);
-
-  std::string run_label;
-  palette.fetch("run_label",  &run_label);
+  std::string prefix;    palette.fetch(   "prefix",    &prefix    );
+  std::string res_str;   stack_data.fetch("res_str",   &res_str   );
+  std::string run_label; palette.fetch(   "run_label", &run_label );
 
   if (rank == 0) {palette.report(prefix + '_' + res_str, run_label, srun ); }
 

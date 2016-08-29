@@ -1,6 +1,7 @@
 #!/bin/bash
 
 evaluate() { 
+
          line=${line#$seek}                      # chop p1 off of line
           val=`echo $line | awk '{print $1}'`    # the line now starts with the value of p1
 }
@@ -60,7 +61,7 @@ fi
        edata_prefix=$prefix"_"$res_label".o"$run_label
         rand_prefix=$prefix"_"$res_label"r"
 
-rm  $job_prefix*.pbs
+#rm  $job_prefix*.pbs
 rm  $job_prefix*.pbs.[oe]*
 rm  $data_prefix???.o$run_label?
 rm  $data_prefix???.o$run_label??
@@ -73,12 +74,3 @@ rm  $edata_prefix
 rm  $rand_prefix?
 rm  $rand_prefix??
 rm  $rand_prefix???
-
-#rm -rf rmct2-*.pbs
-#rm -rf rmct2-*.pbs.*
-#rm -rf *.gz
-#rm -rf rmct2r.in
-#rm -rf gplot*
-#rm -rf *tgz
-#rm -rf rmct2_*.o$run_label*
-

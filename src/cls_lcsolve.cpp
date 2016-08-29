@@ -356,7 +356,13 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   unsigned kstop   = n1n2c * iu2;
 
-  RealVar rho;  physics.physics_data.fetch(  "rho", &rho  );  /* ~ gyro-radius parameter                                      ~ */
+  std::string model;
+  run.palette.fetch("model", &model);
+
+  RealVar rho;  
+  if (model.compare("hall") == 0) { physics.physics_data.fetch(  "rho", &rho ); } /* ~ gyro-radius parameter                                      ~ */
+  else { rho       = zero;                                                      }
+  
   RealVar beta; run.palette.fetch(          "beta", &beta );  /* ~ zero'th-order plasma-beta                                  ~ */
   RealVar rtbeta   = sqrt(beta);
 
@@ -392,8 +398,6 @@ void lcsolve::setB( std::string str_step, stack& run, redhallmhd& physics ) {
 
   RealArray& maxU  = physics.maxU;
 
-  std::string model;
-  run.palette.fetch("model", &model);
 
   partialsInXandY( run, physics, P, d1x, d1y);                  /* ~ d1x, d1y hold real-space partials in x and y of P          ~ */
 
@@ -519,7 +523,14 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   RealVar dz;
   run.stack_data.fetch("dz"       , &dz    );                                  /* ~ inter-layer width along z                   ~ */
   RealVar rho;
-  physics.physics_data.fetch("rho", &rho   );                                  /* ~ gyro-radius parameter                       ~ */
+//physics.physics_data.fetch("rho", &rho   );                                  /* ~ gyro-radius parameter                       ~ */
+
+  std::string model;
+  run.palette.fetch("model"       , &model );
+
+  if (model.compare("hall") == 0) { physics.physics_data.fetch(  "rho", &rho ); } /* ~ gyro-radius parameter                                      ~ */
+  else { rho       = zero;                                                      }
+
   RealVar beta;                           
   run.palette.fetch("beta"        , &beta  );                                  /* ~ zero'th-order plasma-beta                   ~ */
 
@@ -557,8 +568,6 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   kstart           = n1n2c;                                                    /* ~ D's are calculated for layers 1,2,3,..n3    ~ */
   kstop            = n1n2c * (iu2 - 1);                                        /* ~ layer 1 needs layer 0 and layer n3          ~ */
                                                                                /* ~ needs layer iu2 - 1                         ~ */
-  std::string model;
-  run.palette.fetch("model"       , &model );
 
   RealArray& valfven = physics.valfven;
 
@@ -691,7 +700,7 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
     RealVar eta; 
     run.palette.fetch(  "eta", &eta);
     RealVar ssqd;
-    physics.physics_data.fetch("ssqd", &ssqd);
+    run.palette.fetch("ssqd", &ssqd);
   
     unsigned kstart = 0;
     unsigned kstop  = n1n2c * iu2;

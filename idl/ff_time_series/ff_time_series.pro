@@ -178,8 +178,8 @@ cur_dir           = GETENV('PWD')
      ave          = MEAN(  AVL[i_beg:i_end])
      sigma        = STDDEV(AVL[i_beg:i_end])
 
-     PRINT, 'average value for field:       ', i_field, ' is ', ave
-     PRINT, 'standard deviation for field:  ', i_field, ' is ', sigma
+     PRINT, FORMAT = '(A31,i2,A4,E24.16)', 'average value for field:       ', i_field, ' is ', ave
+     PRINT, FORMAT = '(A31,i2,A4,E24.16)', 'standard deviation for field:  ', i_field, ' is ', sigma
 
      AVL[*]       = ave
 
