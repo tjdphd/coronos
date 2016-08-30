@@ -144,11 +144,26 @@ else # -> IF NOT-CUDA ==>
 
     # ->->-> CUDA:
 
-                 CUDA_H=""
-              CUDA_LIBS=""
-      CUDA_PATH_DEFAULT=""
+               CUDA_H=""
+            CUDA_LIBS=""
+    CUDA_PATH_DEFAULT=""
 
+    # ->->-> compiler info
+    
+    CRS_CXX="mpiCC CC"
+    AC_PROG_CXX([$CRS_CXX])
+    echo "CRS_CXX:      " $CRS_CXX
+    CRS_CC=" mpicc cc "
+    AC_PROG_CC([$CRS_CC])
+    echo "CRS_CC:       " $CRS_CC
+   
     # ->->-> FFT:
+
+#   PKG_CHECK_MODULES(FFTW, libfftw3 >= 3.3.3)
+#   PKG_CHECK_MODULES(FFTW, libfftw3)
+
+#     echo "FFTW_CFLAGS = " $FFTW_CFLAGS
+#     echo "FFTW_LIBS   = " $FFTW_LIBS
 
                  FFTW_H="fftw3.h"
       if test -n "$with_long_doubles"
@@ -187,6 +202,7 @@ else # -> IF NOT-CUDA ==>
 
 fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
+
 # Checks for programs.
 
 # Checks for libraries.
@@ -198,7 +214,15 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
 # -> FFT:
 
+# LDFLAGS="$LDFLAGS -L$FFTW_PATH_DEFAULT"
+# echo "LDFLAGS = " $LDFLAGS
+  AC_SEARCH_LIBS(fftw_plan_dft_1d, fftw3, [],[],[])
+
+  echo "ac_cv_search_fftw_plan_dft_1d = " $ac_cv_search_fftw_plan_dft_1d
+
+
   AC_MSG_CHECKING([whether FFTW_PATH is set])
+  
 
   if test -n "$FFTW_PATH"
   then
@@ -268,6 +292,11 @@ then
 else
                CUDA_INC=""
            CUDA_LDFLAGS=""
+
+#-> something in here about finding where mpi.h is
+
+
+
            BLAS_LDFLAGS="-L$BLAS_PATH/lib"
            FFTW_LDFLAGS="-L$FFTW_PATH/lib"
 fi
@@ -295,8 +324,8 @@ AC_SUBST(CRS_LIBS)
 AC_SUBST(CRS_LDFLAGS)
 AC_SUBST(CRS_NVCC)
 
-AC_PROG_CXX([$CRS_CXX])
-AC_PROG_CC([$CRS_CC])
+#AC_PROG_CXX([$CRS_CXX])
+#AC_PROG_CC([$CRS_CC])
 
 AM_CONDITIONAL([CUDA],[test -n "$with_cuda"])
 

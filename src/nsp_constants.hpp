@@ -36,7 +36,7 @@
 #ifndef NSP_CONSTANTS
 #define NSP_CONSTANTS
 
-#include<config.h>
+#include "../config.h"
 #include<vector>
 #include<complex>
 
