@@ -79,10 +79,10 @@ AUTOCONF = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoconf
 AUTOHEADER = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoheader
 AUTOMAKE = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run automake-1.11
 AWK = gawk
-CC = gcc
-CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2
-CPP = gcc -E
+CC = mpicc
+CCDEPMODE = depmode=none
+CFLAGS = -g
+CPP = mpicc -E
 CPPFLAGS = 
 CRS_CPPFLAGS =  -I.. -I/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include -I/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include
 CRS_LDFLAGS =  -L/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/lib -L/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/lib
@@ -129,7 +129,7 @@ abs_builddir = /center/w/tdennis10/dev/coronos/src
 abs_srcdir = /center/w/tdennis10/dev/coronos/src
 abs_top_builddir = /center/w/tdennis10/dev/coronos
 abs_top_srcdir = /center/w/tdennis10/dev/coronos
-ac_ct_CC = gcc
+ac_ct_CC = mpicc
 ac_ct_CXX = mpiCC
 am__include = include
 am__leading_dot = .
