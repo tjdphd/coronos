@@ -80,26 +80,26 @@ AUTOHEADER = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run autoheader
 AUTOMAKE = ${SHELL} /center/w/tdennis10/dev/coronos/missing --run automake-1.11
 AWK = gawk
 CC = mpicc
-CCDEPMODE = depmode=none
-CFLAGS = -g
-CPP = mpicc -E
+CCDEPMODE = depmode=gcc3
+CFLAGS = -g -O2
+CPP = 
 CPPFLAGS = 
-CRS_CPPFLAGS =  -I.. -I/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/include -I/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/include
-CRS_LDFLAGS =  -L/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4/lib -L/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3/lib
-CRS_LIBS =  -lfftw3 -lm -lgsl -lgslcblas
+CRS_CPPFLAGS =  -I.. -I/usr/local/pkg/fftw 
+CRS_LDFLAGS =  -L/usr/local/pkg/fftw
+CRS_LIBS =  -lfftw3 
 CRS_NVCC = 
 CXX = mpiCC
-CXXDEPMODE = depmode=none
-CXXFLAGS = -g
+CXXDEPMODE = depmode=gcc3
+CXXFLAGS = -g -O2
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /bin/grep -E
+EGREP = 
 EXEEXT = 
-GREP = /bin/grep
+GREP = 
 INCMPI = 
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
@@ -288,144 +288,144 @@ include ./$(DEPDIR)/coronos-cls_stack.Po
 include ./$(DEPDIR)/coronos-coronos.Po
 
 .cpp.o:
-#	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-#	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-	source='$<' object='$@' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXXCOMPILE) -c -o $@ $<
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+#	source='$<' object='$@' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXXCOMPILE) -c -o $@ $<
 
 .cpp.obj:
-#	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-#	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-	source='$<' object='$@' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+#	source='$<' object='$@' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 coronos-coronos.o: coronos.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-coronos.o -MD -MP -MF $(DEPDIR)/coronos-coronos.Tpo -c -o coronos-coronos.o `test -f 'coronos.cpp' || echo '$(srcdir)/'`coronos.cpp
-#	$(am__mv) $(DEPDIR)/coronos-coronos.Tpo $(DEPDIR)/coronos-coronos.Po
-	source='coronos.cpp' object='coronos-coronos.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-coronos.o `test -f 'coronos.cpp' || echo '$(srcdir)/'`coronos.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-coronos.o -MD -MP -MF $(DEPDIR)/coronos-coronos.Tpo -c -o coronos-coronos.o `test -f 'coronos.cpp' || echo '$(srcdir)/'`coronos.cpp
+	$(am__mv) $(DEPDIR)/coronos-coronos.Tpo $(DEPDIR)/coronos-coronos.Po
+#	source='coronos.cpp' object='coronos-coronos.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-coronos.o `test -f 'coronos.cpp' || echo '$(srcdir)/'`coronos.cpp
 
 coronos-coronos.obj: coronos.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-coronos.obj -MD -MP -MF $(DEPDIR)/coronos-coronos.Tpo -c -o coronos-coronos.obj `if test -f 'coronos.cpp'; then $(CYGPATH_W) 'coronos.cpp'; else $(CYGPATH_W) '$(srcdir)/coronos.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-coronos.Tpo $(DEPDIR)/coronos-coronos.Po
-	source='coronos.cpp' object='coronos-coronos.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-coronos.obj `if test -f 'coronos.cpp'; then $(CYGPATH_W) 'coronos.cpp'; else $(CYGPATH_W) '$(srcdir)/coronos.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-coronos.obj -MD -MP -MF $(DEPDIR)/coronos-coronos.Tpo -c -o coronos-coronos.obj `if test -f 'coronos.cpp'; then $(CYGPATH_W) 'coronos.cpp'; else $(CYGPATH_W) '$(srcdir)/coronos.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-coronos.Tpo $(DEPDIR)/coronos-coronos.Po
+#	source='coronos.cpp' object='coronos-coronos.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-coronos.obj `if test -f 'coronos.cpp'; then $(CYGPATH_W) 'coronos.cpp'; else $(CYGPATH_W) '$(srcdir)/coronos.cpp'; fi`
 
 coronos-cls_run_instance.o: cls_run_instance.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_run_instance.o -MD -MP -MF $(DEPDIR)/coronos-cls_run_instance.Tpo -c -o coronos-cls_run_instance.o `test -f 'cls_run_instance.cpp' || echo '$(srcdir)/'`cls_run_instance.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_run_instance.Tpo $(DEPDIR)/coronos-cls_run_instance.Po
-	source='cls_run_instance.cpp' object='coronos-cls_run_instance.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_run_instance.o `test -f 'cls_run_instance.cpp' || echo '$(srcdir)/'`cls_run_instance.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_run_instance.o -MD -MP -MF $(DEPDIR)/coronos-cls_run_instance.Tpo -c -o coronos-cls_run_instance.o `test -f 'cls_run_instance.cpp' || echo '$(srcdir)/'`cls_run_instance.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_run_instance.Tpo $(DEPDIR)/coronos-cls_run_instance.Po
+#	source='cls_run_instance.cpp' object='coronos-cls_run_instance.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_run_instance.o `test -f 'cls_run_instance.cpp' || echo '$(srcdir)/'`cls_run_instance.cpp
 
 coronos-cls_run_instance.obj: cls_run_instance.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_run_instance.obj -MD -MP -MF $(DEPDIR)/coronos-cls_run_instance.Tpo -c -o coronos-cls_run_instance.obj `if test -f 'cls_run_instance.cpp'; then $(CYGPATH_W) 'cls_run_instance.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_run_instance.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_run_instance.Tpo $(DEPDIR)/coronos-cls_run_instance.Po
-	source='cls_run_instance.cpp' object='coronos-cls_run_instance.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_run_instance.obj `if test -f 'cls_run_instance.cpp'; then $(CYGPATH_W) 'cls_run_instance.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_run_instance.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_run_instance.obj -MD -MP -MF $(DEPDIR)/coronos-cls_run_instance.Tpo -c -o coronos-cls_run_instance.obj `if test -f 'cls_run_instance.cpp'; then $(CYGPATH_W) 'cls_run_instance.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_run_instance.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_run_instance.Tpo $(DEPDIR)/coronos-cls_run_instance.Po
+#	source='cls_run_instance.cpp' object='coronos-cls_run_instance.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_run_instance.obj `if test -f 'cls_run_instance.cpp'; then $(CYGPATH_W) 'cls_run_instance.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_run_instance.cpp'; fi`
 
 coronos-cls_canvas.o: cls_canvas.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_canvas.o -MD -MP -MF $(DEPDIR)/coronos-cls_canvas.Tpo -c -o coronos-cls_canvas.o `test -f 'cls_canvas.cpp' || echo '$(srcdir)/'`cls_canvas.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_canvas.Tpo $(DEPDIR)/coronos-cls_canvas.Po
-	source='cls_canvas.cpp' object='coronos-cls_canvas.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_canvas.o `test -f 'cls_canvas.cpp' || echo '$(srcdir)/'`cls_canvas.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_canvas.o -MD -MP -MF $(DEPDIR)/coronos-cls_canvas.Tpo -c -o coronos-cls_canvas.o `test -f 'cls_canvas.cpp' || echo '$(srcdir)/'`cls_canvas.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_canvas.Tpo $(DEPDIR)/coronos-cls_canvas.Po
+#	source='cls_canvas.cpp' object='coronos-cls_canvas.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_canvas.o `test -f 'cls_canvas.cpp' || echo '$(srcdir)/'`cls_canvas.cpp
 
 coronos-cls_canvas.obj: cls_canvas.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_canvas.obj -MD -MP -MF $(DEPDIR)/coronos-cls_canvas.Tpo -c -o coronos-cls_canvas.obj `if test -f 'cls_canvas.cpp'; then $(CYGPATH_W) 'cls_canvas.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_canvas.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_canvas.Tpo $(DEPDIR)/coronos-cls_canvas.Po
-	source='cls_canvas.cpp' object='coronos-cls_canvas.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_canvas.obj `if test -f 'cls_canvas.cpp'; then $(CYGPATH_W) 'cls_canvas.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_canvas.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_canvas.obj -MD -MP -MF $(DEPDIR)/coronos-cls_canvas.Tpo -c -o coronos-cls_canvas.obj `if test -f 'cls_canvas.cpp'; then $(CYGPATH_W) 'cls_canvas.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_canvas.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_canvas.Tpo $(DEPDIR)/coronos-cls_canvas.Po
+#	source='cls_canvas.cpp' object='coronos-cls_canvas.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_canvas.obj `if test -f 'cls_canvas.cpp'; then $(CYGPATH_W) 'cls_canvas.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_canvas.cpp'; fi`
 
 coronos-cls_stack.o: cls_stack.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_stack.o -MD -MP -MF $(DEPDIR)/coronos-cls_stack.Tpo -c -o coronos-cls_stack.o `test -f 'cls_stack.cpp' || echo '$(srcdir)/'`cls_stack.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_stack.Tpo $(DEPDIR)/coronos-cls_stack.Po
-	source='cls_stack.cpp' object='coronos-cls_stack.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_stack.o `test -f 'cls_stack.cpp' || echo '$(srcdir)/'`cls_stack.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_stack.o -MD -MP -MF $(DEPDIR)/coronos-cls_stack.Tpo -c -o coronos-cls_stack.o `test -f 'cls_stack.cpp' || echo '$(srcdir)/'`cls_stack.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_stack.Tpo $(DEPDIR)/coronos-cls_stack.Po
+#	source='cls_stack.cpp' object='coronos-cls_stack.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_stack.o `test -f 'cls_stack.cpp' || echo '$(srcdir)/'`cls_stack.cpp
 
 coronos-cls_stack.obj: cls_stack.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_stack.obj -MD -MP -MF $(DEPDIR)/coronos-cls_stack.Tpo -c -o coronos-cls_stack.obj `if test -f 'cls_stack.cpp'; then $(CYGPATH_W) 'cls_stack.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_stack.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_stack.Tpo $(DEPDIR)/coronos-cls_stack.Po
-	source='cls_stack.cpp' object='coronos-cls_stack.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_stack.obj `if test -f 'cls_stack.cpp'; then $(CYGPATH_W) 'cls_stack.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_stack.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_stack.obj -MD -MP -MF $(DEPDIR)/coronos-cls_stack.Tpo -c -o coronos-cls_stack.obj `if test -f 'cls_stack.cpp'; then $(CYGPATH_W) 'cls_stack.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_stack.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_stack.Tpo $(DEPDIR)/coronos-cls_stack.Po
+#	source='cls_stack.cpp' object='coronos-cls_stack.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_stack.obj `if test -f 'cls_stack.cpp'; then $(CYGPATH_W) 'cls_stack.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_stack.cpp'; fi`
 
 coronos-cls_lcsolve.o: cls_lcsolve.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_lcsolve.o -MD -MP -MF $(DEPDIR)/coronos-cls_lcsolve.Tpo -c -o coronos-cls_lcsolve.o `test -f 'cls_lcsolve.cpp' || echo '$(srcdir)/'`cls_lcsolve.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_lcsolve.Tpo $(DEPDIR)/coronos-cls_lcsolve.Po
-	source='cls_lcsolve.cpp' object='coronos-cls_lcsolve.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_lcsolve.o `test -f 'cls_lcsolve.cpp' || echo '$(srcdir)/'`cls_lcsolve.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_lcsolve.o -MD -MP -MF $(DEPDIR)/coronos-cls_lcsolve.Tpo -c -o coronos-cls_lcsolve.o `test -f 'cls_lcsolve.cpp' || echo '$(srcdir)/'`cls_lcsolve.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_lcsolve.Tpo $(DEPDIR)/coronos-cls_lcsolve.Po
+#	source='cls_lcsolve.cpp' object='coronos-cls_lcsolve.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_lcsolve.o `test -f 'cls_lcsolve.cpp' || echo '$(srcdir)/'`cls_lcsolve.cpp
 
 coronos-cls_lcsolve.obj: cls_lcsolve.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_lcsolve.obj -MD -MP -MF $(DEPDIR)/coronos-cls_lcsolve.Tpo -c -o coronos-cls_lcsolve.obj `if test -f 'cls_lcsolve.cpp'; then $(CYGPATH_W) 'cls_lcsolve.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_lcsolve.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_lcsolve.Tpo $(DEPDIR)/coronos-cls_lcsolve.Po
-	source='cls_lcsolve.cpp' object='coronos-cls_lcsolve.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_lcsolve.obj `if test -f 'cls_lcsolve.cpp'; then $(CYGPATH_W) 'cls_lcsolve.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_lcsolve.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_lcsolve.obj -MD -MP -MF $(DEPDIR)/coronos-cls_lcsolve.Tpo -c -o coronos-cls_lcsolve.obj `if test -f 'cls_lcsolve.cpp'; then $(CYGPATH_W) 'cls_lcsolve.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_lcsolve.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_lcsolve.Tpo $(DEPDIR)/coronos-cls_lcsolve.Po
+#	source='cls_lcsolve.cpp' object='coronos-cls_lcsolve.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_lcsolve.obj `if test -f 'cls_lcsolve.cpp'; then $(CYGPATH_W) 'cls_lcsolve.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_lcsolve.cpp'; fi`
 
 coronos-cls_redhallmhd.o: cls_redhallmhd.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_redhallmhd.o -MD -MP -MF $(DEPDIR)/coronos-cls_redhallmhd.Tpo -c -o coronos-cls_redhallmhd.o `test -f 'cls_redhallmhd.cpp' || echo '$(srcdir)/'`cls_redhallmhd.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_redhallmhd.Tpo $(DEPDIR)/coronos-cls_redhallmhd.Po
-	source='cls_redhallmhd.cpp' object='coronos-cls_redhallmhd.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_redhallmhd.o `test -f 'cls_redhallmhd.cpp' || echo '$(srcdir)/'`cls_redhallmhd.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_redhallmhd.o -MD -MP -MF $(DEPDIR)/coronos-cls_redhallmhd.Tpo -c -o coronos-cls_redhallmhd.o `test -f 'cls_redhallmhd.cpp' || echo '$(srcdir)/'`cls_redhallmhd.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_redhallmhd.Tpo $(DEPDIR)/coronos-cls_redhallmhd.Po
+#	source='cls_redhallmhd.cpp' object='coronos-cls_redhallmhd.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_redhallmhd.o `test -f 'cls_redhallmhd.cpp' || echo '$(srcdir)/'`cls_redhallmhd.cpp
 
 coronos-cls_redhallmhd.obj: cls_redhallmhd.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_redhallmhd.obj -MD -MP -MF $(DEPDIR)/coronos-cls_redhallmhd.Tpo -c -o coronos-cls_redhallmhd.obj `if test -f 'cls_redhallmhd.cpp'; then $(CYGPATH_W) 'cls_redhallmhd.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_redhallmhd.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_redhallmhd.Tpo $(DEPDIR)/coronos-cls_redhallmhd.Po
-	source='cls_redhallmhd.cpp' object='coronos-cls_redhallmhd.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_redhallmhd.obj `if test -f 'cls_redhallmhd.cpp'; then $(CYGPATH_W) 'cls_redhallmhd.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_redhallmhd.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_redhallmhd.obj -MD -MP -MF $(DEPDIR)/coronos-cls_redhallmhd.Tpo -c -o coronos-cls_redhallmhd.obj `if test -f 'cls_redhallmhd.cpp'; then $(CYGPATH_W) 'cls_redhallmhd.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_redhallmhd.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_redhallmhd.Tpo $(DEPDIR)/coronos-cls_redhallmhd.Po
+#	source='cls_redhallmhd.cpp' object='coronos-cls_redhallmhd.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_redhallmhd.obj `if test -f 'cls_redhallmhd.cpp'; then $(CYGPATH_W) 'cls_redhallmhd.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_redhallmhd.cpp'; fi`
 
 coronos-cls_parameter_map.o: cls_parameter_map.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter_map.o -MD -MP -MF $(DEPDIR)/coronos-cls_parameter_map.Tpo -c -o coronos-cls_parameter_map.o `test -f 'cls_parameter_map.cpp' || echo '$(srcdir)/'`cls_parameter_map.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_parameter_map.Tpo $(DEPDIR)/coronos-cls_parameter_map.Po
-	source='cls_parameter_map.cpp' object='coronos-cls_parameter_map.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter_map.o `test -f 'cls_parameter_map.cpp' || echo '$(srcdir)/'`cls_parameter_map.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter_map.o -MD -MP -MF $(DEPDIR)/coronos-cls_parameter_map.Tpo -c -o coronos-cls_parameter_map.o `test -f 'cls_parameter_map.cpp' || echo '$(srcdir)/'`cls_parameter_map.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_parameter_map.Tpo $(DEPDIR)/coronos-cls_parameter_map.Po
+#	source='cls_parameter_map.cpp' object='coronos-cls_parameter_map.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter_map.o `test -f 'cls_parameter_map.cpp' || echo '$(srcdir)/'`cls_parameter_map.cpp
 
 coronos-cls_parameter_map.obj: cls_parameter_map.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter_map.obj -MD -MP -MF $(DEPDIR)/coronos-cls_parameter_map.Tpo -c -o coronos-cls_parameter_map.obj `if test -f 'cls_parameter_map.cpp'; then $(CYGPATH_W) 'cls_parameter_map.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter_map.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_parameter_map.Tpo $(DEPDIR)/coronos-cls_parameter_map.Po
-	source='cls_parameter_map.cpp' object='coronos-cls_parameter_map.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter_map.obj `if test -f 'cls_parameter_map.cpp'; then $(CYGPATH_W) 'cls_parameter_map.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter_map.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter_map.obj -MD -MP -MF $(DEPDIR)/coronos-cls_parameter_map.Tpo -c -o coronos-cls_parameter_map.obj `if test -f 'cls_parameter_map.cpp'; then $(CYGPATH_W) 'cls_parameter_map.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter_map.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_parameter_map.Tpo $(DEPDIR)/coronos-cls_parameter_map.Po
+#	source='cls_parameter_map.cpp' object='coronos-cls_parameter_map.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter_map.obj `if test -f 'cls_parameter_map.cpp'; then $(CYGPATH_W) 'cls_parameter_map.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter_map.cpp'; fi`
 
 coronos-cls_parameter.o: cls_parameter.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter.o -MD -MP -MF $(DEPDIR)/coronos-cls_parameter.Tpo -c -o coronos-cls_parameter.o `test -f 'cls_parameter.cpp' || echo '$(srcdir)/'`cls_parameter.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_parameter.Tpo $(DEPDIR)/coronos-cls_parameter.Po
-	source='cls_parameter.cpp' object='coronos-cls_parameter.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter.o `test -f 'cls_parameter.cpp' || echo '$(srcdir)/'`cls_parameter.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter.o -MD -MP -MF $(DEPDIR)/coronos-cls_parameter.Tpo -c -o coronos-cls_parameter.o `test -f 'cls_parameter.cpp' || echo '$(srcdir)/'`cls_parameter.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_parameter.Tpo $(DEPDIR)/coronos-cls_parameter.Po
+#	source='cls_parameter.cpp' object='coronos-cls_parameter.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter.o `test -f 'cls_parameter.cpp' || echo '$(srcdir)/'`cls_parameter.cpp
 
 coronos-cls_parameter.obj: cls_parameter.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter.obj -MD -MP -MF $(DEPDIR)/coronos-cls_parameter.Tpo -c -o coronos-cls_parameter.obj `if test -f 'cls_parameter.cpp'; then $(CYGPATH_W) 'cls_parameter.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_parameter.Tpo $(DEPDIR)/coronos-cls_parameter.Po
-	source='cls_parameter.cpp' object='coronos-cls_parameter.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter.obj `if test -f 'cls_parameter.cpp'; then $(CYGPATH_W) 'cls_parameter.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_parameter.obj -MD -MP -MF $(DEPDIR)/coronos-cls_parameter.Tpo -c -o coronos-cls_parameter.obj `if test -f 'cls_parameter.cpp'; then $(CYGPATH_W) 'cls_parameter.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_parameter.Tpo $(DEPDIR)/coronos-cls_parameter.Po
+#	source='cls_parameter.cpp' object='coronos-cls_parameter.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_parameter.obj `if test -f 'cls_parameter.cpp'; then $(CYGPATH_W) 'cls_parameter.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_parameter.cpp'; fi`
 
 coronos-cls_fft.o: cls_fft.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_fft.o -MD -MP -MF $(DEPDIR)/coronos-cls_fft.Tpo -c -o coronos-cls_fft.o `test -f 'cls_fft.cpp' || echo '$(srcdir)/'`cls_fft.cpp
-#	$(am__mv) $(DEPDIR)/coronos-cls_fft.Tpo $(DEPDIR)/coronos-cls_fft.Po
-	source='cls_fft.cpp' object='coronos-cls_fft.o' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_fft.o `test -f 'cls_fft.cpp' || echo '$(srcdir)/'`cls_fft.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_fft.o -MD -MP -MF $(DEPDIR)/coronos-cls_fft.Tpo -c -o coronos-cls_fft.o `test -f 'cls_fft.cpp' || echo '$(srcdir)/'`cls_fft.cpp
+	$(am__mv) $(DEPDIR)/coronos-cls_fft.Tpo $(DEPDIR)/coronos-cls_fft.Po
+#	source='cls_fft.cpp' object='coronos-cls_fft.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_fft.o `test -f 'cls_fft.cpp' || echo '$(srcdir)/'`cls_fft.cpp
 
 coronos-cls_fft.obj: cls_fft.cpp
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_fft.obj -MD -MP -MF $(DEPDIR)/coronos-cls_fft.Tpo -c -o coronos-cls_fft.obj `if test -f 'cls_fft.cpp'; then $(CYGPATH_W) 'cls_fft.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_fft.cpp'; fi`
-#	$(am__mv) $(DEPDIR)/coronos-cls_fft.Tpo $(DEPDIR)/coronos-cls_fft.Po
-	source='cls_fft.cpp' object='coronos-cls_fft.obj' libtool=no \
-	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_fft.obj `if test -f 'cls_fft.cpp'; then $(CYGPATH_W) 'cls_fft.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_fft.cpp'; fi`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coronos-cls_fft.obj -MD -MP -MF $(DEPDIR)/coronos-cls_fft.Tpo -c -o coronos-cls_fft.obj `if test -f 'cls_fft.cpp'; then $(CYGPATH_W) 'cls_fft.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_fft.cpp'; fi`
+	$(am__mv) $(DEPDIR)/coronos-cls_fft.Tpo $(DEPDIR)/coronos-cls_fft.Po
+#	source='cls_fft.cpp' object='coronos-cls_fft.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(coronos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coronos-cls_fft.obj `if test -f 'cls_fft.cpp'; then $(CYGPATH_W) 'cls_fft.cpp'; else $(CYGPATH_W) '$(srcdir)/cls_fft.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

@@ -651,6 +651,7 @@ INCMPI
 EGREP
 GREP
 CPP
+NVCC
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -673,7 +674,6 @@ CPPFLAGS
 LDFLAGS
 CXXFLAGS
 CXX
-NVCC
 am__untar
 am__tar
 AMTAR
@@ -738,8 +738,8 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 with_long_doubles
-with_cuda
 enable_dependency_tracking
+with_cuda
 '
       ac_precious_vars='build_alias
 host_alias
@@ -2374,6 +2374,7 @@ ac_config_headers="$ac_config_headers config.h"
 
 
 # Get the architecture
+# -> if ARCH is 64 are lib64's gauranteed to exist?
 
 { $as_echo "$as_me:$LINENO: checking architecture" >&5
 $as_echo_n "checking architecture... " >&6; }
@@ -2406,218 +2407,21 @@ fi
 
 if test -n "$with_long_doubles"
 then
-  echo "with_long_doubles = " $with_long_doubles
   cat >>confdefs.h <<\_ACEOF
 #define LD_PRECISION_H 1
 _ACEOF
 
 else
-  echo "with_long_doubles = " $with_long_doubles
   cat >>confdefs.h <<\_ACEOF
 #define OD_PRECISION_H 1
 _ACEOF
 
 fi
 
-# Check for CUDA
-
-
-
-
-
-
-
-# Check whether --with-cuda was given.
-if test "${with_cuda+set}" = set; then
-  withval=$with_cuda;
-fi
-
-
-
-# Start CUDA vs. NOT-CUDA CONDITIONAL
-# -> IF CUDA ==>
-
-if test -n "$with_cuda"
-then
-
-  # -> first check if the request makes sense:
-
-  # ->-> try nvcc --version
-
-                   NVCC=""
-    # Extract the first word of "nvcc", so it can be a program name with args.
-set dummy nvcc; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_NVCC+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$NVCC"; then
-  ac_cv_prog_NVCC="$NVCC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_NVCC="nvcc"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_NVCC" && ac_cv_prog_NVCC=""""
-fi
-fi
-NVCC=$ac_cv_prog_NVCC
-if test -n "$NVCC"; then
-  { $as_echo "$as_me:$LINENO: result: $NVCC" >&5
-$as_echo "$NVCC" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-
-    echo "NVCC = " $NVCC
-
-  # ->-> try whereis
-
-              WHERECUDA=""
-    if test ! -n "$NVCC"
-    then
-              WHERECUDA=`whereis cuda`
-              WHERECUDA=${WHERECUDA#cuda:}
-      echo "WHERECUDA" =$WHERECUDA
-    fi
-
-         USR_LOCAL_CUDA="/usr/local/cuda"
-
-    if test -n "$WHERECUDA"
-    then
-      echo "CHAKRAH!"
-                  W_LEN=${#WHERECUDA}
-                    POS=`expr $W_LEN - 15`
-      TEST_CUDA_DEFAULT=${WHERECUDA:$POS}
-      echo "TEST_CUDA_DEFAULT = " $TEST_CUDA_DEFAULT
-    else
-      TEST_CUDA_DEFAULT=""
-    fi
-
-    if test x$TEST_CUDA_DEFAULT == x$USR_LOCAL_CUDA
-    then
-      TEST_CUDA_DEFAULT="$TEST_CUDA_DEFAULT/bin"
-      echo "TEST_CUDA_DEFAULT = " $TEST_CUDA_DEFAULT
-                   NVCC=""
-      # Extract the first word of "nvcc", so it can be a program name with args.
-set dummy nvcc; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_NVCC+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$NVCC"; then
-  ac_cv_prog_NVCC="$NVCC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $TEST_CUDA_DEFAULT
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_NVCC="nvcc"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_NVCC" && ac_cv_prog_NVCC=""""
-fi
-fi
-NVCC=$ac_cv_prog_NVCC
-if test -n "$NVCC"; then
-  { $as_echo "$as_me:$LINENO: result: $NVCC" >&5
-$as_echo "$NVCC" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    fi
-
-    if test ! -n "$NVCC"
-    then
-      { { $as_echo "$as_me:$LINENO: error: cuda not found, check modules and try again" >&5
-$as_echo "$as_me: error: cuda not found, check modules and try again" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_CUDA_H 1
-_ACEOF
-
-
-  # ->-> Establish library search variables for headers and paths
-
-  # ->-> CUDA:
-
-                 CUDA_H="cuda.h"
-              CUDA_LIBS=" -lcudart"
-
-  # ->-> FFT:
-
-
-  if test -n "$CRAY_CUDATOOLKIT_DIR"
-  then
-      CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-      FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-      BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-  else
-      CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-      FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-      BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
-  fi
-
-                 FFTW_H="cufft.h"
-               CUFFTW_H="cufftw.h"
-              FFTW_LIBS=" -lcufft -lcufftw"
-
- # ->-> BLAS:
-
-                 BLAS_H="cublas.h"
-              BLAS_LIBS=" -lcublas"
-
-                CRS_CXX="mpiCC CC"
-                 CRS_CC=" mpicc cc "
-
-else # -> IF NOT-CUDA ==>
-
-  cat >>confdefs.h <<\_ACEOF
-#define DONT_HAVE_CUDA_H 1
-_ACEOF
-
-
-  # ->-> Establish library search variables for headers and paths
-
-    # ->->-> CUDA:
-
-               CUDA_H=""
-            CUDA_LIBS=""
-    CUDA_PATH_DEFAULT=""
-
     # ->->-> compiler info
 
-    CRS_CXX="mpiCC CC"
-    ac_ext=cpp
+  CRS_CXX="mpiCC CC gcc"
+  ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -3428,9 +3232,10 @@ else
 fi
 
 
-    echo "CRS_CXX:      " $CRS_CXX
-    CRS_CC=" mpicc cc "
-    ac_ext=c
+  { $as_echo "$as_me:$LINENO: result: $CRS_CXX" >&5
+$as_echo "$CRS_CXX" >&6; }
+  CRS_CC=" mpicc cc  gcc"
+  ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -4048,180 +3853,192 @@ else
 fi
 
 
-    echo "CRS_CC:       " $CRS_CC
+  { $as_echo "$as_me:$LINENO: result: $CRS_CC" >&5
+$as_echo "$CRS_CC" >&6; }
 
-    # ->->-> FFT:
-
-#   PKG_CHECK_MODULES(FFTW, libfftw3 >= 3.3.3)
-#   PKG_CHECK_MODULES(FFTW, libfftw3)
-
-#     echo "FFTW_CFLAGS = " $FFTW_CFLAGS
-#     echo "FFTW_LIBS   = " $FFTW_LIBS
-
-                 FFTW_H="fftw3.h"
-      if test -n "$with_long_doubles"
-      then
-              FFTW_LIBS="-lfftw3l -lm"
-      else
-              FFTW_LIBS="-lfftw3 -lm"
-      fi
-
-    if test -n "$CRAY_FFTW_DIR"
-    then
-      FFTW_PATH_DEFAULT="$CRAY_FFTW_DIR/interlagos"
-    else
-      if test -n "$with_long_doubles"
-      then
-        FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.precision.pgi-13.4"
-      else
-        FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4"
-      fi
-    fi
-
-    # ->->-> BLAS
-
-                 BLAS_H="gsl/gsl_blas.h"
-    if test -n "$GSL_ROOT"
-    then
-      BLAS_PATH_DEFAULT="$GSL_ROOT"
-    else
-      BLAS_PATH_DEFAULT="/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3"
-    fi
-
-              BLAS_LIBS="-lgsl -lgslcblas"
-
-                CRS_CXX="mpiCC CC"
-                 CRS_CC="mpicc cc"
-
-fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
+# Check for CUDA
 
 
-# Checks for programs.
 
-# Checks for libraries.
 
-#AC_CHECK_FILE(config.h,[AC_MSG_RESULT([$ac_cv_file_config.h])],[AC_MSG_RESULT([$ac_cv_file_config.h])])
-#AC_LIB_LINKFLAGS(fftw3,[])
 
-# Checks for header files.
 
-# -> FFT:
 
-# LDFLAGS="$LDFLAGS -L$FFTW_PATH_DEFAULT"
-# echo "LDFLAGS = " $LDFLAGS
+# Check whether --with-cuda was given.
+if test "${with_cuda+set}" = set; then
+  withval=$with_cuda;
+fi
 
-{ $as_echo "$as_me:$LINENO: checking for library containing fftw_plan_dft_1d" >&5
-$as_echo_n "checking for library containing fftw_plan_dft_1d... " >&6; }
-if test "${ac_cv_search_fftw_plan_dft_1d+set}" = set; then
+
+# Start CUDA vs. NOT-CUDA CONDITIONAL
+# -> IF CUDA ==>
+
+if test -n "$with_cuda"
+then
+
+  # -> first check if the request makes sense:
+
+  # ->-> try nvcc --version
+
+                   NVCC=""
+    # Extract the first word of "nvcc", so it can be a program name with args.
+set dummy nvcc; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_NVCC+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  ac_func_search_save_LIBS=$LIBS
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char fftw_plan_dft_1d ();
-int
-main ()
-{
-return fftw_plan_dft_1d ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' fftw3; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 $as_test_x conftest$ac_exeext
-       }; then
-  ac_cv_search_fftw_plan_dft_1d=$ac_res
+  if test -n "$NVCC"; then
+  ac_cv_prog_NVCC="$NVCC" # Let the user override the test.
 else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-
-fi
-
-rm -rf conftest.dSYM
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext
-  if test "${ac_cv_search_fftw_plan_dft_1d+set}" = set; then
-  break
-fi
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_NVCC="nvcc"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
 done
-if test "${ac_cv_search_fftw_plan_dft_1d+set}" = set; then
-  :
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_NVCC" && ac_cv_prog_NVCC=""""
+fi
+fi
+NVCC=$ac_cv_prog_NVCC
+if test -n "$NVCC"; then
+  { $as_echo "$as_me:$LINENO: result: $NVCC" >&5
+$as_echo "$NVCC" >&6; }
 else
-  ac_cv_search_fftw_plan_dft_1d=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_search_fftw_plan_dft_1d" >&5
-$as_echo "$ac_cv_search_fftw_plan_dft_1d" >&6; }
-ac_res=$ac_cv_search_fftw_plan_dft_1d
-if test "$ac_res" != no; then
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-
-  echo "ac_cv_search_fftw_plan_dft_1d = " $ac_cv_search_fftw_plan_dft_1d
-
-
-  { $as_echo "$as_me:$LINENO: checking whether FFTW_PATH is set" >&5
-$as_echo_n "checking whether FFTW_PATH is set... " >&6; }
-
-
-  if test -n "$FFTW_PATH"
-  then
-    { $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
-    { $as_echo "$as_me:$LINENO: FFTW_PATH = $FFTW_PATH" >&5
-$as_echo "$as_me: FFTW_PATH = $FFTW_PATH" >&6;}
-  else
-    { $as_echo "$as_me:$LINENO: result: no" >&5
+  { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
-              FFTW_PATH=$FFTW_PATH_DEFAULT
-    { $as_echo "$as_me:$LINENO: WARNING: FFTW_PATH not set, using default: $FFTW_PATH" >&5
-$as_echo "$as_me: WARNING: FFTW_PATH not set, using default: $FFTW_PATH" >&2;}
+fi
+
+
+
+    echo "NVCC = " $NVCC
+
+  # ->-> try whereis
+
+              WHERECUDA=""
+    if test ! -n "$NVCC"
+    then
+              WHERECUDA=`whereis cuda`
+              WHERECUDA=${WHERECUDA#cuda:}
+      echo "WHERECUDA" =$WHERECUDA
+    fi
+
+         USR_LOCAL_CUDA="/usr/local/cuda"
+
+    if test -n "$WHERECUDA"
+    then
+      echo "CHAKRAH!"
+                  W_LEN=${#WHERECUDA}
+                    POS=`expr $W_LEN - 15`
+      TEST_CUDA_DEFAULT=${WHERECUDA:$POS}
+      echo "TEST_CUDA_DEFAULT = " $TEST_CUDA_DEFAULT
+    else
+      TEST_CUDA_DEFAULT=""
+    fi
+
+    if test x$TEST_CUDA_DEFAULT == x$USR_LOCAL_CUDA
+    then
+      TEST_CUDA_DEFAULT="$TEST_CUDA_DEFAULT/bin"
+      echo "TEST_CUDA_DEFAULT = " $TEST_CUDA_DEFAULT
+                   NVCC=""
+      # Extract the first word of "nvcc", so it can be a program name with args.
+set dummy nvcc; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_NVCC+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$NVCC"; then
+  ac_cv_prog_NVCC="$NVCC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $TEST_CUDA_DEFAULT
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_NVCC="nvcc"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_NVCC" && ac_cv_prog_NVCC=""""
+fi
+fi
+NVCC=$ac_cv_prog_NVCC
+if test -n "$NVCC"; then
+  { $as_echo "$as_me:$LINENO: result: $NVCC" >&5
+$as_echo "$NVCC" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    fi
+
+    if test ! -n "$NVCC"
+    then
+      { { $as_echo "$as_me:$LINENO: error: cuda not found, check modules and try again" >&5
+$as_echo "$as_me: error: cuda not found, check modules and try again" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_CUDA_H 1
+_ACEOF
+
+
+  # ->-> Establish library search variables for headers and paths
+
+  # ->-> CUDA:
+
+                 CUDA_H="cuda.h"
+              CUDA_LIBS=" -lcudart"
+
+  # ->-> FFT:
+
+
+  if test -n "$CRAY_CUDATOOLKIT_DIR"
+  then
+      CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+  else
+      CUDA_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      FFTW_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
+      BLAS_PATH_DEFAULT="$CRAY_CUDATOOLKIT_DIR"
   fi
 
-  { $as_echo "$as_me:$LINENO: checking header $FFTW_H " >&5
-$as_echo_n "checking header $FFTW_H ... " >&6; }
-  ac_ext=c
+                 FFTW_H="cufft.h"
+               CUFFTW_H="cufftw.h"
+              FFTW_LIBS=" -lcufft -lcufftw"
+
+ # ->-> BLAS:
+
+                 BLAS_H="cublas.h"
+              BLAS_LIBS=" -lcublas"
+
+                CRS_CXX="mpiCC CC"
+                 CRS_CC=" mpicc cc "
+
+  { $as_echo "$as_me:$LINENO: checking header $CUFFTW_H " >&5
+$as_echo_n "checking header $CUFFTW_H ... " >&6; }
+
+ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -4844,7 +4661,7 @@ done
 
 
 
-for ac_header in $FFTW_PATH/include/$FFTW_H
+for ac_header in $FFTW_PATH/include/$CUFFTW_H
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -4994,10 +4811,59 @@ fi
 
 done
 
-  { $as_echo "$as_me:$LINENO: checking header $CUFFTW_H " >&5
-$as_echo_n "checking header $CUFFTW_H ... " >&6; }
 
-for ac_header in $FFTW_PATH/include/$CUFFTW_H
+else # -> IF NOT-CUDA ==>
+
+  cat >>confdefs.h <<\_ACEOF
+#define DONT_HAVE_CUDA_H 1
+_ACEOF
+
+
+  # ->-> Establish library search variables for headers and paths
+
+    # ->->-> CUDA:
+
+               CUDA_H=""
+            CUDA_LIBS=""
+    CUDA_PATH_DEFAULT=""
+
+
+    # ->->-> FFT:
+
+                    FFTW_H="fftw3.h"
+                 FFTW_LIBS="-lfftw3"
+
+         FFTW_PATH_DEFAULT="/usr/local/pkg/fftw"
+
+fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
+
+# Checks for programs.
+
+# Checks for libraries.
+
+# Checks for header files.
+
+  { $as_echo "$as_me:$LINENO: checking whether FFTW_PATH is set" >&5
+$as_echo_n "checking whether FFTW_PATH is set... " >&6; }
+
+  if test -n "$FFTW_PATH"
+  then
+    { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+    { $as_echo "$as_me:$LINENO: FFTW_PATH = $FFTW_PATH" >&5
+$as_echo "$as_me: FFTW_PATH = $FFTW_PATH" >&6;}
+  else
+    { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+              FFTW_PATH=$FFTW_PATH_DEFAULT
+    { $as_echo "$as_me:$LINENO: WARNING: FFTW_PATH not set, using default: $FFTW_PATH" >&5
+$as_echo "$as_me: WARNING: FFTW_PATH not set, using default: $FFTW_PATH" >&2;}
+  fi
+
+  { $as_echo "$as_me:$LINENO: checking header $FFTW_H " >&5
+$as_echo_n "checking header $FFTW_H ... " >&6; }
+
+for ac_header in $FFTW_PATH/include/$FFTW_H
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -5333,10 +5199,9 @@ done
 
 # Wrap up
 
-               FFTW_INC="$FFTW_PATH/include"
-               BLAS_INC="$BLAS_PATH/include"
+               FFTW_INC="$FFTW_PATH"
 
-          CRS_INC_FLAGS=" -I.. -I$FFTW_INC -I$BLAS_INC"
+          CRS_INC_FLAGS=" -I.. -I$FFTW_INC "
 
 if test ! -n "$CUDA_PATH"
 then
@@ -5359,15 +5224,12 @@ else
 
 #-> something in here about finding where mpi.h is
 
-
-
-           BLAS_LDFLAGS="-L$BLAS_PATH/lib"
-           FFTW_LDFLAGS="-L$FFTW_PATH/lib"
+           FFTW_LDFLAGS="-L$FFTW_PATH"
 fi
 
-               CRS_LIBS="$CUDA_LIBS $FFTW_LIBS $BLAS_LIBS"
+               CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
            CRS_CPPFLAGS="$CRS_INC_FLAGS"
-            CRS_LDFLAGS="$CUDA_LDFLAGS $FFTW_LDFLAGS $BLAS_LDFLAGS"
+            CRS_LDFLAGS="$CUDA_LDFLAGS $FFTW_LDFLAGS"
 
 echo "CUDA_PATH:    " $CUDA_PATH
 echo "FFTW_PATH:    " $FFTW_PATH
@@ -5387,9 +5249,6 @@ echo "CRS_LDFLAGS:  " $CRS_LDFLAGS
 
 
 
-
-#AC_PROG_CXX([$CRS_CXX])
-#AC_PROG_CC([$CRS_CC])
 
  if test -n "$with_cuda"; then
   CUDA_TRUE=
