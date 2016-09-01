@@ -39,7 +39,7 @@ else
   AC_DEFINE([OD_PRECISION_H])
 fi
 
-    # ->->-> compiler info
+  # ->->-> compiler info
     
   CRS_CXX="mpiCC CC gcc"
   AC_PROG_CXX([$CRS_CXX])
@@ -158,21 +158,13 @@ else # -> IF NOT-CUDA ==>
             CUDA_LIBS=""
     CUDA_PATH_DEFAULT=""
 
-   
+            USR_LOCAL="/usr/local"
+
     # ->->-> FFT:
 
-                    FFTW_H="fftw3.h"
-                 FFTW_LIBS="-lfftw3"
-
-         FFTW_PATH_DEFAULT="/usr/local/pkg/fftw"
-
-fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
-
-# Checks for programs.
-
-# Checks for libraries.
-
-# Checks for header files.
+    FFTW_PATH_DEFAULT="$USR_LOCAL/fftw"
+               FFTW_H="fftw3.h"
+            FFTW_LIBS="-lfftw3 -lm"
 
   AC_MSG_CHECKING([whether FFTW_PATH is set])
 
@@ -182,30 +174,140 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
     AC_MSG_NOTICE([FFTW_PATH = $FFTW_PATH])
   else
     AC_MSG_RESULT([no])
-              FFTW_PATH=$FFTW_PATH_DEFAULT
-    AC_MSG_WARN([FFTW_PATH not set, using default: $FFTW_PATH])
+    AC_MSG_WARN([FFTW_PATH not set])
+
+    AC_MSG_CHECKING([if FFTW is available])
+    FFTW_DIR_NUM=`ls -1d $USR_LOCAL/fftw* 2>/dev/null | wc -l`
+    if [[ $FFTW_DIR_NUM -eq '0' ]]
+    then
+      USR_LOC_PKG=`ls -1d /usr/local/pkg 2>/dev/null`
+      if test -n $USR_LOC_PKG
+      then
+        echo "USR_LOC_PKG = " $USR_LOC_PKG
+        FFTW_DIR_NUM=`ls -1d $USR_LOC_PKG/fftw* 2>/dev/null | wc -l`
+        if [[ "$FFTW_DIR_NUM" -eq "0" ]]
+        then
+          echo "FFTW_DIR_NUM = " $FFTW_DIR_NUM
+          AC_MSG_ERROR([after valient effort, giving up seeking FFTW_PATH. Please set manually],[1])
+        else 
+          if [[ "$FFTW_DIR_NUM" -eq "1" ]]
+          then
+            FFTW_ROOT_DIR=`ls -1d $USR_LOC_PKG/fftw*`
+          else
+            AC_MSG_WARN([found multiple FFTW directories, proceeding with caution, but you may want to set FFTW_PATH manually ])
+            FFTW_ROOT_DIR=`ls -1d /usr/local`
+          fi
+        fi
+      fi
+    fi    # should have FFTW_ROOT_DIR by now still need to set FFTW_PATH
+    echo "FFTW_ROOT_DIR = " $FFTW_ROOT_DIR
+
+    if test -r $FFTW_ROOT_DIR
+    then
+      FFTW_INC_FOUND=`ls -1d $FFTW_ROOT_DIR/include 2>/dev/null | wc -l`
+
+      if [[ "$FFTW_INC_FOUND" -eq "1" ]] 
+      then
+        FFTW_PATH=$FFTW_ROOT_DIR
+      else
+        FFTW_DIR_NUM=`ls -1d $FFTW_ROOT_DIR/fftw* 2>/dev/null | wc -l`
+        if [[ "$FFTW_DIR_NUM" -eq "1" ]]
+        then
+          FFTW_ROOT_DIR=`ls -1d $FFTW_ROOT_DIR/fftw*`
+          if test -r $FFTW_ROOT_DIR
+          then
+            FFTW_INC_FOUND=`ls -1d $FFTW_ROOT_DIR/include`
+            if [[ "$FFTW_INC_FOUND" -eq "1" ]] 
+            then
+              FFTW_PATH=$FFTW_ROOT_DIR
+            else
+              AC_MSG_ERROR([after valient effort, giving up seeking FFTW_PATH. Please set manually],[1])
+            fi
+          else
+            FFTW_PATH=$FFTW_ROOT_DIR
+            AC_MSG_WARN([Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
+          fi
+        else
+          if test -n "$LOADEDMODULES" 
+          then
+           PGI_LOADED=`echo $LOADEDMODULES | grep -i pgi`
+           INTEL_LOADED=`echo $LOADEDMODULES | grep -i intel`
+           echo "INTEL_LOADED=" $INTEL_LOADED
+          fi
+
+          if test -n "$PGI_LOADED" 
+          then
+
+            echo "PGI_LOADED = " $PGI_LOADED
+            echo "PGI        = " $PGI
+
+            if test -n "$PGI"
+            then
+              PGI_VER=${PGI##"$USR_LOC_PKG/pgi/"}
+              if test -n "$with_long_doubles"
+              then
+                PGI_VER=".precision."$PGI_VER
+              fi
+              echo "PGI_VER = " $PGI_VER
+              if test -n "$PGI_VER"
+              then
+                FFTW_PGI_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*.?.$PGI_VER* 2>/dev/null`
+                if test -n "$FFTW_PGI_VER" 
+                then
+                  if test -e $FFTW_PGI_VER
+                  then
+                    FFTW_PATH=$FFTW_PGI_VER
+                  else
+                    FFTW_PATH=$FFTW_ROOT_DIR
+                    AC_MSG_WARN([the directory $FFTW_PGI_VER does not exist!])
+                  fi
+                fi
+              fi
+            fi
+          fi
+        fi
+      fi
+    else
+      FFTW_PATH=$FFTW_ROOT_DIR
+      AC_MSG_WARN([Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
+    fi
+
+    AC_MSG_NOTICE([FFTW_PATH set to $FFTW_PATH])
+
+    FFTW_INC="$FFTW_PATH/include"
+    FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+
   fi
 
-  AC_MSG_CHECKING([header $FFTW_H ])
-  AC_CHECK_HEADERS([$FFTW_PATH/include/$FFTW_H],[],[],[])
+fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
+
+# Checks for programs.
+
+# Checks for libraries.
+
+# Checks for header files.
+
+AC_CHECK_HEADERS([$FFTW_INC/$FFTW_H],[
+AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejection by the pre-processor.])
+],[],[])
 
 # -> BLAS:
 
-  AC_MSG_CHECKING([whether BLAS_PATH is set])
+# AC_MSG_CHECKING([whether BLAS_PATH is set])
 
 # -> -> BLAS headers
 
-  if test -n "$BLAS_PATH"
-  then
-    AC_MSG_RESULT([yes])
-    AC_MSG_NOTICE([BLAS_PATH=$BLAS_PATH])
-  else
-    AC_MSG_RESULT([no])
-              BLAS_PATH=$BLAS_PATH_DEFAULT
-    AC_MSG_WARN([BLAS_PATH not set, using default: $BLAS_PATH])
-  fi
+# if test -n "$BLAS_PATH"
+# then
+#   AC_MSG_RESULT([yes])
+#   AC_MSG_NOTICE([BLAS_PATH=$BLAS_PATH])
+# else
+#   AC_MSG_RESULT([no])
+#             BLAS_PATH=$BLAS_PATH_DEFAULT
+#   AC_MSG_WARN([BLAS_PATH not set, using default: $BLAS_PATH])
+# fi
 
-  AC_CHECK_HEADERS([$BLAS_PATH/include/$BLAS_H],[],[],[])
+# AC_CHECK_HEADERS([$BLAS_PATH/include/$BLAS_H],[],[],[])
 
 # -> -> BLAS libs
 
@@ -219,7 +321,6 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
 # Wrap up
 
-               FFTW_INC="$FFTW_PATH"
 
           CRS_INC_FLAGS=" -I.. -I$FFTW_INC "
 
@@ -237,14 +338,14 @@ then
           CRS_INC_FLAGS="-I$CUDA_INC -I$INCMPI $CRS_INC_FLAGS"
            CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
            BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
-           FFTW_LDFLAGS="-L$FFTW_PATH/lib$SUFFIX"
+           FFTW_LDFLAGS="-L$FFTW_LIB"
 else
                CUDA_INC=""
            CUDA_LDFLAGS=""
 
 #-> something in here about finding where mpi.h is
 
-           FFTW_LDFLAGS="-L$FFTW_PATH"
+           FFTW_LDFLAGS="-L$FFTW_PATH/lib"
 fi
 
                CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
