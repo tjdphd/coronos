@@ -159,6 +159,7 @@ else # -> IF NOT-CUDA ==>
     CUDA_PATH_DEFAULT=""
 
             USR_LOCAL="/usr/local"
+                 OPT="/opt"
 
     # ->->-> FFT:
 
@@ -177,41 +178,90 @@ else # -> IF NOT-CUDA ==>
     AC_MSG_WARN([FFTW_PATH not set])
 
     AC_MSG_CHECKING([if FFTW is available])
-    FFTW_DIR_NUM=`ls -1d $USR_LOCAL/fftw* 2>/dev/null | wc -l`
-    if [[ $FFTW_DIR_NUM -eq '0' ]]
+    FFTW_DIR_NUM=`ls -1d $OPT/fftw* 2>/dev/null | wc -l`
+    echo "FFTW_DIR_NUM = " $FFTW_DIR_NUM
+    if [[ $FFTW_DIR_NUM -eq '1' ]]
     then
-      USR_LOC_PKG=`ls -1d /usr/local/pkg 2>/dev/null`
-      if test -n $USR_LOC_PKG
+    FFTW_ROOT_DIR=`ls -1d $OPT/fftw* 2>/dev/null`
+    elif [[ $FFTW_DIR_NUM -eq '0' ]]
+    then
+      FFTW_DIR_NUM=`ls -1d $USR_LOCAL/fftw* 2>/dev/null | wc -l`
+      if [[ $FFTW_DIR_NUM -eq '0' ]]
       then
-        echo "USR_LOC_PKG = " $USR_LOC_PKG
-        FFTW_DIR_NUM=`ls -1d $USR_LOC_PKG/fftw* 2>/dev/null | wc -l`
-        if [[ "$FFTW_DIR_NUM" -eq "0" ]]
+        USR_LOC_PKG=`ls -1d /usr/local/pkg 2>/dev/null`
+        if test -n $USR_LOC_PKG
         then
-          echo "FFTW_DIR_NUM = " $FFTW_DIR_NUM
-          AC_MSG_ERROR([after valient effort, giving up seeking FFTW_PATH. Please set manually],[1])
-        else 
-          if [[ "$FFTW_DIR_NUM" -eq "1" ]]
+          echo "USR_LOC_PKG = " $USR_LOC_PKG
+          FFTW_DIR_NUM=`ls -1d $USR_LOC_PKG/fftw* 2>/dev/null | wc -l`
+          if [[ "$FFTW_DIR_NUM" -eq "0" ]]
           then
-            FFTW_ROOT_DIR=`ls -1d $USR_LOC_PKG/fftw*`
-          else
-            AC_MSG_WARN([found multiple FFTW directories, proceeding with caution, but you may want to set FFTW_PATH manually ])
-            FFTW_ROOT_DIR=`ls -1d /usr/local`
+            echo "FFTW_DIR_NUM = " $FFTW_DIR_NUM
+            AC_MSG_ERROR([after valient effort, giving up seeking FFTW_PATH. Please set manually],[1])
+          else 
+            if [[ "$FFTW_DIR_NUM" -eq "1" ]]
+            then
+              FFTW_ROOT_DIR=`ls -1d $USR_LOC_PKG/fftw*`
+            else
+              AC_MSG_WARN([found multiple FFTW directories, proceeding with caution, but you may want to set FFTW_PATH manually ])
+              FFTW_ROOT_DIR=`ls -1d $USR_LOCAL 2>/dev/null`
+            fi
           fi
         fi
       fi
+    else
+      AC_MSG_WARN([found multiple FFTW directories, proceeding with caution, but you may want to set FFTW_PATH manually ])
+      FFTW_ROOT_DIR=`ls -1d $_OPT 2>/dev/null`
     fi    # should have FFTW_ROOT_DIR by now still need to set FFTW_PATH
+
     echo "FFTW_ROOT_DIR = " $FFTW_ROOT_DIR
 
     if test -r $FFTW_ROOT_DIR
     then
+      echo "looking for FFTW_PATH"
       FFTW_INC_FOUND=`ls -1d $FFTW_ROOT_DIR/include 2>/dev/null | wc -l`
-
       if [[ "$FFTW_INC_FOUND" -eq "1" ]] 
       then
+        echo "found an include file"
         FFTW_PATH=$FFTW_ROOT_DIR
       else
+        echo "looking for subdirs starting with fftw"
         FFTW_DIR_NUM=`ls -1d $FFTW_ROOT_DIR/fftw* 2>/dev/null | wc -l`
-        if [[ "$FFTW_DIR_NUM" -eq "1" ]]
+        if [[ "$FFTW_DIR_NUM" -eq "0" ]] 
+        then
+          echo "did not find fftw-prefixed files looking more broadly"
+          FFTW_ANYTHING_IN_HERE=`ls -1d $FFTW_ROOT_DIR/* 2>/dev/null | wc -l`
+          if test -n $FFTW_ANYTHING_IN_HERE
+          then
+            echo "found something, looking for default"
+            FFTW_DEFAULT_FOUND=`ls -1d $FFTW_ROOT_DIR/default 2>/dev/null | wc -l`
+            if [[ "$FFTW_DEFAULT_FOUND" -eq "0" ]]
+            then
+              echo "giving up, nothing inside default"
+              AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+            else 
+              echo "found default directory resetting fftw root directory looking for interlagos"
+              FFTW_ROOT_DIR=$FFTW_ROOT_DIR/default
+              if test -n "$LOADEDMODULES"
+              then
+                INTERLAGOS_LOADED=`echo $LOADEDMODULES | grep -i interlagos`
+                echo "INTERLAGOS_LOADED = " $INTERLAGOS_LOADED
+                if test -n $INTERLAGOS_LOADED
+                then
+                  echo "found interlagos setting FFTW_PATH"
+                  FFTW_PATH=$FFTW_ROOT_DIR/interlagos
+                else
+                  echo "did not find interagos"
+                  AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+                fi
+              else
+                AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+              fi
+            fi
+          else
+                echo "at line 261 should not quit here"
+            AC_MSG_ERROR([FFTW_ROOT_DIR appears to be empty. Consider setting FFTW_PATH manually],[1])
+          fi
+        elif [[ "$FFTW_DIR_NUM" -eq "1" ]]
         then
           FFTW_ROOT_DIR=`ls -1d $FFTW_ROOT_DIR/fftw*`
           if test -r $FFTW_ROOT_DIR
