@@ -8,6 +8,7 @@ AC_CONFIG_SRCDIR([src/coronos.cpp])
 AC_CONFIG_HEADERS([config.h])
 
 # Get the architecture
+# -> if ARCH is 64 are lib64's gauranteed to exist? 
 
 AC_MSG_CHECKING([architecture])
 
@@ -33,12 +34,19 @@ AC_ARG_WITH([long_doubles], AS_HELP_STRING([--with-long_doubles],
 
 if test -n "$with_long_doubles"
 then
-  echo "with_long_doubles = " $with_long_doubles
   AC_DEFINE([LD_PRECISION_H])
 else
-  echo "with_long_doubles = " $with_long_doubles
   AC_DEFINE([OD_PRECISION_H])
 fi
+
+  # ->->-> compiler info
+    
+  CRS_CXX="mpiCC CC gcc"
+  AC_PROG_CXX([$CRS_CXX])
+  AC_MSG_RESULT([$CRS_CXX])
+  CRS_CC=" mpicc cc  gcc"
+  AC_PROG_CC([$CRS_CC])
+  AC_MSG_RESULT([$CRS_CC])
 
 # Check for CUDA
 
@@ -48,7 +56,6 @@ AH_TEMPLATE([DONT_HAVE_CUDA_H], [Define to one if not using cuda])
 AC_ARG_WITH([cuda], AS_HELP_STRING([--with-cuda=PATH],
                                    [use gpu acceleration (default is no)])],
                                    [],[])    
-
 
 # Start CUDA vs. NOT-CUDA CONDITIONAL
 # -> IF CUDA ==>
@@ -136,6 +143,9 @@ then
                 CRS_CXX="mpiCC CC"
                  CRS_CC=" mpicc cc "
 
+  AC_MSG_CHECKING([header $CUFFTW_H ])
+  AC_CHECK_HEADERS([$FFTW_PATH/include/$CUFFTW_H],[],[],[])
+
 else # -> IF NOT-CUDA ==>
 
   AC_DEFINE([DONT_HAVE_CUDA_H])
@@ -148,81 +158,16 @@ else # -> IF NOT-CUDA ==>
             CUDA_LIBS=""
     CUDA_PATH_DEFAULT=""
 
-    # ->->-> compiler info
-    
-    CRS_CXX="mpiCC CC"
-    AC_PROG_CXX([$CRS_CXX])
-    echo "CRS_CXX:      " $CRS_CXX
-    CRS_CC=" mpicc cc "
-    AC_PROG_CC([$CRS_CC])
-    echo "CRS_CC:       " $CRS_CC
-   
+            USR_LOCAL="/usr/local"
+                 OPT="/opt"
+
     # ->->-> FFT:
 
-#   PKG_CHECK_MODULES(FFTW, libfftw3 >= 3.3.3)
-#   PKG_CHECK_MODULES(FFTW, libfftw3)
-
-#     echo "FFTW_CFLAGS = " $FFTW_CFLAGS
-#     echo "FFTW_LIBS   = " $FFTW_LIBS
-
-                 FFTW_H="fftw3.h"
-      if test -n "$with_long_doubles"
-      then
-              FFTW_LIBS="-lfftw3l -lm"
-      else
-              FFTW_LIBS="-lfftw3 -lm"
-      fi
-
-    if test -n "$CRAY_FFTW_DIR"
-    then
-      FFTW_PATH_DEFAULT="$CRAY_FFTW_DIR/interlagos"
-    else
-      if test -n "$with_long_doubles"
-      then
-        FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.precision.pgi-13.4"
-      else
-        FFTW_PATH_DEFAULT="/usr/local/pkg/fftw/fftw-3.3.3.pgi-13.4"
-      fi
-    fi
-
-    # ->->-> BLAS 
-
-                 BLAS_H="gsl/gsl_blas.h"
-    if test -n "$GSL_ROOT" 
-    then
-      BLAS_PATH_DEFAULT="$GSL_ROOT"
-    else
-      BLAS_PATH_DEFAULT="/usr/local/pkg/gsl/gsl-1.15.gnu-4.7.3"
-    fi
-
-              BLAS_LIBS="-lgsl -lgslcblas"
-
-                CRS_CXX="mpiCC CC"
-                 CRS_CC="mpicc cc"
-
-fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
-
-
-# Checks for programs.
-
-# Checks for libraries.
-
-#AC_CHECK_FILE(config.h,[AC_MSG_RESULT([$ac_cv_file_config.h])],[AC_MSG_RESULT([$ac_cv_file_config.h])])
-#AC_LIB_LINKFLAGS(fftw3,[])
-
-# Checks for header files.
-
-# -> FFT:
-
-# LDFLAGS="$LDFLAGS -L$FFTW_PATH_DEFAULT"
-# echo "LDFLAGS = " $LDFLAGS
-  AC_SEARCH_LIBS(fftw_plan_dft_1d, fftw3, [],[],[])
-
-  echo "ac_cv_search_fftw_plan_dft_1d = " $ac_cv_search_fftw_plan_dft_1d
-
+    FFTW_PATH_DEFAULT="$USR_LOCAL/fftw"
+               FFTW_H="fftw3.h"
+            FFTW_LIBS="-lfftw3 -lm"
 
   AC_MSG_CHECKING([whether FFTW_PATH is set])
-  
 
   if test -n "$FFTW_PATH"
   then
@@ -230,32 +175,189 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
     AC_MSG_NOTICE([FFTW_PATH = $FFTW_PATH])
   else
     AC_MSG_RESULT([no])
-              FFTW_PATH=$FFTW_PATH_DEFAULT
-    AC_MSG_WARN([FFTW_PATH not set, using default: $FFTW_PATH])
+    AC_MSG_WARN([FFTW_PATH not set])
+
+    AC_MSG_CHECKING([if FFTW is available])
+    FFTW_DIR_NUM=`ls -1d $OPT/fftw* 2>/dev/null | wc -l`
+    echo "FFTW_DIR_NUM = " $FFTW_DIR_NUM
+    if [[ $FFTW_DIR_NUM -eq '1' ]]
+    then
+    FFTW_ROOT_DIR=`ls -1d $OPT/fftw* 2>/dev/null`
+    elif [[ $FFTW_DIR_NUM -eq '0' ]]
+    then
+      FFTW_DIR_NUM=`ls -1d $USR_LOCAL/fftw* 2>/dev/null | wc -l`
+      if [[ $FFTW_DIR_NUM -eq '0' ]]
+      then
+        USR_LOC_PKG=`ls -1d /usr/local/pkg 2>/dev/null`
+        if test -n $USR_LOC_PKG
+        then
+          echo "USR_LOC_PKG = " $USR_LOC_PKG
+          FFTW_DIR_NUM=`ls -1d $USR_LOC_PKG/fftw* 2>/dev/null | wc -l`
+          if [[ "$FFTW_DIR_NUM" -eq "0" ]]
+          then
+            echo "FFTW_DIR_NUM = " $FFTW_DIR_NUM
+            AC_MSG_ERROR([after valient effort, giving up seeking FFTW_PATH. Please set manually],[1])
+          else 
+            if [[ "$FFTW_DIR_NUM" -eq "1" ]]
+            then
+              FFTW_ROOT_DIR=`ls -1d $USR_LOC_PKG/fftw*`
+            else
+              AC_MSG_WARN([found multiple FFTW directories, proceeding with caution, but you may want to set FFTW_PATH manually ])
+              FFTW_ROOT_DIR=`ls -1d $USR_LOCAL 2>/dev/null`
+            fi
+          fi
+        fi
+      fi
+    else
+      AC_MSG_WARN([found multiple FFTW directories, proceeding with caution, but you may want to set FFTW_PATH manually ])
+      FFTW_ROOT_DIR=`ls -1d $_OPT 2>/dev/null`
+    fi    # should have FFTW_ROOT_DIR by now still need to set FFTW_PATH
+
+    echo "FFTW_ROOT_DIR = " $FFTW_ROOT_DIR
+
+    if test -r $FFTW_ROOT_DIR
+    then
+      echo "looking for FFTW_PATH"
+      FFTW_INC_FOUND=`ls -1d $FFTW_ROOT_DIR/include 2>/dev/null | wc -l`
+      if [[ "$FFTW_INC_FOUND" -eq "1" ]] 
+      then
+        echo "found an include file"
+        FFTW_PATH=$FFTW_ROOT_DIR
+      else
+        echo "looking for subdirs starting with fftw"
+        FFTW_DIR_NUM=`ls -1d $FFTW_ROOT_DIR/fftw* 2>/dev/null | wc -l`
+        if [[ "$FFTW_DIR_NUM" -eq "0" ]] 
+        then
+          echo "did not find fftw-prefixed files looking more broadly"
+          FFTW_ANYTHING_IN_HERE=`ls -1d $FFTW_ROOT_DIR/* 2>/dev/null | wc -l`
+          if test -n $FFTW_ANYTHING_IN_HERE
+          then
+            echo "found something, looking for default"
+            FFTW_DEFAULT_FOUND=`ls -1d $FFTW_ROOT_DIR/default 2>/dev/null | wc -l`
+            if [[ "$FFTW_DEFAULT_FOUND" -eq "0" ]]
+            then
+              echo "giving up, nothing inside default"
+              AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+            else 
+              echo "found default directory resetting fftw root directory looking for interlagos"
+              FFTW_ROOT_DIR=$FFTW_ROOT_DIR/default
+              if test -n "$LOADEDMODULES"
+              then
+                INTERLAGOS_LOADED=`echo $LOADEDMODULES | grep -i interlagos`
+                echo "INTERLAGOS_LOADED = " $INTERLAGOS_LOADED
+                if test -n $INTERLAGOS_LOADED
+                then
+                  echo "found interlagos setting FFTW_PATH"
+                  FFTW_PATH=$FFTW_ROOT_DIR/interlagos
+                else
+                  echo "did not find interagos"
+                  AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+                fi
+              else
+                AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+              fi
+            fi
+          else
+                echo "at line 261 should not quit here"
+            AC_MSG_ERROR([FFTW_ROOT_DIR appears to be empty. Consider setting FFTW_PATH manually],[1])
+          fi
+        elif [[ "$FFTW_DIR_NUM" -eq "1" ]]
+        then
+          FFTW_ROOT_DIR=`ls -1d $FFTW_ROOT_DIR/fftw*`
+          if test -r $FFTW_ROOT_DIR
+          then
+            FFTW_INC_FOUND=`ls -1d $FFTW_ROOT_DIR/include`
+            if [[ "$FFTW_INC_FOUND" -eq "1" ]] 
+            then
+              FFTW_PATH=$FFTW_ROOT_DIR
+            else
+              AC_MSG_ERROR([after valient effort, giving up seeking FFTW_PATH. Please set manually],[1])
+            fi
+          else
+            FFTW_PATH=$FFTW_ROOT_DIR
+            AC_MSG_WARN([Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
+          fi
+        else
+          if test -n "$LOADEDMODULES" 
+          then
+           PGI_LOADED=`echo $LOADEDMODULES | grep -i pgi`
+           INTEL_LOADED=`echo $LOADEDMODULES | grep -i intel`
+           echo "INTEL_LOADED=" $INTEL_LOADED
+          fi
+
+          if test -n "$PGI_LOADED" 
+          then
+
+            echo "PGI_LOADED = " $PGI_LOADED
+            echo "PGI        = " $PGI
+
+            if test -n "$PGI"
+            then
+              PGI_VER=${PGI##"$USR_LOC_PKG/pgi/"}
+              if test -n "$with_long_doubles"
+              then
+                PGI_VER=".precision."$PGI_VER
+              fi
+              echo "PGI_VER = " $PGI_VER
+              if test -n "$PGI_VER"
+              then
+                FFTW_PGI_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*.?.$PGI_VER* 2>/dev/null`
+                if test -n "$FFTW_PGI_VER" 
+                then
+                  if test -e $FFTW_PGI_VER
+                  then
+                    FFTW_PATH=$FFTW_PGI_VER
+                  else
+                    FFTW_PATH=$FFTW_ROOT_DIR
+                    AC_MSG_WARN([the directory $FFTW_PGI_VER does not exist!])
+                  fi
+                fi
+              fi
+            fi
+          fi
+        fi
+      fi
+    else
+      FFTW_PATH=$FFTW_ROOT_DIR
+      AC_MSG_WARN([Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
+    fi
+
+    AC_MSG_NOTICE([FFTW_PATH set to $FFTW_PATH])
+
+    FFTW_INC="$FFTW_PATH/include"
+    FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+
   fi
 
-  AC_MSG_CHECKING([header $FFTW_H ])
-  AC_CHECK_HEADERS([$FFTW_PATH/include/$FFTW_H],[],[],[])
-  AC_MSG_CHECKING([header $CUFFTW_H ])
-  AC_CHECK_HEADERS([$FFTW_PATH/include/$CUFFTW_H],[],[],[])
+fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
+
+# Checks for programs.
+
+# Checks for libraries.
+
+# Checks for header files.
+
+AC_CHECK_HEADERS([$FFTW_INC/$FFTW_H],[
+AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejection by the pre-processor.])
+],[],[])
 
 # -> BLAS:
 
-  AC_MSG_CHECKING([whether BLAS_PATH is set])
+# AC_MSG_CHECKING([whether BLAS_PATH is set])
 
 # -> -> BLAS headers
 
-  if test -n "$BLAS_PATH"
-  then
-    AC_MSG_RESULT([yes])
-    AC_MSG_NOTICE([BLAS_PATH=$BLAS_PATH])
-  else
-    AC_MSG_RESULT([no])
-              BLAS_PATH=$BLAS_PATH_DEFAULT
-    AC_MSG_WARN([BLAS_PATH not set, using default: $BLAS_PATH])
-  fi
+# if test -n "$BLAS_PATH"
+# then
+#   AC_MSG_RESULT([yes])
+#   AC_MSG_NOTICE([BLAS_PATH=$BLAS_PATH])
+# else
+#   AC_MSG_RESULT([no])
+#             BLAS_PATH=$BLAS_PATH_DEFAULT
+#   AC_MSG_WARN([BLAS_PATH not set, using default: $BLAS_PATH])
+# fi
 
-  AC_CHECK_HEADERS([$BLAS_PATH/include/$BLAS_H],[],[],[])
+# AC_CHECK_HEADERS([$BLAS_PATH/include/$BLAS_H],[],[],[])
 
 # -> -> BLAS libs
 
@@ -269,10 +371,8 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
 # Wrap up
 
-               FFTW_INC="$FFTW_PATH/include"
-               BLAS_INC="$BLAS_PATH/include"
 
-          CRS_INC_FLAGS=" -I.. -I$FFTW_INC -I$BLAS_INC"
+          CRS_INC_FLAGS=" -I.. -I$FFTW_INC "
 
 if test ! -n "$CUDA_PATH"
 then
@@ -288,22 +388,19 @@ then
           CRS_INC_FLAGS="-I$CUDA_INC -I$INCMPI $CRS_INC_FLAGS"
            CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
            BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
-           FFTW_LDFLAGS="-L$FFTW_PATH/lib$SUFFIX"
+           FFTW_LDFLAGS="-L$FFTW_LIB"
 else
                CUDA_INC=""
            CUDA_LDFLAGS=""
 
 #-> something in here about finding where mpi.h is
 
-
-
-           BLAS_LDFLAGS="-L$BLAS_PATH/lib"
            FFTW_LDFLAGS="-L$FFTW_PATH/lib"
 fi
 
-               CRS_LIBS="$CUDA_LIBS $FFTW_LIBS $BLAS_LIBS"
+               CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
            CRS_CPPFLAGS="$CRS_INC_FLAGS"
-            CRS_LDFLAGS="$CUDA_LDFLAGS $FFTW_LDFLAGS $BLAS_LDFLAGS"
+            CRS_LDFLAGS="$CUDA_LDFLAGS $FFTW_LDFLAGS"
 
 echo "CUDA_PATH:    " $CUDA_PATH
 echo "FFTW_PATH:    " $FFTW_PATH
@@ -323,9 +420,6 @@ AC_SUBST(CRS_CPPFLAGS)
 AC_SUBST(CRS_LIBS)
 AC_SUBST(CRS_LDFLAGS)
 AC_SUBST(CRS_NVCC)
-
-#AC_PROG_CXX([$CRS_CXX])
-#AC_PROG_CC([$CRS_CC])
 
 AM_CONDITIONAL([CUDA],[test -n "$with_cuda"])
 

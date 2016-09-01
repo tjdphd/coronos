@@ -790,7 +790,7 @@ void redhallmhd::finalizeFootPointDriving( stack& run ) {
     const char *c_boundary_data_file = boundary_data_file.c_str();
 
     std::ofstream ofs;
-    ofs.open( c_boundary_data_file, ios::out | ios::trunc );
+    ofs.open( c_boundary_data_file, std::ios::out | std::ios::trunc );
 
     if ( ofs.good() ) {
       for (unsigned k = 0; k < n1n2c; k++) {               /* ~ order: roldlb rnewlb roldub rnewub pbot ~ */
@@ -1527,7 +1527,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
           std::streamoff bytes_per_line = (esize*24 + 28);
           RealVar nextE;
           begin                         = ifs.tellg();
-          ifs.seekg(-bytes_per_line, ios::end);
+          ifs.seekg(-bytes_per_line, std::ios::end);
 
           for (unsigned k = 0; k < esize; k++) {
             ifs >> nextE;
