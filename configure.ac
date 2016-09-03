@@ -395,8 +395,11 @@ else # -> IF NOT-CUDA ==>
 
     AC_MSG_NOTICE([FFTW_PATH set to $FFTW_PATH])
 
-    FFTW_INC="$FFTW_PATH/include"
-    FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+#   FFTW_INC="$FFTW_PATH/include"
+#   FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+
+    FFTW_INC="$FFTW_PATH"
+    FFTW_LIB="$FFTW_PATH"
 
   fi
 
@@ -466,7 +469,7 @@ else
 
 #-> something in here about finding where mpi.h is
 
-           FFTW_LDFLAGS="-L$FFTW_PATH/lib"
+           FFTW_LDFLAGS="-L$FFTW_LIB"
 fi
 
                CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "

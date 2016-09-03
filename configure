@@ -27256,8 +27256,11 @@ $as_echo "$as_me: WARNING: Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH any
     { $as_echo "$as_me:$LINENO: FFTW_PATH set to $FFTW_PATH" >&5
 $as_echo "$as_me: FFTW_PATH set to $FFTW_PATH" >&6;}
 
-    FFTW_INC="$FFTW_PATH/include"
-    FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+#   FFTW_INC="$FFTW_PATH/include"
+#   FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+
+    FFTW_INC="$FFTW_PATH"
+    FFTW_LIB="$FFTW_PATH"
 
   fi
 
@@ -27478,7 +27481,7 @@ else
 
 #-> something in here about finding where mpi.h is
 
-           FFTW_LDFLAGS="-L$FFTW_PATH/lib"
+           FFTW_LDFLAGS="-L$FFTW_LIB"
 fi
 
                CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
