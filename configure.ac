@@ -6,6 +6,7 @@ AC_INIT([coronos], [0.01], [tdennis10@alaska.edu])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/coronos.cpp])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 # Get the architecture
 # -> if ARCH is 64 are lib64's gauranteed to exist? 
@@ -41,12 +42,24 @@ fi
 
   # ->->-> compiler info
     
+
   CRS_CXX="mpiCC CC gcc"
   AC_PROG_CXX([$CRS_CXX])
-  AC_MSG_RESULT([$CRS_CXX])
-  CRS_CC=" mpicc cc  gcc"
+  CRS_CC="mpicc cc gcc"
   AC_PROG_CC([$CRS_CC])
-  AC_MSG_RESULT([$CRS_CC])
+
+  AX_COMPILER_VERSION
+
+  AC_MSG_NOTICE([found compiler vendor $ax_cv_c_compiler_vendor])
+  AC_MSG_NOTICE([found compiler version $ax_cv_c_compiler_version])
+
+  PORTLAND=`expr match "$ax_cv_c_compiler_vendor" '\(portland\)'`
+     INTEL=`expr match "$ax_cv_c_compiler_vendor" '\(intel\)'`
+       GNU=`expr match "$ax_cv_c_compiler_vendor" '\(gnu\)'`
+
+  echo "PORTLAND = " $PORTLAND
+  echo "INTEL    = " $INTEL
+  echo "GNU      = " $GNU
 
 # Check for CUDA
 
@@ -280,28 +293,54 @@ else # -> IF NOT-CUDA ==>
         else
           if test -n "$LOADEDMODULES" 
           then
-           PGI_LOADED=`echo $LOADEDMODULES | grep -i pgi`
+             PGI_LOADED=`echo $LOADEDMODULES | grep -i pgi`
            INTEL_LOADED=`echo $LOADEDMODULES | grep -i intel`
-           echo "INTEL_LOADED=" $INTEL_LOADED
+             GNU_LOADED=`echo $LOADEDMODULES | grep -i gnu`
           fi
 
-          if test -n "$PGI_LOADED" 
+# ~       FOR intel compilers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+          if test -n "$INTEL"
+          then
+
+            echo "INTEL_LOADED=" $INTEL_LOADED
+
+            if test -n "$PGI_LOADED" || test -n "$GNU_LOADED"
+            then
+               AC_MSG_WARN([multiple loaded programming enviroment modules detected. 
+                            If configure fails unload redundant modules and try again.])
+            fi
+
+          fi
+
+# ~       FOR portland compilers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+          if test -n "$PORTLAND"
           then
 
             echo "PGI_LOADED = " $PGI_LOADED
-            echo "PGI        = " $PGI
+
+            if test -n "$INTEL_LOADED" || test -n "$GNU_LOADED"
+            then
+               AC_MSG_WARN([multiple loaded programming enviroment modules detected. 
+                            If configure fails unload redundant modules and try again.])
+            fi
 
             if test -n "$PGI"
             then
+              echo "PGI        = " $PGI
               PGI_VER=${PGI##"$USR_LOC_PKG/pgi/"}
+               echo "PGI_VER = " $PGI_VER
+
               if test -n "$with_long_doubles"
               then
                 PGI_VER=".precision."$PGI_VER
               fi
-              echo "PGI_VER = " $PGI_VER
+
               if test -n "$PGI_VER"
               then
                 FFTW_PGI_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*.?.$PGI_VER* 2>/dev/null`
+                
                 if test -n "$FFTW_PGI_VER" 
                 then
                   if test -e $FFTW_PGI_VER
@@ -315,6 +354,38 @@ else # -> IF NOT-CUDA ==>
               fi
             fi
           fi
+
+# ~       FOR GNU compilers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+          if test -n "$GNU"
+          then
+
+            echo "GNU_LOADED = " $GNU_LOADED
+
+            if test -n "$INTEL_LOADED" || test -n "$GNU_LOADED"
+            then
+               AC_MSG_WARN([multiple loaded programming enviroment modules detected. 
+                            If configure fails unload redundant modules and try again.])
+            fi
+
+#                GNU_VER="gnu-"$ax_cv_c_compiler_version
+                 GNU_VER="gnu"
+            FFTW_GNU_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*.$GNU_VER 2>/dev/null`
+            if test -n $FFTW_GNU_VER 
+            then
+              if test -e $FFTW_GNU_VER
+              then
+                FFTW_PATH=$FFTW_GNU_VER
+              else
+                AC_MSG_WARN([the directory $FFTW_GNU_VER does not exist!])
+              fi
+            fi
+
+
+          fi
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
         fi
       fi
     else
@@ -324,8 +395,16 @@ else # -> IF NOT-CUDA ==>
 
     AC_MSG_NOTICE([FFTW_PATH set to $FFTW_PATH])
 
-    FFTW_INC="$FFTW_PATH/include"
-    FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_INC="$FFTW_PATH/include"
+    echo "SUFFIX = " $SUFFIX
+    FFTW_PATH_LIB_SFX="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_LIB="$FFTW_PATH/lib"
+    echo "FFTW_PATH_LIB = " $FFTW_PATH_LIB
+    if test -e $FFTW_PATH_LIB_SFX
+    then
+    FFTW_PATH_LIB="$FFTW_PATH_SFX"
+    fi
+
 
   fi
 
@@ -337,7 +416,7 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
 # Checks for header files.
 
-AC_CHECK_HEADERS([$FFTW_INC/$FFTW_H],[
+AC_CHECK_HEADERS([$FFTW_PATH_INC/$FFTW_H],[
 AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejection by the pre-processor.])
 ],[],[])
 
@@ -372,7 +451,7 @@ AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejectio
 # Wrap up
 
 
-          CRS_INC_FLAGS=" -I.. -I$FFTW_INC "
+          CRS_INC_FLAGS=" -I.. -I$FFTW_PATH_INC "
 
 if test ! -n "$CUDA_PATH"
 then
@@ -388,14 +467,14 @@ then
           CRS_INC_FLAGS="-I$CUDA_INC -I$INCMPI $CRS_INC_FLAGS"
            CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
            BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
-           FFTW_LDFLAGS="-L$FFTW_LIB"
+           FFTW_LDFLAGS="-L$FFTW_PATH_LIB"
 else
                CUDA_INC=""
            CUDA_LDFLAGS=""
 
 #-> something in here about finding where mpi.h is
 
-           FFTW_LDFLAGS="-L$FFTW_PATH/lib"
+           FFTW_LDFLAGS="-L$FFTW_PATH_LIB"
 fi
 
                CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
