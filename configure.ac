@@ -395,11 +395,16 @@ else # -> IF NOT-CUDA ==>
 
     AC_MSG_NOTICE([FFTW_PATH set to $FFTW_PATH])
 
-#   FFTW_INC="$FFTW_PATH/include"
-#   FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_INC="$FFTW_PATH/include"
+    echo "SUFFIX = " $SUFFIX
+    FFTW_PATH_LIB_SFX="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_LIB="$FFTW_PATH/lib"
+    echo "FFTW_PATH_LIB = " $FFTW_PATH_LIB
+    if test -e $FFTW_PATH_LIB_SFX
+    then
+    FFTW_PATH_LIB="$FFTW_PATH_SFX"
+    fi
 
-    FFTW_INC="$FFTW_PATH"
-    FFTW_LIB="$FFTW_PATH"
 
   fi
 
@@ -411,7 +416,7 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 
 # Checks for header files.
 
-AC_CHECK_HEADERS([$FFTW_INC/$FFTW_H],[
+AC_CHECK_HEADERS([$FFTW_PATH_INC/$FFTW_H],[
 AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejection by the pre-processor.])
 ],[],[])
 
@@ -446,7 +451,7 @@ AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejectio
 # Wrap up
 
 
-          CRS_INC_FLAGS=" -I.. -I$FFTW_INC "
+          CRS_INC_FLAGS=" -I.. -I$FFTW_PATH_INC "
 
 if test ! -n "$CUDA_PATH"
 then
@@ -462,14 +467,14 @@ then
           CRS_INC_FLAGS="-I$CUDA_INC -I$INCMPI $CRS_INC_FLAGS"
            CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
            BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
-           FFTW_LDFLAGS="-L$FFTW_LIB"
+           FFTW_LDFLAGS="-L$FFTW_PATH_LIB"
 else
                CUDA_INC=""
            CUDA_LDFLAGS=""
 
 #-> something in here about finding where mpi.h is
 
-           FFTW_LDFLAGS="-L$FFTW_LIB"
+           FFTW_LDFLAGS="-L$FFTW_PATH_LIB"
 fi
 
                CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
