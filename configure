@@ -2423,7 +2423,7 @@ fi
   # ->->-> compiler info
 
 
-  CRS_CXX="mpiCC CC gcc"
+  CRS_CXX="mpiCC CC "
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3235,7 +3235,7 @@ else
 fi
 
 
-  CRS_CC="mpicc cc gcc"
+  CRS_CC="mpicc cc "
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -27019,6 +27019,14 @@ $as_echo_n "checking whether FFTW_PATH is set... " >&6; }
 $as_echo "yes" >&6; }
     { $as_echo "$as_me:$LINENO: FFTW_PATH = $FFTW_PATH" >&5
 $as_echo "$as_me: FFTW_PATH = $FFTW_PATH" >&6;}
+    FFTW_PATH_INC=$FFTW_PATH/include
+    FFTW_PATH_LIB_SFX="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_LIB="$FFTW_PATH/lib"
+    if test -e $FFTW_PATH_LIB_SFX
+    then
+    FFTW_PATH_LIB="$FFTW_PATH_SFX"
+    fi
+    echo "FFTW_PATH_LIB = " $FFTW_PATH_LIB
   else
     { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
@@ -27090,8 +27098,8 @@ $as_echo "$as_me: WARNING: found multiple FFTW directories, proceeding with caut
             if [ "$FFTW_DEFAULT_FOUND" -eq "0" ]
             then
               echo "giving up, nothing inside default"
-              { { $as_echo "$as_me:$LINENO: error: I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again." >&5
-$as_echo "$as_me: error: I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again." >&2;}
+              { { $as_echo "$as_me:$LINENO: error: I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again." >&5
+$as_echo "$as_me: error: I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again." >&2;}
    { (exit 1); exit 1; }; }
             else
               echo "found default directory resetting fftw root directory looking for interlagos"
@@ -27106,13 +27114,13 @@ $as_echo "$as_me: error: I'm very sorry, but I don't know what's going on. You w
                   FFTW_PATH=$FFTW_ROOT_DIR/interlagos
                 else
                   echo "did not find interagos"
-                  { { $as_echo "$as_me:$LINENO: error: I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again." >&5
-$as_echo "$as_me: error: I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again." >&2;}
+                  { { $as_echo "$as_me:$LINENO: error: I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again." >&5
+$as_echo "$as_me: error: I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again." >&2;}
    { (exit 1); exit 1; }; }
                 fi
               else
-                { { $as_echo "$as_me:$LINENO: error: I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again." >&5
-$as_echo "$as_me: error: I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again." >&2;}
+                { { $as_echo "$as_me:$LINENO: error: I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again." >&5
+$as_echo "$as_me: error: I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again." >&2;}
    { (exit 1); exit 1; }; }
               fi
             fi
@@ -27138,8 +27146,8 @@ $as_echo "$as_me: error: after valient effort, giving up seeking FFTW_PATH. Plea
             fi
           else
             FFTW_PATH=$FFTW_ROOT_DIR
-            { $as_echo "$as_me:$LINENO: WARNING: Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&5
-$as_echo "$as_me: WARNING: Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&2;}
+            { $as_echo "$as_me:$LINENO: WARNING: Cannot read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&5
+$as_echo "$as_me: WARNING: Cannot read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&2;}
           fi
         else
           if test -n "$LOADEDMODULES"
@@ -27162,6 +27170,22 @@ $as_echo "$as_me: WARNING: Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH any
                             If configure fails unload redundant modules and try again." >&5
 $as_echo "$as_me: WARNING: multiple loaded programming enviroment modules detected.
                             If configure fails unload redundant modules and try again." >&2;}
+            fi
+
+
+            INTEL_VER=$ax_cv_c_compiler_version
+
+            FFTW_INTEL_VER_NUM=`ls -1d $FFTW_ROOT_DIR/fftw-*intel* 2>/dev/null |wc -l`
+
+
+            echo "INTEL_VER          = " $INTEL_VER
+            echo "FFTW_INTEL_VER_NUM = " $FFTW_INTEL_VER_NUM
+            echo "FFTW_INTEL_VER     = " $FFTW_INTEL_VER
+            echo "FFTW_ROOT_DIR      = " $FFTW_ROOT_DIR
+
+            if test -n $FFTW_INTEL_VER
+            then
+              FFTW_PATH=$FFTW_INTEL_VER
             fi
 
           fi
@@ -27218,7 +27242,7 @@ $as_echo "$as_me: WARNING: the directory $FFTW_PGI_VER does not exist!" >&2;}
 
             echo "GNU_LOADED = " $GNU_LOADED
 
-            if test -n "$INTEL_LOADED" || test -n "$GNU_LOADED"
+            if test -n "$INTEL_LOADED" || test -n "$PGI_LOADED"
             then
                { $as_echo "$as_me:$LINENO: WARNING: multiple loaded programming enviroment modules detected.
                             If configure fails unload redundant modules and try again." >&5
@@ -27228,7 +27252,8 @@ $as_echo "$as_me: WARNING: multiple loaded programming enviroment modules detect
 
 #                GNU_VER="gnu-"$ax_cv_c_compiler_version
                  GNU_VER="gnu"
-            FFTW_GNU_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*.$GNU_VER 2>/dev/null`
+            FFTW_GNU_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*$GNU_VER* 2>/dev/null`
+            echo "FFTW_GNU_VER" $FFTW_GNU_VER
             if test -n $FFTW_GNU_VER
             then
               if test -e $FFTW_GNU_VER
@@ -27249,18 +27274,21 @@ $as_echo "$as_me: WARNING: the directory $FFTW_GNU_VER does not exist!" >&2;}
       fi
     else
       FFTW_PATH=$FFTW_ROOT_DIR
-      { $as_echo "$as_me:$LINENO: WARNING: Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&5
-$as_echo "$as_me: WARNING: Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&2;}
+      { $as_echo "$as_me:$LINENO: WARNING: Cannot read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&5
+$as_echo "$as_me: WARNING: Cannot read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH" >&2;}
     fi
 
     { $as_echo "$as_me:$LINENO: FFTW_PATH set to $FFTW_PATH" >&5
 $as_echo "$as_me: FFTW_PATH set to $FFTW_PATH" >&6;}
 
-#   FFTW_INC="$FFTW_PATH/include"
-#   FFTW_LIB="$FFTW_PATH/lib$SUFFIX"
-
-    FFTW_INC="$FFTW_PATH"
-    FFTW_LIB="$FFTW_PATH"
+    FFTW_PATH_INC="$FFTW_PATH/include"
+    FFTW_PATH_LIB_SFX="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_LIB="$FFTW_PATH/lib"
+    echo "FFTW_PATH_LIB = " $FFTW_PATH_LIB
+    if test -e $FFTW_PATH_LIB_SFX
+    then
+    FFTW_PATH_LIB="$FFTW_PATH_SFX"
+    fi
 
   fi
 
@@ -27273,7 +27301,7 @@ fi # -> END CUDA vs. NOT-CUDA CONDITIONAL
 # Checks for header files.
 
 
-for ac_header in $FFTW_INC/$FFTW_H
+for ac_header in $FFTW_PATH_INC/$FFTW_H
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -27458,7 +27486,7 @@ done
 # Wrap up
 
 
-          CRS_INC_FLAGS=" -I.. -I$FFTW_INC "
+          CRS_INC_FLAGS=" -I.. -I$FFTW_PATH_INC "
 
 if test ! -n "$CUDA_PATH"
 then
@@ -27474,14 +27502,14 @@ then
           CRS_INC_FLAGS="-I$CUDA_INC -I$INCMPI $CRS_INC_FLAGS"
            CUDA_LDFLAGS="-L$CUDA_PATH/lib$SUFFIX"
            BLAS_LDFLAGS="-L$BLAS_PATH/lib$SUFFIX"
-           FFTW_LDFLAGS="-L$FFTW_LIB"
+           FFTW_LDFLAGS="-L$FFTW_PATH_LIB"
 else
                CUDA_INC=""
            CUDA_LDFLAGS=""
 
 #-> something in here about finding where mpi.h is
 
-           FFTW_LDFLAGS="-L$FFTW_LIB"
+           FFTW_LDFLAGS="-L$FFTW_PATH_LIB"
 fi
 
                CRS_LIBS="$CUDA_LIBS $FFTW_LIBS "
