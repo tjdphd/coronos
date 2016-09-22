@@ -43,9 +43,9 @@ fi
   # ->->-> compiler info
     
 
-  CRS_CXX="mpiCC CC gcc"
+  CRS_CXX="mpiCC CC "
   AC_PROG_CXX([$CRS_CXX])
-  CRS_CC="mpicc cc gcc"
+  CRS_CC="mpicc cc "
   AC_PROG_CC([$CRS_CC])
 
   AX_COMPILER_VERSION
@@ -186,6 +186,14 @@ else # -> IF NOT-CUDA ==>
   then
     AC_MSG_RESULT([yes])
     AC_MSG_NOTICE([FFTW_PATH = $FFTW_PATH])
+    FFTW_PATH_INC=$FFTW_PATH/include
+    FFTW_PATH_LIB_SFX="$FFTW_PATH/lib$SUFFIX"
+    FFTW_PATH_LIB="$FFTW_PATH/lib"
+    if test -e $FFTW_PATH_LIB_SFX
+    then
+    FFTW_PATH_LIB="$FFTW_PATH_SFX"
+    fi
+    echo "FFTW_PATH_LIB = " $FFTW_PATH_LIB
   else
     AC_MSG_RESULT([no])
     AC_MSG_WARN([FFTW_PATH not set])
@@ -250,7 +258,7 @@ else # -> IF NOT-CUDA ==>
             if [[ "$FFTW_DEFAULT_FOUND" -eq "0" ]]
             then
               echo "giving up, nothing inside default"
-              AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+              AC_MSG_ERROR([I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again.],[1])
             else 
               echo "found default directory resetting fftw root directory looking for interlagos"
               FFTW_ROOT_DIR=$FFTW_ROOT_DIR/default
@@ -264,10 +272,10 @@ else # -> IF NOT-CUDA ==>
                   FFTW_PATH=$FFTW_ROOT_DIR/interlagos
                 else
                   echo "did not find interagos"
-                  AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+                  AC_MSG_ERROR([I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again.],[1])
                 fi
               else
-                AC_MSG_ERROR([I'm very sorry, but I don't know what's going on. You will have to set FFTW_PATH manually and try again.],[1])
+                AC_MSG_ERROR([I am very sorry, but I do not know what is going on. You will have to set FFTW_PATH manually and try again.],[1])
               fi
             fi
           else
@@ -288,7 +296,7 @@ else # -> IF NOT-CUDA ==>
             fi
           else
             FFTW_PATH=$FFTW_ROOT_DIR
-            AC_MSG_WARN([Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
+            AC_MSG_WARN([Cannot read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
           fi
         else
           if test -n "$LOADEDMODULES" 
@@ -309,6 +317,22 @@ else # -> IF NOT-CUDA ==>
             then
                AC_MSG_WARN([multiple loaded programming enviroment modules detected. 
                             If configure fails unload redundant modules and try again.])
+            fi
+
+            
+            INTEL_VER=$ax_cv_c_compiler_version
+
+            FFTW_INTEL_VER_NUM=`ls -1d $FFTW_ROOT_DIR/fftw-*intel* 2>/dev/null |wc -l`
+                        
+
+            echo "INTEL_VER          = " $INTEL_VER
+            echo "FFTW_INTEL_VER_NUM = " $FFTW_INTEL_VER_NUM
+            echo "FFTW_INTEL_VER     = " $FFTW_INTEL_VER
+            echo "FFTW_ROOT_DIR      = " $FFTW_ROOT_DIR
+
+            if test -n $FFTW_INTEL_VER
+            then
+              FFTW_PATH=$FFTW_INTEL_VER
             fi
 
           fi
@@ -362,7 +386,7 @@ else # -> IF NOT-CUDA ==>
 
             echo "GNU_LOADED = " $GNU_LOADED
 
-            if test -n "$INTEL_LOADED" || test -n "$GNU_LOADED"
+            if test -n "$INTEL_LOADED" || test -n "$PGI_LOADED"
             then
                AC_MSG_WARN([multiple loaded programming enviroment modules detected. 
                             If configure fails unload redundant modules and try again.])
@@ -370,7 +394,8 @@ else # -> IF NOT-CUDA ==>
 
 #                GNU_VER="gnu-"$ax_cv_c_compiler_version
                  GNU_VER="gnu"
-            FFTW_GNU_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*.$GNU_VER 2>/dev/null`
+            FFTW_GNU_VER=`ls -1d $FFTW_ROOT_DIR/fftw-*$GNU_VER* 2>/dev/null`
+            echo "FFTW_GNU_VER" $FFTW_GNU_VER
             if test -n $FFTW_GNU_VER 
             then
               if test -e $FFTW_GNU_VER
@@ -390,13 +415,12 @@ else # -> IF NOT-CUDA ==>
       fi
     else
       FFTW_PATH=$FFTW_ROOT_DIR
-      AC_MSG_WARN([Can't read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
+      AC_MSG_WARN([Cannot read $FFTW_ROOT_DIR. Assigning to FFTW_PATH anyway, you may want to manually set FFTW_PATH])
     fi
 
     AC_MSG_NOTICE([FFTW_PATH set to $FFTW_PATH])
 
     FFTW_PATH_INC="$FFTW_PATH/include"
-    echo "SUFFIX = " $SUFFIX
     FFTW_PATH_LIB_SFX="$FFTW_PATH/lib$SUFFIX"
     FFTW_PATH_LIB="$FFTW_PATH/lib"
     echo "FFTW_PATH_LIB = " $FFTW_PATH_LIB
@@ -404,7 +428,6 @@ else # -> IF NOT-CUDA ==>
     then
     FFTW_PATH_LIB="$FFTW_PATH_SFX"
     fi
-
 
   fi
 
