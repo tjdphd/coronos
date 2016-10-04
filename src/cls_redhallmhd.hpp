@@ -73,6 +73,7 @@ class redhallmhd
   void initU(                           stack& run);                  /* ~ U initialization functions                ~ */
   void computeFourierU(                 stack& run);
   void computeRealU(                    stack& run);
+  void initGauss(                       stack& run);
   void readUData(                       stack& run);
 
   void pLinzEnv(                        stack& run);
@@ -123,7 +124,6 @@ class redhallmhd
   RealArray maxU;                                                     /* ~ for time-step determination               ~ */
 
   Real2DArray QtyVsZ;
-
   Real3DArray SpcVsZ;
 
   RealArray   ke;
