@@ -121,6 +121,7 @@ void lcsolve::Loop( stack& run ) {
   physics.fftw.fftwReverseAll(     run            );
 
   physics.reportQtyVsZ( t_cur,     run            );
+  physics.reportPowerSpectra(      run            );
 
   run.palette.reset(   "tstart", t_cur            );
 

@@ -1,10 +1,10 @@
 Input file -- rmct2_12816-4.ofa0 --
 describtions: input file for the program rmct.f at t=0.
 tstart   0.e0
-ip1      6
-ip2      6
+ip1      7
+ip2      7
 n3       4
-mp       4
+mp       8
 nw       1 
 cnw      0.
 zl       1.

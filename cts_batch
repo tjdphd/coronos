@@ -77,6 +77,7 @@ n_cntrs     = UINT(n_cntrs)
 .run calcKK.pro
 .run global_q_minmax.pro
 .run global_q_minmax_by_slice.pro
+.run plot_surface.pro
 .run cts.pro 
                                                                                ;
 ; Next we tell idl to add 'idl_src_dir' to its value for IDL_PATH. I don't     ;

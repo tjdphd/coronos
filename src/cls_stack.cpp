@@ -355,12 +355,20 @@ void stack::writeUData() {
       next_a               =   U[to_row_maj_idx][slab_index][1];
       next_j               = AUX[to_row_maj_idx][slab_index][1];
 
+      if (next_p <= teensy) {next_p = zero;}
+      if (next_o <= teensy) {next_o = zero;}
+      if (next_a <= teensy) {next_a = zero;}
+      if (next_j <= teensy) {next_j = zero;}
+
       if(iu3 > 2) {
 
         ++point_count;
         next_bz            =   U[to_row_maj_idx][slab_index][2];
         ++point_count;
         next_vz            =   U[to_row_maj_idx][slab_index][3];
+
+        if (next_bz <= teensy) {next_bz = zero;}
+        if (next_vz <= teensy) {next_vz = zero;}
 
       }
 

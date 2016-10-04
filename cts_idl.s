@@ -88,7 +88,7 @@ endif                                 #
 #source /etc/profile.d/modules.csh   #
 module load idl                      # load idl onto the compute node
                                      #
-set SRCDIR=$PWD/idl/ff_contour_ts    # idl script source directory
+set SRCDIR=$PWD/idl/cts              # idl script source directory
 echo "SRCDIR   = " $SRCDIR           #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
 echo "IDL_PATH = " $IDL_PATH         #

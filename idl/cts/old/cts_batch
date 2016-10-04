@@ -1,0 +1,117 @@
+; idl batch script - 'cts_batch' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;                                                                              ;
+; Author: Timothy J. Dennis                                                    ;
+;         tdennis@gi.alaska.edu                                                ;
+;                                                                              ;
+; Developed for use with the family of Heliospheric Physics codes originating  ;
+; with the work of C.S. Ng and including 'rmct_np' and 'fourfields.'           ;
+;                                                                              ;
+; Description: This is a batch script to be read into an instantiation of IDL  ;
+;              running on a compute node. The reading in of this script        ;
+;              (and the instantiation of IDL on the compute node) is           ;
+;              accomplished via the execution of a 'parent' c-shell script     ;
+;              called 'cts_idl.s'. Prospective users are forewarned not to try ;
+;              'feeding' this script to IDL any other way unless they know     ;
+;              what they're doing. Otherwise confusion and frustration are     ;
+;              certain to ensue. You're much better off reading the            ;
+;              documentation in cts_idl.s first.                               ;
+;                                                                              ;
+;              The purpose of this script is to execute the IDL procedure      ;
+;              'single_slice_contour_time_series' which produces a time -      ;
+;              ordered set of contour plots/color maps for a given layer or    ;
+;              'slice' (perpendicular to the z-direction) of the simulation    ;
+;              volume within which the equations of Reduced MHD (RMHD) or      ;
+;              the 'Four-Field' equations (FF - a generalization of RMHD to    ;
+;              include Hall MHD ) are solved.                                  ;
+;                                                                              ;
+;              The contour plots/color maps produced are of one of the five    ;
+;              Following quantities, (as determined by the value of the        ;
+;              variable 'cont_fld' also listed):                               ;
+;                                                                              ;
+;              Field                                 cont_fld  Model Eq.'s     ;
+;                                                                              ;
+;              phi - 'Stream Function'               'p'       RMHD/FF         ;
+;              A   - 'Flux Function'                 'a'       RMHD/FF         ;
+;              J   - 'Current Density (z-comp)       'j'       RMHD/FF         ;
+;                                                                              ;
+;              Z   - 'B-field fluctations (z-comp)   'bz'      FF              ;
+;              V   - 'Velocity fluctuations (z-comp) 'vz'      FF              ;
+;                                                                              ;
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+
+
+; In the calling script, 'cts_idl.s', several environment variables are set
+; as a means of passing these variables as arguments or 'keyword' parameters
+; to 'cts_single_slice_contour_time_series'. This batch script accesses these
+; environment variables and uses them to define the parameters to be passed.
+
+idl_src_dir = GETENV('IDL_PATH')         ; Directory where the required IDL
+                                         ; sources reside
+cont_fld    = GETENV('CTS_CONT_FLD')     ; field for which contours/color maps
+                                         ; will be generated (see description)
+desc_label  = GETENV('CTS_DESC_LABEL')   ; descriptive "run label"
+num_cont    = GETENV('CTS_NUM_CONT')     ; Number of contour levels for plots
+first_step  = GETENV('CTS_FIRST_STEP')   ; first data-frame in time-series
+last_step   = GETENV('CTS_LAST_STEP')    ; last data-frame in time-series
+tot_steps   = GETENV('CTS_TOT_STPS')     ; total number of steps upon which to
+                                         ; base contour levels
+n_slc       = GETENV('CTS_SLC')          ; which slice to contour
+first_step  = UINT(first_step)           ; convert these to 
+last_step   = UINT(last_step)            ; integer values
+tot_steps   = UINT(tot_steps)
+n_slc       = UINT(n_slc)
+
+print, 'cts_batch: n_slc = ', n_slc
+
+print, 'cts_batch: first_step = ', first_step
+print, 'cts_batch: last_step  = ', last_step
+
+; The next step after obtaining arguments is to compile the required sources  ;
+; The order of compilation reflects the various dependencies of the sources   ;
+; upon one another                                                            ;
+
+.run scan_parameters.pro
+.run construct_eps_outfile_name.pro
+.run fetch_datafile.pro
+.run fetch_slices.pro
+.run max_q.pro
+.run min_q.pro
+.run set_jcontour_levels.pro
+.run calc_jz.pro
+.run cfdp.pro
+.run construct_jcontour.pro
+;.run show_contour.pro
+.run single_slice_contour_time_series.pro 
+                                                                               ;
+; Next we tell idl to add 'idl_src_dir' to its value for IDL_PATH. I don't     ;
+; completely understand this - particularly since it comes after               ;
+; the compilation, but it's essential                                          ;
+
+PREF_SET, 'IDL_PATH', 'idl_src_dir:<IDL_DEFAULT>', /COMMIT
+
+; Next we set the keyword values - note some cruft here:                       ;
+;                                                                              ;
+;  1.) some needed parameters are still hard-coded rather than passed via EV's ;
+;      this should be fixed.                                                   ;
+;                                                                              ;
+;  2.) seems like this could be streamlined by just putting the above-defined  ;
+;      variables in the appropriate places                                     ;
+;                                                                              ;
+
+preval  = 'rmct2'                                  ; to be soft-coded
+str_res = 'y'                                      ; to be ELIMINATED
+lab_run = desc_label                          
+qty     = cont_fld
+n_cntrs =  num_cont
+out_dir = GETENV('PWD') + '/cts/' + qty + '/eps'   ; to be soft-coded - maybe
+
+single_slice_contour_time_series, first_step, last_step, preval,  /INC_PREFIX,  $
+                                  str_res,   /INC_RES_STR, $
+                                  lab_run,   /INC_RUN_LAB, $
+                                  out_dir,   /INC_OUT_DIR, $
+                                  n_slc,     /INC_N_SLC,   $
+                                  qty,       /INC_QTY,     $
+                                  n_cntrs,   /INC_N_CNTRS, $
+                                  tot_steps, /INC_TOT_STEPS
+retall
+exit
