@@ -36,7 +36,7 @@ p2         7                         int rfx
 p3         4                         int rfx 
 pfrac      5.500000000000000e-01     dbl rfx 
 ppn        8                         int rfx 
-prefix     rmct2                     str rfx 
+prefix     crs                       str rfx 
 q1         5.000000000000000e-02     dbl rfx 
 q2         4.000000000000000e-01     dbl rfx 
 qfp        0.000000000000000e+00     dbl sfx 

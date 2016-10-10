@@ -206,9 +206,9 @@ endif                                         # so we create it.
 source /etc/profile.d/modules.csh    #
 module load idl                      # load idl onto the compute node
                                      #
-set SRCDIR=$PWD/idl/ff_time_series   # idl script source directory
+set SRCDIR=$PWD/idl/pro/ff_time_series   # idl script source directory
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
-setenv IDL_STARTUP $PWD/ffts_batch   # idl batch script to execute
+setenv IDL_STARTUP $PWD/idl/bin/ffts_batch   # idl batch script to execute
                                      #
 idl                                  # invoke idl
                                      #
