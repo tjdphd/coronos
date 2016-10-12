@@ -21,20 +21,25 @@ FILE="coronos.in"
 k=1
 while read line                                  # Loop over lines of coronos.in
 do
-  for seek in "prefix" "run_label" "p1" "p2" "p3" "nprofile" "nnodes" "ppn" "np"
+  for seek in "nprofile" "bdrys" "prefix" "run_label" "p1" "p2" "p3" "np"  \
+              "nnodes" "ppn" "srun" "calcqvz" "calcsvz" "qout_pref" "spout_pref"
   do
     if [ `expr "$line" : $seek` -ne 0 ]          # find line containing current seek string
     then
       evaluate                                   # val now contains the value of current seek string
        case "$seek" in                           # set parameters appropriately
-         "prefix"    )    prefix=$val ;;
-         "run_label" ) run_label=$val ;;
-         "p1"        )        p1=$val ;;
-         "p2"        )        p2=$val ;;
-         "p3"        )        p3=$val ;;
-         "np"        )        np=$val ;;
-         "nnodes"    )    nnodes=$val ;;
-         "ppn"       )       ppn=$val ;;
+         "prefix"    )       prefix=$val ;;
+         "run_label" )    run_label=$val ;;
+         "p1"        )           p1=$val ;;
+         "p2"        )           p2=$val ;;
+         "p3"        )           p3=$val ;;
+         "np"        )           np=$val ;;
+         "nnodes"    )       nnodes=$val ;;
+         "ppn"       )          ppn=$val ;;
+         "calcqvz"   )      calcqvz=$val ;;
+         "calcsvz"   )      calcsvz=$val ;;
+         "qout_pref" )    qout_pref=$val ;;
+         "spout_pref")   spout_pref=$val ;;
        esac
     fi
   done
@@ -56,10 +61,12 @@ else
 fi
 
 
-         job_prefix=$prefix"-"$res_label"-"
-        data_prefix=$prefix"_"$res_label"."
-       edata_prefix=$prefix"_"$res_label".o"$run_label
-        rand_prefix=$prefix"_"$res_label"r"
+            job_prefix=$prefix"-"$res_label"-"
+           data_prefix=$prefix"_"$res_label"."
+          edata_prefix=$prefix"_"$res_label".o"$run_label
+           rand_prefix=$prefix"_"$res_label"r"
+  q_vs_z_tracking_file=$qout_pref'_'$res_label'.o'$run_label
+ sp_vs_z_tracking_file=$spout_pref'_'$res_label'.???_???.o'$run_label
 
 #rm  $job_prefix*.pbs
 rm  $job_prefix*.pbs.[oe]*
@@ -74,3 +81,9 @@ rm  $edata_prefix
 rm  $rand_prefix?
 rm  $rand_prefix??
 rm  $rand_prefix???
+rm  $q_vs_z_tracking_file?
+rm  $q_vs_z_tracking_file??
+rm  $q_vs_z_tracking_file???
+rm  $sp_vs_z_tracking_file?
+rm  $sp_vs_z_tracking_file??
+rm  $sp_vs_z_tracking_file???
