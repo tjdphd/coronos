@@ -7,7 +7,7 @@ beta        1.000000000000000e-01     dbl rfx
 calcqvz     1                         int rfx 
 calcsvz     1                         int rfx 
 delta       1.000000000000000e-02     dbl rfx 
-dt          2.560000000000000e-03     dbl adj 
+dt          1.000000000000000e-05     dbl adj 
 dtau        0.000000000000000e+00     dbl adj 
 eenv_zero   1.000000000000000e+09     dbl rfx 
 epratio     0.000000000000000e+00     dbl rfx 
@@ -21,14 +21,14 @@ kappa       5.000000000000000e-03     dbl rfx
 kc          0.000000000000000e+00     dbl rfx 
 model       rmhd                      str rfx 
 n0          1.000100000000000e+00     dbl rfx 
-ndt         1                         int rfx 
+ndt         24                        int rfx 
 nf          0                         int sfx 
 ninf        9.000000000000000e-02     dbl rfx 
 nnodes      1                         int rfx 
 np          8                         int rfx 
 nprofile    flat                      str rfx 
 nu          5.000000000000000e-04     dbl rfx 
-nw          1                         int rfx 
+nw          12                        int rfx 
 oldnumlb    0                         int adj 
 oldnumub    0                         int adj 
 p1          7                         int rfx 
@@ -59,7 +59,8 @@ srun        1                         int sfx
 ssqd        0.000000000000000e+00     dbl rfx 
 tauC        1.000000000000000e+01     dbl rfx 
 tauE        1.000000000000000e+44     dbl rfx 
-tstart      0.000000000000000e-03     dbl sfx 
+tstart      0.000000000000000e-05     dbl sfx 
 uprofile    noflow                    str rfx 
 valfmax     1.000000000000000e+00     dbl rfx 
 zl          1.000000000000000e+00     dbl rfx 
+data_dir    data                      str rfx

@@ -544,8 +544,11 @@ void redhallmhd::readUData( stack& run ) {
   int rank; MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   int srun; run.palette.fetch("srun", &srun);
+  std::string data_dir; run.palette.fetch("data_dir", &data_dir);
 
-  std::string data_file                  = run.getLastDataFilename(srun-1);
+  std::string data_file;
+  data_file                = "./" + data_dir + "/" + run.getLastDataFilename(srun-1);
+
   const char *c_data_file                = data_file.c_str();
 
   std::ifstream ifs;
@@ -1987,6 +1990,7 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
     int         n3; run.palette.fetch("p3",   &n3     );
     int         np; run.palette.fetch("np",   &np     );
     RealVar  t_cur; physics_data.fetch("t_cur", &t_cur);
+    std::string data_dir; run.palette.fetch("data_dir", &data_dir);
 
     RealArray& z = run.z;
 
@@ -1995,12 +1999,15 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
 
     RealVar nw_m1 = one / (RealVar (nw));
 
-    for (unsigned l = 0; l < n3; l++) {
+    std::string spout_pref; run.palette.fetch(    "spout_pref", &spout_pref     );
+    std::string res_str;    run.stack_data.fetch( "res_str",    &res_str        );
+    std::string run_label;  run.palette.fetch(    "run_label",  &run_label      );
+    int srun;               run.palette.fetch(    "srun",       &srun           );
 
-         std::string spout_pref; run.palette.fetch(    "spout_pref", &spout_pref     );
-         std::string res_str;    run.stack_data.fetch( "res_str",    &res_str        );
-         std::string run_label;  run.palette.fetch(    "run_label",  &run_label      );
-         int srun;               run.palette.fetch(    "srun",       &srun           );
+    std::string spc_vs_z_out_file_prefix = "./" + data_dir + "/" + spout_pref + "_" + res_str + ".";
+    std::string spc_vs_z_out_file;
+
+    for (unsigned l = 0; l < n3; l++) {
 
          std::string lyr_str   = static_cast<std::ostringstream*>( &(std::ostringstream() << l+1)  ) -> str();
          int lyr_len           = lyr_str.length();
@@ -2010,8 +2017,8 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
          if (rank_len < 3) { for (unsigned i = rank_len; i < 3;++i){ rank_str = '0' + rank_str; }}
          std::string srn_str   = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
 
-         std::string spc_vs_z_out_file = spout_pref + "_" + res_str + "." + rank_str +"_" + lyr_str + ".o" + run_label + srn_str;
-         c_spc_vs_z_out_file = spc_vs_z_out_file.c_str();
+         spc_vs_z_out_file     = spc_vs_z_out_file_prefix + rank_str +"_" + lyr_str + ".o" + run_label + srn_str;
+         c_spc_vs_z_out_file   = spc_vs_z_out_file.c_str();
          ofs.open( c_spc_vs_z_out_file, std::ios::out );
 
          if (ofs.good() ) {
@@ -2033,7 +2040,6 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-//void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
 void redhallmhd::reportQtyVsZ ( stack& run ) {
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
@@ -2068,9 +2074,10 @@ void redhallmhd::reportQtyVsZ ( stack& run ) {
     std::string res_str;      run.stack_data.fetch("res_str",   &res_str    );
     std::string run_label;    run.palette.fetch(   "run_label", &run_label  );
     int srun;                 run.palette.fetch(   "srun",      &srun       );
+    std::string data_dir; run.palette.fetch("data_dir", &data_dir);
     std::string srn_str = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
 
-    std::string qty_vs_z_out_file = qout_prefix + "_" + res_str + ".o" + run_label + srn_str;
+    std::string qty_vs_z_out_file = "./" + data_dir + "/" + qout_prefix + "_" + res_str + ".o" + run_label + srn_str;
     c_qty_vs_z_out_file = qty_vs_z_out_file.c_str();
 
     std::cout << "reportQtyVsZ: qty_vs_z_out_file = " << qty_vs_z_out_file << std::endl;

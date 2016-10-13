@@ -19,7 +19,7 @@ FILE="coronos.in"
    k=1
 while read line                                  # Loop over lines of coronos.in
 do
-  for seek in "nprofile" "bdrys" "prefix" "run_label" "p1" "p2" "p3" "np"  \
+  for seek in "nprofile" "bdrys" "prefix" "run_label" "p1" "p2" "p3" "np"  "data_dir" \
               "nnodes" "ppn" "srun" "calcqvz" "calcsvz" "qout_pref" "spout_pref"
   do
     if [ `expr "$line" : $seek` -ne 0 ]
@@ -40,6 +40,7 @@ do
          "calcsvz"   )      calcsvz=$val ;;
          "qout_pref" )    qout_pref=$val ;;
          "spout_pref")   spout_pref=$val ;;
+         "data_dir"  )     data_dir=$val
        esac
      fi
    done
@@ -121,6 +122,7 @@ subdir_abspath=$archive_root$subdir                                  # Define th
      fi
   else
     mkdir -p $subdir_abspath
+    mkdir    $subdir_abspath"/"$data_dir
   fi 
 #
 # Now determine subruns to archive
@@ -149,12 +151,12 @@ fi
 #
 # now gather file names
 #
-      field_data_files=$file_pref'_'$res_label'.???.o'$run_label
-        sr_input_files=$file_pref'_'$res_label'.00.o'$run_label
-  energy_tracking_file=$file_pref'_'$res_label'.o'$run_label
+      field_data_files='./'$data_dir'/'$file_pref'_'$res_label'.???.o'$run_label
+        sr_input_files='./'$data_dir'/'$file_pref'_'$res_label'.00.o'$run_label
+  energy_tracking_file='./'$data_dir'/'$file_pref'_'$res_label'.o'$run_label
 rand_num_tracking_file=$file_pref'_'$res_label'r'
-  q_vs_z_tracking_file=$qout_pref'_'$res_label'.o'$run_label
- sp_vs_z_tracking_file=$spout_pref'_'$res_label'.???_???.o'$run_label
+  q_vs_z_tracking_file='./'$data_dir'/'$qout_pref'_'$res_label'.o'$run_label
+ sp_vs_z_tracking_file='./'$data_dir'/'$spout_pref'_'$res_label'.???_???.o'$run_label
 
 #
 # now commence archiving unless there has been only one subrun
@@ -174,19 +176,19 @@ do
         echo "archiving for subrun = " $j "..."
 
         cp coronos.in            $subdir_abspath
-        cp $energy_tracking_file $subdir_abspath
-        cp $sr_input_files$j     $subdir_abspath
-        cp $field_data_files$j   $subdir_abspath
+        cp $energy_tracking_file $subdir_abspath'/'$data_dir
+        cp $sr_input_files$j     $subdir_abspath'/'$data_dir
+        cp $field_data_files$j   $subdir_abspath'/'$data_dir
         if [ "$j" -gt 0 ]
         then
           if [ "$calcqvz" -eq 1 ]
           then
-            cp $q_vs_z_tracking_file$j $subdir_abspath
+            cp $q_vs_z_tracking_file$j $subdir_abspath'/'$data_dir
           fi
 #
           if [ "$calcsvz" -eq 1 ]
           then
-            cp $sp_vs_z_tracking_file$j $subdir_abspath
+            cp $sp_vs_z_tracking_file$j $subdir_abspath'/'$data_dir
           fi
 #
           if [ "$bdrys" -ne 0 ]

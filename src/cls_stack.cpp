@@ -308,8 +308,9 @@ void stack::writeUData() {
   int srun;
   palette.fetch("srun",    &srun  );
 
+  std::string data_dir; palette.fetch("data_dir", &data_dir);
   std::string data_file;
-  data_file                = getLastDataFilename(srun-1);
+  data_file                = "./" + data_dir + "/" + getLastDataFilename(srun-1);
 
   const char *c_data_file;
   c_data_file              = data_file.c_str();
@@ -423,23 +424,21 @@ void stack::writeUData() {
     ofs.close();
 
   }
+  else { std::cout << "writeUdata: ERROR - could not open file " <<  data_file << std::endl; }
 }
 
 ///* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void stack::reportEnergyQs( double t_cur ) {
 
-  int rank;
-  run_data.fetch("rank",      &rank   );
-  std::string prefix;
-  palette.fetch("prefix",     &prefix );
-  std::string run_label;
-  palette.fetch("run_label",  &run_label);
-  std::string res_str;
-  stack_data.fetch("res_str", &res_str);
+  int         rank;      run_data.fetch(  "rank",      &rank     );
+  std::string prefix;    palette.fetch(   "prefix",    &prefix   );
+  std::string run_label; palette.fetch(   "run_label", &run_label);
+  std::string res_str;   stack_data.fetch("res_str",   &res_str  );
+  std::string data_dir;  palette.fetch(   "data_dir",  &data_dir );
 
   std::string energy_data_file;
-  energy_data_file = prefix + "_" + res_str + ".o" + run_label;
+  energy_data_file   = "./" + data_dir + "/" + prefix + "_" + res_str + ".o" + run_label;
 
   const char *c_energy_data_file;
   c_energy_data_file = energy_data_file.c_str();
@@ -603,8 +602,13 @@ void stack::writeParameters(int srun) {
   std::string prefix;    palette.fetch(   "prefix",    &prefix    );
   std::string res_str;   stack_data.fetch("res_str",   &res_str   );
   std::string run_label; palette.fetch(   "run_label", &run_label );
+  std::string data_dir;  palette.fetch(   "data_dir",  &data_dir  );
+  std::string of_prefix = prefix + "_" + res_str;
 
-  if (rank == 0) {palette.report(prefix + '_' + res_str, run_label, srun ); }
+  of_prefix = "./" + data_dir + "/" + of_prefix;
+
+// if (rank == 0) {palette.report(prefix + '_' + res_str, run_label, srun ); }
+  if (rank == 0) { palette.report(of_prefix, run_label, srun ); }
 
 }
 

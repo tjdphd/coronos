@@ -36,7 +36,6 @@
 #ifndef CLS_RUN_INSTANCE
 #define CLS_RUN_INSTANCE
 
-
  #include "cls_parameter_map.hpp"
  #include <ctime>
  #include <unistd.h>

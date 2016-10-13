@@ -21,7 +21,7 @@ FILE="coronos.in"
 k=1
 while read line                                  # Loop over lines of coronos.in
 do
-  for seek in "nprofile" "bdrys" "prefix" "run_label" "p1" "p2" "p3" "np"  \
+  for seek in "nprofile" "bdrys" "prefix" "run_label" "p1" "p2" "p3" "np" "data_dir" \
               "nnodes" "ppn" "srun" "calcqvz" "calcsvz" "qout_pref" "spout_pref"
   do
     if [ `expr "$line" : $seek` -ne 0 ]          # find line containing current seek string
@@ -40,6 +40,7 @@ do
          "calcsvz"   )      calcsvz=$val ;;
          "qout_pref" )    qout_pref=$val ;;
          "spout_pref")   spout_pref=$val ;;
+         "data_dir"  )     data_dir=$val
        esac
     fi
   done
@@ -61,15 +62,15 @@ else
 fi
 
 
-            job_prefix=$prefix"-"$res_label"-"
-           data_prefix=$prefix"_"$res_label"."
-          edata_prefix=$prefix"_"$res_label".o"$run_label
+        pbs_job_prefix=$prefix"-"$res_label"-"
+           data_prefix="./"$data_dir"/"$prefix"_"$res_label"."
+          edata_prefix="./"$data_dir"/"$prefix"_"$res_label".o"$run_label
            rand_prefix=$prefix"_"$res_label"r"
-  q_vs_z_tracking_file=$qout_pref'_'$res_label'.o'$run_label
- sp_vs_z_tracking_file=$spout_pref'_'$res_label'.???_???.o'$run_label
+  q_vs_z_tracking_file="./"$data_dir"/"$qout_pref'_'$res_label'.o'$run_label
+ sp_vs_z_tracking_file="./"$data_dir"/"$spout_pref'_'$res_label'.???_???.o'$run_label
 
 #rm  $job_prefix*.pbs
-rm  $job_prefix*.pbs.[oe]*
+rm  $pbs_job_prefix*.pbs.[oe]*
 rm  $data_prefix???.o$run_label?
 rm  $data_prefix???.o$run_label??
 rm  $data_prefix???.o$run_label???

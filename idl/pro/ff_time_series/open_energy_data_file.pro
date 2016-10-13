@@ -1,11 +1,12 @@
 FUNCTION open_energy_data_file, desc_label, nf
 
-prefix       = scan_parameters('prefix', 0, desc_label )
-ip1          = scan_parameters('p1',     0, desc_label )                     ; power of 2 giving x-resolution
-ip2          = scan_parameters('p2',     0, desc_label )                     ; power of 2 giving y-resolution
-n3           = scan_parameters('p3' ,    0, desc_label )                     ; number of slices per data file
-mp           = scan_parameters('np' ,    0, desc_label )                     ; number of processors used in run
-zl           = scan_parameters('zl' ,    0, desc_label )                     ; total height along z of integration volume
+prefix       = scan_parameters('prefix',   0, desc_label )
+ip1          = scan_parameters('p1',       0, desc_label )                     ; power of 2 giving x-resolution
+ip2          = scan_parameters('p2',       0, desc_label )                     ; power of 2 giving y-resolution
+n3           = scan_parameters('p3' ,      0, desc_label )                     ; number of slices per data file
+mp           = scan_parameters('np' ,      0, desc_label )                     ; number of processors used in run
+zl           = scan_parameters('zl' ,      0, desc_label )                     ; total height along z of integration volume
+data_dir     = scan_parameters('data_dir', 0, desc_label )
  
 x_res        = 2^ip1                                                      ; resolution in x
 y_res        = 2^ip2                                                      ; resolution in y
@@ -23,7 +24,7 @@ str_res_lab  = str_x_res + '_' + str_z_res
 data_file    = prefix +'_' + str_res_lab + '.' + 'o' + desc_label            ; 'rmct2_64_16.ots'
 
 cur_dir      = GETENV('PWD')
-data_file    = cur_dir + '/' + data_file
+data_file    = cur_dir + '/' + data_dir + '/' + data_file
 
 PRINT, 'opening file: ', data_file
 OPENR, data_unit, data_file, /GET_LUN
