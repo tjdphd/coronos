@@ -231,14 +231,14 @@ void fft::fftwrtInit(stack& run) {             /* ~ initialize de-aliasing array
       ndx = i * n2h + j;
 
       if (  ky[ndx] == zero) { 
-        if ( abs(kx[ndx]) < k_max) {
+        if ( std::abs(kx[ndx]) < k_max) {
           rt[ndx] = one;
         }
         else {
           rt[ndx] = zero;
         }
       }
-      else if ( abs(ky[ndx]) >  threshold  || abs(kx[ndx]) >  threshold  ) {
+      else if ( std::abs(ky[ndx]) >  threshold  || std::abs(kx[ndx]) >  threshold  ) {
         rt[ndx] = zero;
       }
       else {

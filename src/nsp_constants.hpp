@@ -37,6 +37,7 @@
 #define NSP_CONSTANTS
 
 #include "../config.h"
+#include <cmath>
 #include<vector>
 #include<complex>
 

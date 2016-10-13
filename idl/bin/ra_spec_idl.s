@@ -38,10 +38,10 @@ endif                                      #
 source /etc/profile.d/modules.csh    #
 module load idl                      # load idl onto the compute node
                                      #
-set SRCDIR=$PWD/idl/spec             #
+set SRCDIR=$PWD/idl/pro/spec             #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
 echo "IDL_PATH = " $IDL_PATH         #
-setenv IDL_STARTUP $PWD/ra_spec_batch   # idl batch script to execute
+setenv IDL_STARTUP $PWD/idl/bin/ra_spec_batch   # idl batch script to execute
                                      #
 idl                                  # invoke idl
                                      #

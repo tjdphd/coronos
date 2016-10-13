@@ -330,7 +330,6 @@ void parameter_map::report(std::string out_file_prefix, std::string out_file_run
 
      parameter   pmtr;
 
-
      std::string str_val;
      int         int_val;
      float       flt_val;

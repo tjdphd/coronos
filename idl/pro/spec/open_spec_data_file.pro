@@ -2,11 +2,12 @@ FUNCTION open_spec_data_file, desc_label, layer, n_step
 
 COMMON step, time
 
-ip1          = scan_parameters('ip1', 0, desc_label )                     ; power of 2 giving x-resolution
-ip2          = scan_parameters('ip2', 0, desc_label )                     ; power of 2 giving y-resolution
-n3           = scan_parameters('n3' , 0, desc_label )                     ; number of slices per data file
-mp           = scan_parameters('mp' , 0, desc_label )                     ; number of processors used in run
-zl           = scan_parameters('zl' , 0, desc_label )                     ; total height along z of integration volume
+ip1          = scan_parameters('p1',      0, desc_label )                     ; power of 2 giving x-resolution
+ip2          = scan_parameters('p2',      0, desc_label )                     ; power of 2 giving y-resolution
+n3           = scan_parameters('p3',      0, desc_label )                     ; number of slices per data file
+mp           = scan_parameters('np',      0, desc_label )                     ; number of processors used in run
+zl           = scan_parameters('zl',      0, desc_label )                     ; total height along z of integration volume
+data_dir     = scan_parameters('data_dir',0, desc_label )
  
 x_res        = 2^ip1                                                      ; resolution in x
 y_res        = 2^ip2                                                      ; resolution in y
@@ -52,7 +53,7 @@ PRINT, 'str_layer = ', str_layer
 data_file    = 'spectra_' + str_res_lab + '.' + str_proc + '_' + str_layer + '.o' + desc_label + str_n_step 
 
 cur_dir      = GETENV('PWD')
-data_file    = cur_dir + '/' + data_file
+data_file    = cur_dir + '/' + data_dir + '/' + data_file
 
 ;PRINT, 'opening file: ', data_file
 

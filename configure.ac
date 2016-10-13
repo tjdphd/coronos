@@ -178,7 +178,7 @@ else # -> IF NOT-CUDA ==>
 
     FFTW_PATH_DEFAULT="$USR_LOCAL/fftw"
                FFTW_H="fftw3.h"
-            FFTW_LIBS="-lfftw3 -lm"
+            FFTW_LIBS="-lm -lfftw3"
 
   AC_MSG_CHECKING([whether FFTW_PATH is set])
 

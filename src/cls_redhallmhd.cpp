@@ -416,15 +416,14 @@ void redhallmhd::initGauss( stack& run ) {
 
     case(0) :
     for (unsigned k_z=0; k_z < n3; ++k_z) {
-      zenv                   = eenv_zero * pow(sin((pi/zl) * (z[k_z] - zl)),2) * exp(-kappa_z * pow((z[k_z] - (half*zl)),2));
+      zenv                     = eenv_zero * pow(sin((pi/zl) * (z[k_z] - zl)),2) * exp(-kappa_z * pow((z[k_z] - (half*zl)),2));
       for (unsigned i_x=0; i_x < n1; ++i_x) {
         xfld                   = exp(-kappa_x * pow(( x[i_x] - half),2) ) * sin(varsigma_x * pow((x[i_x] - half),2) + psi_xzero ); 
         for (unsigned j_y=0; j_y < n2; ++j_y) {
           yfld                 = exp(-kappa_y * pow(( y[j_y] - half),2) ) * sin(varsigma_y * pow((y[j_y] - half),2) + psi_yzero ); 
           idx                  = (i_x * n1) + j_y;
-
           next_u               = phi_norm * zenv * (xfld - xfld_zero) * (yfld - yfld_zero);
-          if (abs(next_u) >= teensy) {
+          if (std::abs(next_u) >= teensy) {
             U[idx][k_z+1][i_f] = next_u;
           }
           else {
@@ -545,8 +544,11 @@ void redhallmhd::readUData( stack& run ) {
   int rank; MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   int srun; run.palette.fetch("srun", &srun);
+  std::string data_dir; run.palette.fetch("data_dir", &data_dir);
 
-  std::string data_file                  = run.getLastDataFilename(srun-1);
+  std::string data_file;
+  data_file                = "./" + data_dir + "/" + run.getLastDataFilename(srun-1);
+
   const char *c_data_file                = data_file.c_str();
 
   std::ifstream ifs;
@@ -1237,8 +1239,8 @@ void redhallmhd::evalElls(    stack& run ) {
             break;
   case(1) : for ( int k = 0; k <  p3+1;  ++k) {
 
-              EllA[k] = abs( dvalfdz[k] / (two  * valfven[k]) );
-              Elln[k] = abs( dndz[k]    / (four * nofz[k]   ) );
+              EllA[k] = std::abs( dvalfdz[k] / (two  * valfven[k]) );
+              Elln[k] = std::abs( dndz[k]    / (four * nofz[k]   ) );
 
             }
             EllB.assign(p3+1, zero);
@@ -1498,7 +1500,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
       dng                = ( (EnergyQs[i_dng] * t_old) + (ae - aeold + pe - peold + he - heold) ) / t_cur;
       irc                = (ae - aeold + pe - peold + he - heold) / dt_old;
       gml                = ftp - eds;
-      cns                = abs(( (fe - noe - ece) - ( (ae - aeold + pe - peold + he - heold ) / dt_old )) * dt_old );
+      cns                = std::abs(( (fe - noe - ece) - ( (ae - aeold + pe - peold + he - heold ) / dt_old )) * dt_old );
 
       AVEz               = AVEz  + cns * dt_old;
       AVEpv              = AVEpv + noe * dt_old;
@@ -1608,7 +1610,7 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
         dng                = zero;
         irc                = (ae - aeold + pe - peold) / dt_old;
         gml                = (ae - aeold + pe - peold )/ dt_old;
-        cns                = abs(  ( ( fe - noe - ece ) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
+        cns                = std::abs(  ( ( fe - noe - ece ) - ((ae - aeold + pe - peold) / dt_old)) * dt_old );
         ttc                = t_cur / tauC; 
         dt                 = dt_old;
         dtv                = dtvb;
@@ -1661,7 +1663,9 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
         std::string run_label; run.palette.fetch(   "run_label", &run_label);
         std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
 
-        std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
+        std::string data_dir;  run.palette.fetch(   "data_dir",  &data_dir );
+
+        std::string energy_data_file = "./" + data_dir + "/" + prefix + "_" + res_str + ".o" + run_label;
         const char *c_data_file      = energy_data_file.c_str();
 
         std::ifstream ifs;
@@ -1895,28 +1899,28 @@ void redhallmhd::trackQtyVsZ(RealVar t_cur, stack& run ) {
       zepvsz[l] = aevsz[l] + pevsz[l] + chvsz[l];
       zemvsz[l] = aevsz[l] + pevsz[l] - chvsz[l];
 
-      if ( (abs(aevsz[l]) >= teensy) || (abs(pevsz[l])  >= teensy) ) {
+      if ( (std::abs(aevsz[l]) >= teensy) || (std::abs(pevsz[l])  >= teensy) ) {
         nchvsz[l] = chvsz[l] / (aevsz[l] + pevsz[l]) ;
       }
       else { nchvsz[l] = zero; }
-      if ( abs(aevsz[l]) >= teensy ) {
+      if ( std::abs(aevsz[l]) >= teensy ) {
          kcvsz[l] = cevsz[l] / aevsz[l];
-         if ( (abs(kcvsz[l]) < teensy) || (abs(kcvsz[l]) > huge)) { kcvsz[l] = zero; }
+         if ( (std::abs(kcvsz[l]) < teensy) || (std::abs(kcvsz[l]) > huge)) { kcvsz[l] = zero; }
       }
       else{ kcvsz[l] = zero;}
-      if ( abs(pevsz[l]) >= teensy) {
+      if ( std::abs(pevsz[l]) >= teensy) {
         kovsz[l]  = oevsz[l] / pevsz[l];
-        if ((abs(kovsz[l]) < teensy) || (abs(kovsz[l]) > huge)) { kovsz[l] = zero; }
+        if ((std::abs(kovsz[l]) < teensy) || (std::abs(kovsz[l]) > huge)) { kovsz[l] = zero; }
       }
       else {kovsz[l] = zero ;}
-      if (abs(zepvsz[l]) >= teensy) {
+      if (std::abs(zepvsz[l]) >= teensy) {
         kzpvsz[l] = zpvsz[l] / zepvsz[l];
-        if ((abs(kzpvsz[l]) < teensy) || (abs(kzpvsz[l]) > huge) ) {kzpvsz[l] = zero; }
+        if ((std::abs(kzpvsz[l]) < teensy) || (std::abs(kzpvsz[l]) > huge) ) {kzpvsz[l] = zero; }
       }
       else{kzpvsz[l] =zero;}
-      if (abs(zemvsz[l]) >= teensy) {
+      if (std::abs(zemvsz[l]) >= teensy) {
         kzmvsz[l] = zmvsz[l] / zemvsz[l];
-        if ((abs(kzmvsz[l]) < teensy) || (abs(kzmvsz[l]) > huge) ) {kzmvsz[l] = zero; }
+        if ((std::abs(kzmvsz[l]) < teensy) || (std::abs(kzmvsz[l]) > huge) ) {kzmvsz[l] = zero; }
       }
       else{ kzmvsz[l] =zero; }
 
@@ -2001,6 +2005,7 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
     int         n3; run.palette.fetch("p3",   &n3     );
     int         np; run.palette.fetch("np",   &np     );
     RealVar  t_cur; physics_data.fetch("t_cur", &t_cur);
+    std::string data_dir; run.palette.fetch("data_dir", &data_dir);
 
     RealArray& z = run.z;
 
@@ -2009,12 +2014,15 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
 
     RealVar nw_m1 = one / (RealVar (nw));
 
-    for (unsigned l = 0; l < n3; l++) {
+    std::string spout_pref; run.palette.fetch(    "spout_pref", &spout_pref     );
+    std::string res_str;    run.stack_data.fetch( "res_str",    &res_str        );
+    std::string run_label;  run.palette.fetch(    "run_label",  &run_label      );
+    int srun;               run.palette.fetch(    "srun",       &srun           );
 
-         std::string spout_pref; run.palette.fetch(    "spout_pref", &spout_pref     );
-         std::string res_str;    run.stack_data.fetch( "res_str",    &res_str        );
-         std::string run_label;  run.palette.fetch(    "run_label",  &run_label      );
-         int srun;               run.palette.fetch(    "srun",       &srun           );
+    std::string spc_vs_z_out_file_prefix = "./" + data_dir + "/" + spout_pref + "_" + res_str + ".";
+    std::string spc_vs_z_out_file;
+
+    for (unsigned l = 0; l < n3; l++) {
 
          std::string lyr_str   = static_cast<std::ostringstream*>( &(std::ostringstream() << l+1)  ) -> str();
          int lyr_len           = lyr_str.length();
@@ -2024,8 +2032,8 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
          if (rank_len < 3) { for (unsigned i = rank_len; i < 3;++i){ rank_str = '0' + rank_str; }}
          std::string srn_str   = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
 
-         std::string spc_vs_z_out_file = spout_pref + "_" + res_str + "." + rank_str +"_" + lyr_str + ".o" + run_label + srn_str;
-         c_spc_vs_z_out_file = spc_vs_z_out_file.c_str();
+         spc_vs_z_out_file     = spc_vs_z_out_file_prefix + rank_str +"_" + lyr_str + ".o" + run_label + srn_str;
+         c_spc_vs_z_out_file   = spc_vs_z_out_file.c_str();
          ofs.open( c_spc_vs_z_out_file, std::ios::out );
 
          if (ofs.good() ) {
@@ -2047,7 +2055,7 @@ void redhallmhd::reportPowerSpectra ( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
+void redhallmhd::reportQtyVsZ ( stack& run ) {
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank );
   MPI_Status * status = 0;
@@ -2055,6 +2063,7 @@ void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
   int   nw; run.palette.fetch("nw",   &nw    );
   int   n3; run.palette.fetch("p3",   &n3    );
   int   np; run.palette.fetch("np",   &np    );
+  RealVar  t_cur; physics_data.fetch("t_cur", &t_cur);
 
   const char *c_qty_vs_z_out_file;
   std::ofstream ofs;
@@ -2080,9 +2089,10 @@ void redhallmhd::reportQtyVsZ ( RealVar t_cur, stack& run ) {
     std::string res_str;      run.stack_data.fetch("res_str",   &res_str    );
     std::string run_label;    run.palette.fetch(   "run_label", &run_label  );
     int srun;                 run.palette.fetch(   "srun",      &srun       );
+    std::string data_dir; run.palette.fetch("data_dir", &data_dir);
     std::string srn_str = static_cast<std::ostringstream*>( &(std::ostringstream() << srun) ) -> str();
 
-    std::string qty_vs_z_out_file = qout_prefix + "_" + res_str + ".o" + run_label + srn_str;
+    std::string qty_vs_z_out_file = "./" + data_dir + "/" + qout_prefix + "_" + res_str + ".o" + run_label + srn_str;
     c_qty_vs_z_out_file = qty_vs_z_out_file.c_str();
 
     std::cout << "reportQtyVsZ: qty_vs_z_out_file = " << qty_vs_z_out_file << std::endl;
@@ -2133,13 +2143,13 @@ double redhallmhd::evalTotalKineticEnergy ( stack& run ) {
 
     if (kdx % n1n2c == 0) { idx = 0; }
 
-      pe            = pe +        k2[idx] * pow(abs(P[kdx]), 2);
+      pe            = pe +        k2[idx] * pow(std::abs(P[kdx]), 2);
 
       if (( rank    == np - 1 ) && ( kdx >= (four * n1n2c) )) {
-        pe          = pe + half * k2[idx] * pow(abs(P[kdx]), 2);
+        pe          = pe + half * k2[idx] * pow(std::abs(P[kdx]), 2);
       }
       if ((rank     == 0      ) && ( kdx <   n1n2c         )) {
-        pe          = pe - half * k2[idx] * pow(abs(P[kdx]), 2);
+        pe          = pe - half * k2[idx] * pow(std::abs(P[kdx]), 2);
       }
 
       ++idx;
@@ -2185,13 +2195,13 @@ double redhallmhd::evalTotalVorticitySqd( stack& run ) {
 
     if (kdx % n1n2c  == 0) { idx = 0; }
 
-      oe        = oe +        k2[idx] * k2[idx] * pow(abs(P[kdx]), 2);
+      oe        = oe +        k2[idx] * k2[idx] * pow(std::abs(P[kdx]), 2);
 
       if (( rank == np - 1 ) && ( kdx >= (four * n1n2c) )) {
-        oe      = oe + half * k2[idx] * k2[idx] * pow(abs(P[kdx]), 2);
+        oe      = oe + half * k2[idx] * k2[idx] * pow(std::abs(P[kdx]), 2);
       }
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
-        oe      = oe - half * k2[idx] * k2[idx] * pow(abs(P[kdx]), 2);
+        oe      = oe - half * k2[idx] * k2[idx] * pow(std::abs(P[kdx]), 2);
       }
 
       ++idx;
@@ -2234,7 +2244,7 @@ double redhallmhd::evalTotalMagneticEnergy ( stack& run ) {
 
     if (kdx % n1n2c  == 0) { idx = 0; }
 
-      me              = me + k2[idx] * pow(abs(A[kdx]), 2);
+      me              = me + k2[idx] * pow(std::abs(A[kdx]), 2);
       ++idx;
   }
 
@@ -2271,7 +2281,7 @@ double redhallmhd::evalTotalCurrentSqd( stack& run ) {
 
     if (kdx % n1n2c  == 0) { idx = 0; }
 
-      ce              = ce + k2[idx] * k2[idx] * pow(abs(A[kdx]), 2);
+      ce              = ce + k2[idx] * k2[idx] * pow(std::abs(A[kdx]), 2);
       ++idx;
   }
 
@@ -2309,7 +2319,7 @@ double redhallmhd::evalTotalGradCurrentSqd( stack& run ) {
 
     if (kdx % n1n2c  == 0) { idx = 0; }
 
-      cee             = cee + k2[idx] * k2[idx] * k2[idx] * pow(abs(A[kdx]), 2);
+      cee             = cee + k2[idx] * k2[idx] * k2[idx] * pow(std::abs(A[kdx]), 2);
       ++idx;
   }
 
@@ -2347,8 +2357,8 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
 
     for (unsigned kdx = kstart; kdx < kstop; kdx++) {
 
-//    fp              = fp + k2[kdx] * pow(abs(P[kdx]), 2);
-      fp              = fp + pow(abs(O[kdx]), 2);
+//    fp              = fp + k2[kdx] * pow(std::abs(P[kdx]), 2);
+      fp              = fp + pow(std::abs(O[kdx]), 2);
     }
 
 // or
