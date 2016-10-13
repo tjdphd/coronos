@@ -1007,8 +1007,8 @@ void redhallmhd::initNoDrive( stack& run) {
 void redhallmhd::initIRMHD (stack& run ) {
 
   evalValf(  run );
-  evalUmean( run );
   evalElls(  run );
+  evalUmean( run );
 
 }
 
@@ -1214,10 +1214,15 @@ void redhallmhd::evalElls(    stack& run ) {
   EllA.assign(p3+1,zero);
   EllB.assign(p3+1,zero);
 
-   h11.assign(p3+1,zero);
-   h12.assign(p3+1,zero);
-   h21.assign(p3+1,zero);
-   h22.assign(p3+1,zero);
+//h11.assign(p3+1,zero);
+//h12.assign(p3+1,zero);
+//h21.assign(p3+1,zero);
+//h22.assign(p3+1,zero);
+
+  kpm.assign(p3+1,zero);
+  kpp.assign(p3+1,zero);
+  kmm.assign(p3+1,zero);
+  kmp.assign(p3+1,zero);
 
   int i_profile;
 
@@ -1257,10 +1262,16 @@ void redhallmhd::evalElls(    stack& run ) {
 
   for ( int k = 0; k <  p3+1;  ++k) {
 
-    h11[k] =  umean[k]   * ( EllA[k] + EllB[k] - Elln[k] );
-    h12[k] = -valfven[k] * ( EllA[k] + EllB[k] + Elln[k] );
-    h21[k] =  h12[k];
-    h22[k] =  umean[k]   * ( EllB[k] - Elln[k] - EllA[k] );
+//  h11[k] =  umean[k]   * ( EllA[k] + EllB[k] - Elln[k] );
+//  h12[k] = -valfven[k] * ( EllA[k] + EllB[k] + Elln[k] );
+//  h21[k] =  h12[k];
+//  h22[k] =  umean[k]   * ( EllB[k] - Elln[k] - EllA[k] );
+
+    kpm[k] =  EllA[k] + EllB[k] - Elln[k] ;
+    kpp[k] =  EllA[k] + EllB[k] + Elln[k] ;
+
+    kmm[k] =  EllA[k] - EllB[k] - Elln[k] ;
+    kmp[k] =  EllA[k] - EllB[k] + Elln[k] ;
 
   }
 
@@ -1357,14 +1368,16 @@ void redhallmhd::evalUmean( stack& run ) {
   int        i_profile;
 
   if      (uprofile.compare("noflow")   == 0) { i_profile =  0; }
-  else if (uprofile.compare("uniform")  == 0) { i_profile =  1; }
+  else if (uprofile.compare("torus")    == 0) { i_profile =  1; }
   else if (uprofile.compare("whoknows") == 0) { i_profile =  2; }
   else                                        { i_profile = -1; }
 
   switch(i_profile) {
 
   case(0) : umean.assign(p3+1, zero); break;
-  case(1) : umean.assign(p3+1, zero); break;
+  case(1) : umean.assign(p3+1, zero); 
+            for (unsigned k = 0; k < p3 + 1; ++k){umean[k] = one / nofz[k];}
+            break;
   case(2) : umean.assign(p3+1, zero); break;
 
   default : 

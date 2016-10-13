@@ -116,10 +116,15 @@ class redhallmhd
   RealArray EllA;
   RealArray EllB;
 
-  RealArray h11;
-  RealArray h12;
-  RealArray h21;
-  RealArray h22;
+//  RealArray h11;
+//  RealArray h12;
+//  RealArray h21;
+//  RealArray h22;
+
+  RealArray kpm;                                                      /* ~ kpm = k_p^-                               ~ */
+  RealArray kpp;                                                      /* ~ kpp = k_p^+                               ~ */
+  RealArray kmm;                                                      /* ~ kmm = k_m^-                               ~ */
+  RealArray kmp;                                                      /* ~ kmp = k_m^+                               ~ */
 
   RealArray maxU;                                                     /* ~ for time-step determination               ~ */
 

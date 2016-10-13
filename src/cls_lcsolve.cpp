@@ -166,39 +166,65 @@ void lcsolve::passAdjacentLayers( std::string str_step, stack& run ) {
     if (rank != 0 ) {
       if (rank != np - 1) {
 
-          MPI_Send(  &O[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank + 1     , MPI_COMM_WORLD        ); // send " p(:,n3)"
-          if (model.compare("hall") == 0 ) {
-            MPI_Send(&Z[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank         , MPI_COMM_WORLD        ); // send "bz(:,n3)"
-          }
+        MPI_Send(  &O[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank + 1     , MPI_COMM_WORLD        ); // send " p(:,n3)"
+
+        if (model.compare("inhm") == 0 ) {
+          // send A layer n3 from this rank UP to next rank layer 0
+           MPI_Send( &H[n3_idx],  n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank        , MPI_COMM_WORLD       );
+          // receive omega layer 1 from next rank UP into this rank layer n3+1
+           MPI_Recv( &O[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank - 2, MPI_COMM_WORLD, status);
+        }
+
+        if (model.compare("hall") == 0 ) {
+          MPI_Send(&Z[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank         , MPI_COMM_WORLD        ); // send "bz(:,n3)"
+        }
 
       }
-          MPI_Recv(  &O.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank         , MPI_COMM_WORLD, status); // receive " pbot"
-          if (model.compare("hall") == 0 ) {
-            MPI_Recv(&Z.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank - 1     , MPI_COMM_WORLD, status); // receive "bzbot"
-          }
 
-          MPI_Send(  &H[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank - 1, MPI_COMM_WORLD        ); // send " a(:,1)"
-          if (model.compare("hall") == 0 ) {
-            MPI_Send(&V[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank    , MPI_COMM_WORLD        ); // send "vz(:,1)"
-          }
+      MPI_Recv(  &O.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank         , MPI_COMM_WORLD, status); // receive " pbot"
 
-        if ( rank != np - 1) {
+      if (model.compare("inhm") == 0 ) {
+        // send omega layer 1 from this rank to next rank DOWN  layer n3+1
+        MPI_Send(&O[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank - 3, MPI_COMM_WORLD        );
+        // receive A layer n3 from next rank down into this rank layer 0
+        MPI_Recv(&H.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank - 1     , MPI_COMM_WORLD, status);
+      }
+      if (model.compare("hall") == 0 ) {
+        MPI_Recv(&Z.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank - 1     , MPI_COMM_WORLD, status); // receive "bzbot"
+      }
 
-          MPI_Recv(  &H[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank    , MPI_COMM_WORLD, status); // receive " atop"
-          if (model.compare("hall") == 0 ) {
-            MPI_Recv(&V[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank + 1, MPI_COMM_WORLD, status); // receive "vztop"
-          }
+      MPI_Send(  &H[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank - 1, MPI_COMM_WORLD        ); // send " a(:,1)"
 
+      if (model.compare("hall") == 0 ) {
+        MPI_Send(&V[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank    , MPI_COMM_WORLD        ); // send "vz(:,1)"
+      }
+
+      if ( rank != np - 1) {
+
+        MPI_Recv(  &H[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank    , MPI_COMM_WORLD, status); // receive " atop"
+
+        if (model.compare("hall") == 0 ) {
+          MPI_Recv(&V[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank + 1, MPI_COMM_WORLD, status); // receive "vztop"
         }
+
+      }
     }
     else {
 
           MPI_Send(  &O[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank + 1     , MPI_COMM_WORLD        ); // send " p(:,n3)"
+
+          if (model.compare("inhm") == 0 ) {
+            // send A layer n3 from this rank UP to next rank layer 0
+             MPI_Send( &H[n3_idx],  n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank        , MPI_COMM_WORLD       );
+            // receive omega layer 1 from next rank up to this rank layer n3+1
+             MPI_Recv( &O[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank - 2, MPI_COMM_WORLD, status);
+          }
           if (model.compare("hall") == 0 ) {
             MPI_Send(&Z[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank         , MPI_COMM_WORLD        ); // send "bz(:,n3)"
           }
 
           MPI_Recv(  &H[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank    , MPI_COMM_WORLD, status); // receive " atop"
+
           if (model.compare("hall") == 0 ) {
             MPI_Recv(&V[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank + 1, MPI_COMM_WORLD, status); // receive "vztop"
           }
@@ -209,39 +235,67 @@ void lcsolve::passAdjacentLayers( std::string str_step, stack& run ) {
     if (rank != 0 ) {
       if (rank != np - 1) {
 
-          MPI_Send(  &tO[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank + 1     , MPI_COMM_WORLD        ); // send " tp(:,n3)"
+        MPI_Send(  &tO[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank + 1     , MPI_COMM_WORLD        ); // send " tp(:,n3)"
+
+        if (model.compare("inhm") == 0 ) {
+          // send A layer n3 from this rank UP to next rank layer 0
+           MPI_Send( &tH[n3_idx],  n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank        , MPI_COMM_WORLD       );
+          // receive omega layer 1 from next rank UP into this rank layer n3+1
+           MPI_Recv( &tO[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank - 2, MPI_COMM_WORLD, status);
+        }
+
           if (model.compare("hall") == 0 ) {
             MPI_Send(&tZ[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank         , MPI_COMM_WORLD        ); // send "tbz(:,n3)"
           }
 
       }
-          MPI_Recv(  &tO.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank         , MPI_COMM_WORLD, status); // receive " pbot"
-          if (model.compare("hall") == 0 ) {
-            MPI_Recv(&tZ.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank - 1     , MPI_COMM_WORLD, status); // receive "bzbot"
-          }
 
-          MPI_Send(  &tH[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank - 1, MPI_COMM_WORLD        ); // send " ta(:,1)"
-          if (model.compare("hall") == 0 ) {
-            MPI_Send(&tV[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank    , MPI_COMM_WORLD        ); // send "tvz(:,1)"
-          }
+      MPI_Recv(  &tO.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank         , MPI_COMM_WORLD, status); // receive " pbot"
 
-        if ( rank != np - 1) {
+      if (model.compare("inhm") == 0 ) {
+        // send omega layer 1 from this rank to next rank DOWN  layer n3+1
+        MPI_Send(&tO[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank - 3, MPI_COMM_WORLD        );
+        // receive A layer n3 from next rank down into this rank layer 0
+        MPI_Recv(&tH.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank - 1     , MPI_COMM_WORLD, status);
+      }
 
-          MPI_Recv(  &tH[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank    , MPI_COMM_WORLD, status); // receive " atop"
-          if (model.compare("hall") == 0 ) {
-            MPI_Recv(&tV[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank + 1, MPI_COMM_WORLD, status); // receive "vztop"
-          }
 
+      if (model.compare("hall") == 0 ) {
+        MPI_Recv(&tZ.front(),   n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, rank - 1     , MPI_COMM_WORLD, status); // receive "bzbot"
+      }
+
+      MPI_Send(  &tH[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank - 1, MPI_COMM_WORLD        ); // send " ta(:,1)"
+      if (model.compare("hall") == 0 ) {
+        MPI_Send(&tV[abot_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank - 1, np + rank    , MPI_COMM_WORLD        ); // send "tvz(:,1)"
+      }
+
+      if ( rank != np - 1) {
+
+        MPI_Recv(  &tH[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank    , MPI_COMM_WORLD, status); // receive " atop"
+        if (model.compare("hall") == 0 ) {
+          MPI_Recv(&tV[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank + 1, MPI_COMM_WORLD, status); // receive "vztop"
         }
+
+      }
+
     }
     else {
 
           MPI_Send(  &tO[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank + 1     , MPI_COMM_WORLD        ); // send " tp(:,n3)"
+
+          if (model.compare("inhm") == 0 ) {
+            // send A layer n3 from this rank UP to next rank layer 0
+             MPI_Send( &tH[n3_idx],  n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank        , MPI_COMM_WORLD       );
+            // receive omega layer 1 from next rank up to this rank layer n3+1
+             MPI_Recv( &tO[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank - 2, MPI_COMM_WORLD, status);
+          }
+
           if (model.compare("hall") == 0 ) {
             MPI_Send(&tZ[n3_idx],   n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, rank         , MPI_COMM_WORLD        ); // send "tbz(:,n3)"
           }
 
           MPI_Recv(  &tH[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank    , MPI_COMM_WORLD, status); // receive " atop"
+
           if (model.compare("hall") == 0 ) {
             MPI_Recv(&tV[atop_idx], n1n2c, MPI::DOUBLE_COMPLEX, rank + 1, np + rank + 1, MPI_COMM_WORLD, status); // receive "vztop"
           }
@@ -525,12 +579,11 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   RealVar dz;
   run.stack_data.fetch("dz"       , &dz    );                                  /* ~ inter-layer width along z                   ~ */
   RealVar rho;
-//physics.physics_data.fetch("rho", &rho   );                                  /* ~ gyro-radius parameter                       ~ */
 
   std::string model;
   run.palette.fetch("model"       , &model );
 
-  if (model.compare("hall") == 0) { physics.physics_data.fetch(  "rho", &rho ); } /* ~ gyro-radius parameter                                      ~ */
+  if (model.compare("hall") == 0) { physics.physics_data.fetch(  "rho", &rho ); } /* ~ gyro-radius parameter                    ~ */
   else { rho       = zero;                                                      }
 
   RealVar beta;                           
@@ -548,14 +601,14 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   ComplexArray& P  = physics.P;
   ComplexArray& J  = physics.J;
 
-//  ComplexArray& O  = run.U0;
-//  ComplexArray& A  = run.U1;
+  ComplexArray& O  = run.U0;
+  ComplexArray& A  = physics.A;
 
-// ComplexArray& tO = run.tU0;
-// ComplexArray& tA = run.tU1;
+  ComplexArray& tO = run.tU0;
+  ComplexArray& tA = physics.A;
 
   ComplexVar deltaJ, deltaP;                                                   /* ~ to aid in differentiating between the       ~ */
-//  ComplexVar deltaO, deltaA;                                                 /* ~ predictor and corrector cases               ~ */
+  ComplexVar deltaO, deltaA;                                                   /* ~ predictor and corrector cases               ~ */
   ComplexVar deltaZ, deltaV;
 
   unsigned kdxp1,  kdxm1;                                                      /* ~ neighbor - layer indices                    ~ */
@@ -566,12 +619,12 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
   int iu2;
   run.stack_data.fetch( "iu2"     , &iu2   );                                  /* ~ number of layers                            ~ */
 
-  int l_idx        = -1;
+  int l_idx        =  0;
   kstart           = n1n2c;                                                    /* ~ D's are calculated for layers 1,2,3,..n3    ~ */
   kstop            = n1n2c * (iu2 - 1);                                        /* ~ layer 1 needs layer 0 and layer n3          ~ */
                                                                                /* ~ needs layer iu2 - 1                         ~ */
-
   RealArray& valfven = physics.valfven;
+  RealArray& umean   = physics.umean;
 
   for (unsigned kdx = kstart; kdx < kstop; kdx++) {
 
@@ -580,23 +633,29 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
     kdxm1          = kdx - n1n2c;                                              /* ~ adjacent lower layer index                  ~ */
     kdxp1          = kdx + n1n2c;                                              /* ~ adjacent upper layer index                  ~ */
 
-    deltaJ         = valfven[l_idx] * (J[ kdxp1 ] - J[ kdx   ]);               /* ~ P's and J's are updated every half-step     ~ */
-    deltaP         = valfven[l_idx] * (P[ kdx   ] - P[ kdxm1 ]);               /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.   ~ */
+      deltaP       = valfven[l_idx] * (P[ kdx   ] - P[ kdxm1 ]);               /* ~ see updatePAJ. Note use of kdxp1 & kdxm1.   ~ */
+      deltaJ       = valfven[l_idx] * (J[ kdxp1 ] - J[ kdx   ]);               /* ~ P's and J's are updated every half-step     ~ */
 
-//   if ( model.compare("inhm") == 0) { 
-//     if (     str_step.compare("predict") == 0) {
+    if ( model.compare("inhm") == 0) {
 
-//       deltaO     = O[kdxp1]  - O[kdxm1]
-//       deltaA     = A[kdxp1]  - A[kdxm1] /*~ WARNING - must deal with lowest kdxm1 ~*/
+      if (     str_step.compare("predict") == 0) {
 
-//     }
-//     else if (str_step.compare("correct") == 0) {
+           deltaA  = umean[l_idx]*(A[kdxp1]  - A[kdxm1]);
+           deltaO  = umean[l_idx]*(O[kdxp1]  - O[kdxm1]);
 
-//       deltaO     = tO[kdxp1] - tO[kdxm1]
-//       deltaA     = tA[kdxp1] - tA[kdxm1]/*~ WARNING - must deal with lowest kdxm1 ~*/
+         }
+      
+     else if (str_step.compare("correct") == 0) {
 
-//     }
-//   }
+           deltaA   = umean[l_idx]*(tA[kdxp1]  - tA[kdxm1]);
+           deltaO   = umean[l_idx]*(tO[kdxp1]  - tO[kdxm1]);
+
+         }
+     }
+     else {
+        deltaA      = zero;
+        deltaO      = zero;
+     }
     
     if ( model.compare("hall") == 0) {
       if (     str_step.compare("predict") == 0) {
@@ -619,8 +678,8 @@ void lcsolve::setD( std::string str_step, stack& run, redhallmhd& physics ) {
 
     }
 
-    D0[kdx]        =  deltaJ                                          * dzm1;  /* ~ i.e. Delta J / Delta z                      ~ */
-    D1[kdx]        = (          deltaP  - (       rho    *  deltaZ )) * dzm1;  /* ~ i.e. Delta F / Delta z,                     ~ */
+    D0[kdx]        = (deltaJ  - deltaO                  ) * dzm1;              /* ~ i.e. Delta J / Delta z                      ~ */
+    D1[kdx]        = (deltaP  - deltaA - (rho * deltaZ )) * dzm1;              /* ~ i.e. Delta F / Delta z,                     ~ */
                                                                                /* ~ where F = phi - rhobar * Z                  ~ */
     if ( model.compare("hall") == 0) {
 
@@ -645,19 +704,24 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
   int iu2;
   run.stack_data.fetch( "iu2",   &iu2 );           /* ~ number of layers                                     ~ */
 
-  unsigned usize    = n1n2c * iu2;
+  unsigned usize     = n1n2c * iu2;
 
-  ComplexArray& J   = physics.J;                   /* ~ required for all models                              ~ */
+  ComplexArray& J    = physics.J;                   /* ~ required for all models                              ~ */
 
-  ComplexArray& P   = physics.P;                   /* ~ required for inhm                                    ~ */
+  ComplexArray& P    = physics.P;                   /* ~ required for inhm                                    ~ */
+  ComplexArray& O    = run.U0;
+  ComplexArray& A    = physics.A;
 
   ComplexArray Jbar;
   ComplexArray Pbar;
 
-  RealArray& h11    = physics.h11;
-  RealArray& h12    = physics.h12;
-  RealArray& h21    = physics.h21;
-  RealArray& h22    = physics.h22;
+  RealArray& kpm     = physics.kpm;
+  RealArray& kpp     = physics.kpp;
+  RealArray& kmm     = physics.kmm;
+  RealArray& kmp     = physics.kmp;
+
+  RealArray& valfven = physics.valfven;
+  RealArray& umean   = physics.umean;
 
   std::string model;
   run.palette.fetch("model", &model);
@@ -684,8 +748,8 @@ void lcsolve::setAi( stack& run, redhallmhd& physics ) {
    
       if (kdx % n1n2c == 0 ) { ++l_idx; }
 
-      A0[ kdx ]     = h12[l_idx] * Jbar[kdx];           /* ~ A0 - L1 = h11(z) * Omega + h12(z)*jbar                       ~ */
-      A1[ kdx ]     = h21[l_idx] * Pbar[kdx];           /* ~ A1 - L2 = h21(z)*phibar  + h22(z)*A                          ~ */
+      A0[ kdx ]     = umean[l_idx]*kpm[l_idx]*O[kdx] - valfven[l_idx]*kpp[l_idx] * Jbar[kdx];  
+      A1[ kdx ]     = umean[l_idx]*kmm[l_idx]*A[kdx] - valfven[l_idx]*kmp[l_idx] * Pbar[kdx];  
 
     }
 
