@@ -40,7 +40,9 @@ FUNCTION scan_parameters, param, n_step, desc_label
 
   record         = 'dummy'
 
+  str_type       = ''
   FOR I = 1, n_lines DO BEGIN
+
     READF, par_unit, FORMAT = '(A)', record
     split_name   = STRSPLIT(record)
     str_name     = STRTRIM(STRMID(record,split_name[0],split_name[1]),2)
@@ -59,7 +61,7 @@ FUNCTION scan_parameters, param, n_step, desc_label
 
   FREE_LUN, par_unit
 
-  CASE str_type of 
+  CASE str_type of
     'int': value = UINT(str_val)
     'dbl': value = DOUBLE(str_val)
     'str': value = str_val

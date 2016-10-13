@@ -129,6 +129,8 @@ do
     j_nx=`expr $j + 1`
     j_nx=$add_zeros$j_nx
   fi
+     subr=$job_name$j_sr$rsc_man
+  subarch=$arc_name$j_ar$rsc_man
 #
   echo "#!/bin/bash"                      > $subr
   echo "#PBS -W group_list=mhdturb"      >> $subr
@@ -163,8 +165,6 @@ then
 #
   jobr=$job_name$j_sr_$start-$stop$rsc_man
   joba=$arc_name$j_ar_$start-$stop$rsc_man
-#
-  echo "init-coronos: WARNING - the archiver for resource management option " $rsc_man " is not yet implemented."
 #
   echo "#!/bin/sh"                                                                     > $jobr
   echo " "                                                                            >> $jobr

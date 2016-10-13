@@ -82,6 +82,7 @@ void lcsolve::Loop( stack& run ) {
     physics.trackEnergies(     t_cur, run         );
     physics.trackQtyVsZ(       t_cur, run         );
     physics.trackPowerSpectra( t_cur, run         );
+
     if ( l % nw == 0 ) { run.reportEnergyQs( t_cur ); }
   
     setS(               "predict", run, physics   );   /* ~ set predictor S's                                       ~ */
@@ -120,7 +121,7 @@ void lcsolve::Loop( stack& run ) {
 
   physics.fftw.fftwReverseAll(     run            );
 
-  physics.reportQtyVsZ( t_cur,     run            );
+  physics.reportQtyVsZ(            run            );
   physics.reportPowerSpectra(      run            );
 
   run.palette.reset(   "tstart", t_cur            );

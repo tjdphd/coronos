@@ -39,11 +39,11 @@ E_case            = open_energy_data_file(dsc_lab, 'ff')
 
 out_dev           = 'X'
 
-ip1               = scan_parameters('ip1', 0, desc_label )                     ; power of 2 giving x-resolution
-ip2               = scan_parameters('ip2', 0, desc_label )                     ; power of 2 giving y-resolution
-n3                = scan_parameters('n3' , 0, desc_label )                     ; number of slices per data file
-mp                = scan_parameters('mp' , 0, desc_label )                     ; number of processors used in run
-zl                = scan_parameters('zl' , 0, desc_label )                     ; total height along z of integration volume
+ip1               = scan_parameters('p1', 0, desc_label )                     ; power of 2 giving x-resolution
+ip2               = scan_parameters('p2', 0, desc_label )                     ; power of 2 giving y-resolution
+n3                = scan_parameters('p3', 0, desc_label )                     ; number of slices per data file
+mp                = scan_parameters('np', 0, desc_label )                     ; number of processors used in run
+zl                = scan_parameters('zl', 0, desc_label )                     ; total height along z of integration volume
  
 x_res             = 2^ip1                                                      ; resolution in x
 y_res             = 2^ip2                                                      ; resolution in y

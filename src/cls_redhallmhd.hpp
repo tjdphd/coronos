@@ -165,7 +165,7 @@ class redhallmhd
 
                                                                       /* ~ Qty's vs z related                        ~ */
   void trackQtyVsZ(      RealVar t_cur, stack& run );                
-  void reportQtyVsZ(     RealVar t_cur, stack& run );
+  void reportQtyVsZ(                    stack& run );
                                                                       /* ~ Power Spectra related                     ~ */
   void trackPowerSpectra(RealVar t_cur, stack& run );
   void reportPowerSpectra(              stack& run );
