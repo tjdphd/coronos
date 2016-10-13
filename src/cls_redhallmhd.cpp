@@ -1650,7 +1650,9 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
         std::string run_label; run.palette.fetch(   "run_label", &run_label);
         std::string res_str;   run.stack_data.fetch("res_str",   &res_str  );
 
-        std::string energy_data_file = prefix + '_' + res_str + ".o" + run_label;
+        std::string data_dir;  run.palette.fetch(   "data_dir",  &data_dir );
+
+        std::string energy_data_file = "./" + data_dir + "/" + prefix + "_" + res_str + ".o" + run_label;
         const char *c_data_file      = energy_data_file.c_str();
 
         std::ifstream ifs;
