@@ -161,6 +161,10 @@ rand_num_tracking_file=$file_pref'_'$res_label'r'
 #
 # now commence archiving unless there has been only one subrun
 #
+make dist
+tar_dist="coronos*.tar.gz"
+mv $tar_dist $subdir_abspath
+
 for j in `seq $start $stop`
 do
   if [ "$j" -le "$srun" ]
@@ -177,6 +181,7 @@ do
 
         cp coronos.in            $subdir_abspath
         cp $energy_tracking_file $subdir_abspath'/'$data_dir
+
         cp $sr_input_files$j     $subdir_abspath'/'$data_dir
         cp $field_data_files$j   $subdir_abspath'/'$data_dir
         if [ "$j" -gt 0 ]

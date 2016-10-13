@@ -63,6 +63,7 @@ fi
 
 
         pbs_job_prefix=$prefix"-"$res_label"-"
+        slm_job_prefix=$prefix"-"$run_label"-"$res_label"-sr-"
            data_prefix="./"$data_dir"/"$prefix"_"$res_label"."
           edata_prefix="./"$data_dir"/"$prefix"_"$res_label".o"$run_label
            rand_prefix=$prefix"_"$res_label"r"
@@ -71,6 +72,8 @@ fi
 
 #rm  $job_prefix*.pbs
 rm  $pbs_job_prefix*.pbs.[oe]*
+rm  $pbs_job_prefix*.pbs
+rm  $slm_job_prefix*.slurm
 rm  $data_prefix???.o$run_label?
 rm  $data_prefix???.o$run_label??
 rm  $data_prefix???.o$run_label???
