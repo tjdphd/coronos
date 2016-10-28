@@ -79,8 +79,8 @@ void lcsolve::Loop( stack& run ) {
     physics.applyBC(    "predict", run            );
     physics.updatePAJ(  "predict", run            );   /* ~ P, A, and J contain un-updated/corrector-updated values ~ */
 
-    physics.trackEnergies(     t_cur, run         );
     physics.trackQtyVsZ(       t_cur, run         );
+    physics.trackEnergies(     t_cur, run         );
     physics.trackPowerSpectra( t_cur, run         );
 
     if ( l % nw == 0 ) { run.reportEnergyQs( t_cur ); }

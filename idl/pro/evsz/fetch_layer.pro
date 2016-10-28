@@ -1,15 +1,15 @@
 FUNCTION fetch_layer, layer, step, label
 
-  ip1             = scan_parameters('ip1', 0, label)
-  ip2             = scan_parameters('ip2', 0, label)
-   n3             = scan_parameters( 'n3', 0, label)
+  ip1             = scan_parameters('p1', 0, label)
+  ip2             = scan_parameters('p2', 0, label)
+   n3             = scan_parameters( 'p3', 0, label)
 
   n_lines         = LONG64(0)
   
   datafile        = fetch_datafile(layer, step, label)
 
   IF (STRCMP(datafile, 'file_not_found')) THEN BEGIN
-    PRINT, "fetch_layer: ERROR - cannot open file for layer ", layer, " of step ", step
+    PRINT, "fetch_layer: ERROR - cannot open file ", datafile, " for layer ", layer, " of step ", step
     A             = DBLARR(1,1)
   ENDIF ELSE BEGIN
 

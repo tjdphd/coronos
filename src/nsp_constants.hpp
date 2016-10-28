@@ -45,13 +45,11 @@ namespace constants {
 
 #ifdef LD_PRECISION_H
 
-typedef long double ***                                      InputOutputArray;
+typedef long double ***                         InputOutputArray;
 
-typedef std::vector<long double>                             RealArray;
-//typedef std::vector<std::vector<long double>  >              Real2DArray;
-typedef std::vector< RealArray >                             Real2DArray;
-//typedef std::vector<std::vector<std::vector<long double> > > Real3DArray;
-typedef std::vector<Real2DArray >                            Real3DArray;
+typedef std::vector<long double>                RealArray;
+typedef std::vector< RealArray >                Real2DArray;
+typedef std::vector<Real2DArray >               Real3DArray;
 typedef std::vector<std::complex<long double> > ComplexArray;
 
 typedef long double                             RealVar;
@@ -70,8 +68,8 @@ typedef std::complex<long double>               ComplexVar;
    static const long double two_pi              =  two*pi;
    static const long double two_thirds          =  two / three;
    static const long double tiny                =  1.0e-16L;
-   static const long double teensy              =  1.0e-99L;
-   static const long double huge                =  1.0e+99L;
+   static const long double teensy              =  1.0e-30L;
+   static const long double huge                =  1.0e+30L;
 
    static const std::complex<long double> iunit = std::complex<long double>(zero, one );
    static const std::complex<long double> czero = std::complex<long double>(zero, zero);
@@ -81,16 +79,14 @@ typedef std::complex<long double>               ComplexVar;
 
 #elif defined OD_PRECISION_H
 
-typedef double ***                                        InputOutputArray;
-typedef std::vector<double>                               RealArray;
-//typedef std::vector<std::vector<double> >                 Real2DArray;
-typedef std::vector< RealArray >                          Real2DArray;
-//typedef std::vector<std::vector<std::vector< double> > >  Real3DArray;
-typedef std::vector< Real2DArray >                        Real3DArray;
-typedef std::vector<std::complex<double> > ComplexArray;
+typedef double ***                              InputOutputArray;
+typedef std::vector<double>                     RealArray;
+typedef std::vector< RealArray >                Real2DArray;
+typedef std::vector< Real2DArray >              Real3DArray;
+typedef std::vector<std::complex<double> >      ComplexArray;
 
-typedef double                             RealVar;
-typedef std::complex<double>               ComplexVar;
+typedef double                                  RealVar;
+typedef std::complex<double>                    ComplexVar;
 
    static const double pi                  =  3.14159265358979323846264338327950288L;
    static const double zero                =  0.0L;
@@ -105,8 +101,8 @@ typedef std::complex<double>               ComplexVar;
    static const double two_pi              =  two*pi;
    static const double two_thirds          =  two / three;
    static const double tiny                =  1.0e-16L;
-   static const double teensy              =  1.0e-100L;
-   static const double huge                =  1.0e+100L;
+   static const double teensy              =  1.0e-30L;
+   static const double huge                =  1.0e+30L;
 
    static const std::complex<double> iunit = std::complex<double>(zero, one );
    static const std::complex<double> czero = std::complex<double>(zero, zero);

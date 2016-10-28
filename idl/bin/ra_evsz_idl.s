@@ -74,11 +74,11 @@ endif                                      #
                                       #
 module load idl                       # load idl onto the compute node
                                       #
-set SRCDIR=$PWD/idl/evsz              #
+set SRCDIR=$PWD/idl/pro/evsz          #
 echo "SRCDIR = " $SRCDIR              #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR  #
 echo "IDL_PATH = " $IDL_PATH          #
-setenv IDL_STARTUP $PWD/ra_evsz_batch # idl batch script to execute
+setenv IDL_STARTUP $PWD/idl/bin/ra_evsz_batch # idl batch script to execute
                                       #
 idl                                   # invoke idl
                                       #

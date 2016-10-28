@@ -1,10 +1,17 @@
-FUNCTION jZeroOfX, x
+;FUNCTION mytest, x
 
-  jzofx       = BESELJ(x, 0)
+;  result = x
+;  return, result
 
-  RETURN, jzofx
+;END
 
-END
+;FUNCTION jZeroOfX, x
+
+;  jzofx       = BESELJ(x, 0)
+
+;  RETURN, jzofx
+
+;END
 
 FUNCTION calcGofx, KK, desc_label
 
@@ -28,7 +35,9 @@ FUNCTION calcGofx, KK, desc_label
 
   GOFX                                             = FLTARR(n1,n2)
   ZZLL                                             = FLTARR(n1,n2)
+  ONES                                             = FLTARR(n1,n2)
   ZZLL[*,*]                                        = ZERO
+  ONES[*,*]                                        = ONE
 
   multithread                                      = 1
 
@@ -46,6 +55,12 @@ FUNCTION calcGofx, KK, desc_label
       final_col_sec                                = col_rng[J,1]
       n_secs_this_thread                           = final_col_sec - first_col_sec + 1
 
+;     PRINT, 'calcGofx: first_col_sec      = ', first_col_sec
+;     PRINT, 'calcGofx: final_col_sec      = ', final_col_sec
+;     PRINT, 'calcGofx: n_secs_this_thread = ', n_secs_this_thread
+
+      PRINT, 'calcGofx: array section = [', first_col_sec, ',', final_col_sec,']'
+
       IF (J EQ n_threads - 1) THEN BEGIN
 
         thread_gofx                                = FLTARR(n_secs_this_thread, n2)
@@ -57,25 +72,48 @@ FUNCTION calcGofx, KK, desc_label
                                                    )
 
         local_gofx[*,*]                            = thread_gofx[*,*]
+;       local_gofx[*,*]                            = DOUBLE(J+1)
 
       ENDIF ELSE BEGIN
 
-        func_name                                  = 'jZeroOfx'
+        func_name                                  = 'jZeroOfX'
+;       func_name                                  = 'mytest'
 
         oBridge[J]                                 = OBJ_NEW('IDL_IDLBRIDGE')
         oBridge[J]                                 -> setVar, 'func_name',     func_name
-        oBridge[J]                                 -> setVar, 'ZZLL',          ZZLL
-        oBridge[J]                                 -> setVar, 'KK',            KK 
+        oBridge[J]                                 -> setVar, 'ZZLL',          ZZLL[first_col_sec:final_col_sec,0:n2-1]
+        oBridge[J]                                 -> setVar, 'ONES',          ONES[first_col_sec:final_col_sec,0:n2-1]
+        oBridge[J]                                 -> setVar, 'KK',            KK[first_col_sec:final_col_sec,0:n2-1]
         oBridge[J]                                 -> setVar, 'first_col_sec', col_rng[J,0]
         oBridge[J]                                 -> setVar, 'final_col_sec', col_rng[J,1]
         oBridge[J]                                 -> setVar, 'n_secs_this_thread', n_secs_this_thread
         oBridge[J]                                 -> setVar, 'n2', n2
-        oBridge[J]                                 -> Execute, "thread_gofx = FLTARR(n_secs_this_thread,n2)"
-        oBridge[J]                                 -> Execute,                                              $
-        "thread_gofx[0:n_secs_this_thread-1,0:n2-1] = QSIMP( func_name,"                                    $
-                                                      +     "ZZLL[first_col_sec:final_col_sec,0:n2-1],"     $
-                                                      +     "HALF*KK[first_col_sec:final_col_sec,0:n2-1])", $
-        /nowait
+        oBridge[J]                                 -> setVar, 'HALF', HALF
+        oBridge[J]                                 -> setVar, 'ZERO', ZERO
+        oBridge[J]                                 -> setVar, 'ONE' , ONE
+        oBridge[J]                                 -> Execute, ".run jZeroOfX"
+;       oBridge[J]                                 -> Execute, ".run mytest"
+        oBridge[J]                                 -> Execute, "thread_gofx = FLTARR(n_secs_this_thread, n2)"
+;       IF (J LE n_threads-2) THEN BEGIN
+;         oBridge[J]                               -> Execute,                                           $
+;         "thread_gofx[0:n_secs_this_thread-1,0:n2-1] = QSIMP( func_name,"                               $
+;                                                  +     "ZZLL[first_col_sec:final_col_sec,0:n2-1],"     $
+;                                                  +     "HALF*KK[first_col_sec:final_col_sec,0:n2-1])", $
+;         /nowait
+;         oBridge[J]                               -> Execute,              $
+;         "thread_gofx[0:n_secs_this_thread-1,0:n2-1] = QSIMP('jZeroOfX',"  $
+;                                                  +    "ZZLL[*,*],"        $
+;                                                  +    "HALF*KK[*,*])",    $
+;         /nowait
+;         "thread_gofx[0:n_secs_this_thread-1,0:n2-1] = QSIMP('mytest',"    $
+          oBridge[J]                               -> Execute,              $
+          "thread_gofx[0:n_secs_this_thread-1,0:n2-1] = QSIMP('jZeroOfX',"  $
+                                                   +    "ZZLL[*,*],"        $
+                                                   +    "HALF*KK[*,*])" ,   $
+          /nowait
+;       ENDIF ELSE BEGIN
+;         oBridge[J]                               -> Execute, "thread_gofx[0:n_secs_this_thread-1,0:n2-1] = Jflt",/nowait
+;       ENDELSE
       ENDELSE
 
     ENDFOR
@@ -103,6 +141,8 @@ FUNCTION calcGofx, KK, desc_label
 
         thread_gofx                                = FLTARR(n_secs_this_thread, n2)
         thread_gofx                                = oBridge[J] -> getVar('thread_gofx')
+;       q_test                                     = oBridge[J] -> getVar('q_test')
+;       PRINT, 'for J = ', J, 'q_test = ', q_test
         GOFX[first_col_sec:final_col_sec,0:n2-1]   = thread_gofx[0:n_secs_this_thread-1,0:n2-1] 
         obj_destroy, oBridge[J]
 
@@ -118,16 +158,25 @@ FUNCTION calcGofx, KK, desc_label
 
   PRINT, 'calcGofx: completed...'
 
-  GOFX_LIN = REFORM(GOFX,n1*n2)
+  zeros_of_G = WHERE(GOFX EQ 0, countg)
+  zeros_of_K = WHERE(KK   EQ 0, countk)
 
-  cur_dir  = GETENV('pwd')
-  res_str  = getResString(desc_label)
-  gofx_dat = cur_dir + '/ra_evsz/' + 'gofx_' + res_str + '.dat'
+  PRINT, 'calcGofx: countg = ', countg
+  PRINT, 'calcGofx: countk = ', countk
+
+  GOFX_LIN   = REFORM(GOFX, n1*n2)
+  KK_LIN     = REFORM(KK,   n1*n2)
+
+  cur_dir    = GETENV('PWD')
+  res_str    = getResString(desc_label)
+  gofx_dat   = cur_dir + '/ra_evsz/' + 'gofx_' + res_str + '.dat'
+
+  PRINT, 'tabulating G(x) in the file: ', gofx_dat
 
   OpenW, gofx_unit, gofx_dat, /GET_LUN
 
   FOR I = 0, n1*n2 -1 DO BEGIN
-    PRINTF, gofx_unit, FORMAT = '(E16.8),:/)', GOFX_LIN[I]
+    PRINTF, gofx_unit, FORMAT = '(2(E24.16,1x),:/)', GOFX_LIN[I], KK_LIN[I]
   ENDFOR
 
   FREE_LUN, gofx_unit

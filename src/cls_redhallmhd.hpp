@@ -107,19 +107,15 @@ class redhallmhd
   ComplexArray J;                                                     /* ~ current density in Fourier Space          ~ */
 
   RealArray valfven;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
-  RealArray dvalfdz;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
-  RealArray nofz;                                                     /* ~ Needed for Inhomogeneous RMHD             ~ */
-  RealArray dndz;                                                     /* ~ Needed for Inhomogeneous RMHD             ~ */
+  RealArray dvalfdz;
+  RealArray nofz;
+  RealArray dndz;
   RealArray umean;
+  RealArray dudz;
 
   RealArray Elln;
   RealArray EllA;
   RealArray EllB;
-
-//  RealArray h11;
-//  RealArray h12;
-//  RealArray h21;
-//  RealArray h22;
 
   RealArray kpm;                                                      /* ~ kpm = k_p^-                               ~ */
   RealArray kpp;                                                      /* ~ kpp = k_p^+                               ~ */

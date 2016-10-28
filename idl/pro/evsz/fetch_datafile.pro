@@ -1,10 +1,12 @@
 FUNCTION fetch_datafile, n_slice, step, desc_label
 
-   ip1          = scan_parameters('ip1',0, desc_label)
-   ip2          = scan_parameters('ip2',0, desc_label)
-   n3           = scan_parameters('n3' ,0, desc_label)
-   mp           = scan_parameters('mp' ,0, desc_label)
+   prefix       = scan_parameters('prefix',   0, desc_label )
+   ip1          = scan_parameters('p1',0, desc_label)
+   ip2          = scan_parameters('p2',0, desc_label)
+   n3           = scan_parameters('p3' ,0, desc_label)
+   mp           = scan_parameters('np' ,0, desc_label)
    zl           = scan_parameters('zl' ,0, desc_label)
+   data_dir     = scan_parameters('data_dir', 0, desc_label )
     
    x_res        = 2^ip1
    y_res        = 2^ip2   
@@ -55,14 +57,17 @@ IF (zero_pad NE 0) THEN BEGIN
   ENDFOR
 ENDIF
 
-str_n_slc_file  = zero_str + str_n_slc_file
-cur_dir      = GETENV('PWD')
-datafile     = cur_dir + '/' + 'rmct2' + str_res + '.' + str_n_slc_file + '.o' + desc_label + str_n_step + '.gz'
+str_n_slc_file = zero_str + str_n_slc_file
+datafile       = prefix + str_res + '.' + str_n_slc_file + '.o' + desc_label + str_n_step + '.gz'
+cur_dir        = GETENV('PWD')
+datafile       = cur_dir + '/' + data_dir + '/' + datafile
 
 IF ( NOT FILE_TEST(datafile) ) THEN BEGIN
-  datafile   = cur_dir + '/' + 'rmct2' + str_res + '.' + str_n_slc_file + '.o' + desc_label + str_n_step
+  datafile     = prefix + str_res + '.' + str_n_slc_file + '.o' + desc_label + str_n_step
+  datafile     = cur_dir + '/' + data_dir + '/' + datafile
   IF ( NOT FILE_TEST(datafile) ) THEN BEGIN
-    datafile = 'file_not_found'
+  PRINT, "fetch_datafile: WARNING - cannot find file ", datafile
+    datafile   = 'file_not_found'
   ENDIF
 ENDIF
 

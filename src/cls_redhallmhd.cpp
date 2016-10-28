@@ -147,7 +147,7 @@ void redhallmhd::initU( stack& run ) {
 
   if (calcqvz == 1) {
 
-    RealArray Qrecord; Qrecord.assign(15,zero); QtyVsZ.assign(np*n3, Qrecord);
+    RealArray Qrecord; Qrecord.assign(26,zero); QtyVsZ.assign(np*n3, Qrecord);
 
   }
 
@@ -1214,11 +1214,6 @@ void redhallmhd::evalElls(    stack& run ) {
   EllA.assign(p3+1,zero);
   EllB.assign(p3+1,zero);
 
-//h11.assign(p3+1,zero);
-//h12.assign(p3+1,zero);
-//h21.assign(p3+1,zero);
-//h22.assign(p3+1,zero);
-
   kpm.assign(p3+1,zero);
   kpp.assign(p3+1,zero);
   kmm.assign(p3+1,zero);
@@ -1237,10 +1232,11 @@ void redhallmhd::evalElls(    stack& run ) {
             EllA.assign(p3+1, zero);
             EllB.assign(p3+1, zero);
             break;
-  case(1) : for ( int k = 0; k <  p3+1;  ++k) {
+  case(1) : EllB.assign(p3+1, zero);
+            for ( int l = 0; l <  p3+1;  ++l) {
 
-              EllA[k] = std::abs( dvalfdz[k] / (two  * valfven[k]) );
-              Elln[k] = std::abs( dndz[k]    / (four * nofz[k]   ) );
+              EllA[l] = std::abs( dvalfdz[l] / (two  * valfven[l]) );
+              Elln[l] = std::abs( dndz[l]    / (four * nofz[l]   ) );
 
             }
             EllB.assign(p3+1, zero);
@@ -1260,18 +1256,13 @@ void redhallmhd::evalElls(    stack& run ) {
 
   }
 
-  for ( int k = 0; k <  p3+1;  ++k) {
+  for ( int l = 0; l <  p3+1;  ++l) {
 
-//  h11[k] =  umean[k]   * ( EllA[k] + EllB[k] - Elln[k] );
-//  h12[k] = -valfven[k] * ( EllA[k] + EllB[k] + Elln[k] );
-//  h21[k] =  h12[k];
-//  h22[k] =  umean[k]   * ( EllB[k] - Elln[k] - EllA[k] );
+    kpm[l] =  EllB[l] + EllA[l] - Elln[l] ;
+    kpp[l] =  EllB[l] + EllA[l] + Elln[l] ;
 
-    kpm[k] =  EllA[k] + EllB[k] - Elln[k] ;
-    kpp[k] =  EllA[k] + EllB[k] + Elln[k] ;
-
-    kmm[k] =  EllA[k] - EllB[k] - Elln[k] ;
-    kmp[k] =  EllA[k] - EllB[k] + Elln[k] ;
+    kmm[l] =  EllB[l] - EllA[l] - Elln[l] ;
+    kmp[l] =  EllB[l] - EllA[l] + Elln[l] ;
 
   }
 
@@ -1285,10 +1276,12 @@ void redhallmhd::evalValf( stack& run ) {
   int         p3;    run.palette.fetch("p3",       &p3      ); /* ~ layers per stack not incl. ghosts    ~ */
 
   if (model.compare("rmhd") == 0) {
+
     valfven.assign(p3+1, one  );
     dvalfdz.assign(p3+1, zero );
     nofz.assign(   p3+1, one  );
     dndz.assign(   p3+1, zero );
+
   }
 
   else {
@@ -1374,70 +1367,76 @@ void redhallmhd::evalUmean( stack& run ) {
 
   switch(i_profile) {
 
-  case(0) : umean.assign(p3+1, zero); break;
-  case(1) : umean.assign(p3+1, zero); 
+  case(0) : umean.assign(p3+1, zero); 
+            dudz.assign(p3+1,  zero);
+            break;
+  case(1) : umean.assign(p3+1, zero);
             for (unsigned k = 0; k < p3 + 1; ++k){umean[k] = one / nofz[k];}
+            for (unsigned k = 0; k < p3 + 1; ++k){dudz[k]  = (-one / (nofz[k]*nofz[k]))*(dndz[k]);}
             break;
   case(2) : umean.assign(p3+1, zero); break;
+            dudz.assign(p3+1,  zero);
 
   default : 
 
     std::cout << "evalValf: WARNING - the profile " << uprofile << " is not implemented. Assuming a flat profile." << std::endl;
-    umean.assign(p3+1, one);
+
+    umean.assign(p3+1,zero);
+    dudz.assign(p3+1, zero);
 
   }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void redhallmhd::trackEnergies(double t_cur, stack& run ) {
+void redhallmhd::trackEnergies(RealVar t_cur, stack& run ) {
 
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   RealArray& EnergyQs    = run.EnergyQs;
 
-  static const int i_tcr =  0; double tcr; /* ~ Current time                                    ~ */
-  static const int i_pe  =  1; double pe ; /* ~ Total perpendicular kinetic energy              ~ */
-  static const int i_ae  =  2; double ae ; /* ~ Total perpendicular perturbed magnetic energy   ~ */
-  static const int i_mo  =  3; double mo ; /* ~ Maximum vorticity                               ~ */
-  static const int i_imo =  4; double imo; /* ~ i index location of maximum vorticity           ~ */
-  static const int i_jmo =  5; double jmo; /* ~ j index location of maximum vorticity           ~ */
-  static const int i_oe  =  6; double oe ; /* ~ Total square magnitude of vorticity             ~ */
-  static const int i_mj  =  7; double mj ; /* ~ Maximum current                                 ~ */
-  static const int i_imj =  8; double imj; /* ~ i index location of maximum current             ~ */
-  static const int i_jmj =  9; double jmj; /* ~ j index location of maximum current             ~ */
-  static const int i_ce  = 10; double ce ; /* ~ Total square magnitude of current               ~ */
-  static const int i_noe = 11; double noe; /* ~ viscous dissipation                             ~ */
-  static const int i_ece = 12; double ece; /* ~ resistive dissipation                           ~ */
-  static const int i_fe  = 13; double fe ; /* ~ Poynting Flux                                   ~ */
-  static const int i_ftp = 14; double ftp; /* ~ Time-averaged Poynting Flux                     ~ */
-  static const int i_eds = 15; double eds; /* ~ Time average of total dissipated energy         ~ */
-  static const int i_dng = 16; double dng; /* ~ Average rate-of-change of total energy          ~ */
-  static const int i_irc = 17; double irc; /* ~ Instantaneous rate-of-change of total energy    ~ */
-  static const int i_gml = 18; double gml; /* ~ time-average of energy gains minus losses       ~ */
-  static const int i_cns = 19; double cns; /* ~ Check on energy conservation                    ~ */
-  static const int i_ttc = 20; double ttc; /* ~ Current time in units of correlation time       ~ */
-  static const int i_dt  = 21; double dt ; /* ~ current value of time increment                 ~ */
-  static const int i_dtv = 22; double dtv; /* ~ time increment adjustment parameter             ~ */
-  static const int i_coc = 23; double coc; /* ~ root mean square J^2 / Del J^2                  ~ */
-  static const int i_vkt = 24; double vkt; /* ~ average rate-of-change of j^2 / magnetic energy ~ */ 
-  static const int i_avm = 25; double avm; /* ~ Time averaged magnetic field strength           ~ */
-  static const int i_avp = 26; double avp; /* ~ Time-averaged footpoint velocity                ~ */
-  static const int i_fp  = 27; double fp ; /* ~ Total footpoint kinetic energy at z = 0         ~ */                  
-  static const int i_he  = 28; double he ; /* ~ Total energy in helicity due to inhomogeneity   ~ */
+  static const int i_tcr =  0; double tcr;  /* ~ Current time                                     ~ */
+  static const int i_pe  =  1; double pe ;  /* ~ Total perpendicular kinetic energy               ~ */
+  static const int i_ae  =  2; double ae ;  /* ~ Total perpendicular perturbed magnetic energy    ~ */
+  static const int i_mo  =  3; double mo ;  /* ~ Maximum vorticity                                ~ */
+  static const int i_imo =  4; double imo;  /* ~ i index location of maximum vorticity            ~ */
+  static const int i_jmo =  5; double jmo;  /* ~ j index location of maximum vorticity            ~ */
+  static const int i_oe  =  6; double oe ;  /* ~ Total square magnitude of vorticity              ~ */
+  static const int i_mj  =  7; double mj ;  /* ~ Maximum current                                  ~ */
+  static const int i_imj =  8; double imj;  /* ~ i index location of maximum current              ~ */
+  static const int i_jmj =  9; double jmj;  /* ~ j index location of maximum current              ~ */
+  static const int i_ce  = 10; double ce ;  /* ~ Total square magnitude of current                ~ */
+  static const int i_noe = 11; double noe;  /* ~ viscous dissipation                              ~ */
+  static const int i_ece = 12; double ece;  /* ~ resistive dissipation                            ~ */
+  static const int i_fe  = 13; double fe ;  /* ~ Poynting Flux                                    ~ */
+  static const int i_ftp = 14; double ftp;  /* ~ Time-averaged Poynting Flux                      ~ */
+  static const int i_eds = 15; double eds;  /* ~ Time average of total dissipated energy          ~ */
+  static const int i_dng = 16; double dng;  /* ~ Average rate-of-change of total energy           ~ */
+  static const int i_irc = 17; double irc;  /* ~ Instantaneous rate-of-change of total energy     ~ */
+  static const int i_gml = 18; double gml;  /* ~ time-average of energy gains minus losses        ~ */
+  static const int i_cns = 19; double cns;  /* ~ Check on energy conservation                     ~ */
+  static const int i_ttc = 20; double ttc;  /* ~ Current time in units of correlation time        ~ */
+  static const int i_dt  = 21; double dt ;  /* ~ current value of time increment                  ~ */
+  static const int i_dtv = 22; double dtv;  /* ~ time increment adjustment parameter              ~ */
+  static const int i_coc = 23; double coc;  /* ~ root mean square J^2 / Del J^2                   ~ */
+  static const int i_vkt = 24; double vkt;  /* ~ average rate-of-change of j^2 / magnetic energy  ~ */ 
+  static const int i_avm = 25; double avm;  /* ~ Time averaged magnetic field strength            ~ */
+  static const int i_avp = 26; double avp;  /* ~ Time-averaged footpoint velocity                 ~ */
+  static const int i_fp  = 27; double fp ;  /* ~ Total footpoint kinetic energy at z = 0          ~ */                  
+  static const int i_he  = 28; double he ;  /* ~ Total internal energy due to inhomogeneities     ~ */
 
-  double dtvb; physics_data.fetch("dtvb", &dtvb);
-  double tauC; run.palette.fetch( "tauC", &tauC);
-  double eta;  run.palette.fetch( "eta",  &eta );
-  double nu;   run.palette.fetch( "nu",   &nu  );
+  RealVar dtvb; physics_data.fetch("dtvb", &dtvb);
+  RealVar tauC; run.palette.fetch( "tauC", &tauC);
+  RealVar eta;  run.palette.fetch( "eta",  &eta );
+  RealVar nu;   run.palette.fetch( "nu",   &nu  );
 
-  double cee;
-  double t_old;
-  double dt_old;
-  double aeold;
-  double peold;
-  double heold;
+  RealVar cee;
+  RealVar t_old;
+  RealVar dt_old;
+  RealVar aeold;
+  RealVar peold;
+  RealVar heold;
 
 
   pe                     = evalTotalKineticEnergy(  run );
@@ -1452,10 +1451,6 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
 
   if (     model.compare("rmhd") == 0) { he = zero;                           }
   else if (model.compare("inhm") == 0) { he = evalTotalHelicalEnergy(  run ); }
-
-//  if (rank == 0) {
-//    std::cout << "trackEnergies: he = " << he << std::endl;
-//  }
 
   if ( EnergyQs.size()  >= i_he ) {
 
@@ -1577,9 +1572,13 @@ void redhallmhd::trackEnergies(double t_cur, stack& run ) {
       run.palette.fetch("dt", &dt_old);
       t_old                = t_cur;
 
-      aeold                = zero;
-      peold                = zero;
-      heold                = zero;
+//    aeold                = zero;
+//    peold                = zero;
+//    heold                = zero;
+
+      aeold                = ae;
+      peold                = pe;
+      heold                = he;
 
       tcr                  = t_cur;
 
@@ -1819,133 +1818,251 @@ void redhallmhd::trackQtyVsZ(RealVar t_cur, stack& run ) {
 
   int calcqvz; run.palette.fetch("calcqvz", &calcqvz);
 
+
+
   if (calcqvz == 1) {
-    int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    int   n3; run.palette.fetch("p3",   &n3    );
 
-    static const int i_z   =  0;
-    static const int i_ae  =  1;
-    static const int i_pe  =  2;
-    static const int i_ch  =  3;
-    static const int i_ep  =  4;
-    static const int i_em  =  5;
-    static const int i_ce  =  6;
-    static const int i_oe  =  7;
-    static const int i_zp  =  8;
-    static const int i_zm  =  9;
-    static const int i_nch = 10;
-    static const int i_km  = 11;
-    static const int i_kp  = 12;
-    static const int i_kzp = 13;
-    static const int i_kzm = 14;
+    RealVar eta;  run.palette.fetch(    "eta",     &eta );
+    RealVar nu;   run.palette.fetch(    "nu",      &nu  );
+    RealVar dz;   run.stack_data.fetch( "dz",      &dz  );
+    int     n3;   run.palette.fetch(    "p3",      &n3  );
+    int     np;   run.palette.fetch(    "np",      &np  );
+    int     rank; MPI_Comm_rank(MPI_COMM_WORLD,    &rank);
 
-    RealVar dz; run.stack_data.fetch("dz",&dz    );
-    RealArray& z           = run.z;
+    static const int i_z    =  0;
+    static const int i_ae   =  1;
+    static const int i_pe   =  2;
+    static const int i_ch   =  3;
+    static const int i_ep   =  4;
+    static const int i_em   =  5;
+    static const int i_ce   =  6;
+    static const int i_oe   =  7;
+    static const int i_zp   =  8;
+    static const int i_zm   =  9;
+    static const int i_nch  = 10;
+    static const int i_lc   = 11;
+    static const int i_lo   = 12;
+    static const int i_lzp  = 13;
+    static const int i_lzm  = 14;
+    static const int i_tez  = 15;
+    static const int i_rez  = 16;
+    static const int i_nez  = 17;
+    static const int i_rzp  = 18;
+    static const int i_rzm  = 19;
+    static const int i_zpm  = 20;
+    static const int i_lpl  = 21;
+    static const int i_lmi  = 22;
+    static const int i_lpla = 23;
+    static const int i_lmia = 24;
+    static const int i_cnse = 25;
 
-    RealArray aevsz;
-    RealArray pevsz;
-    RealArray chvsz;
-    RealArray cevsz;
-    RealArray oevsz;
-    RealArray zpvsz;
-    RealArray zmvsz;
-    RealArray zepvsz;
-    RealArray zemvsz;
+    RealArray& z            = run.z;
 
-    RealArray nchvsz;
-    RealArray kcvsz;
-    RealArray kovsz;
-    RealArray kzpvsz;
-    RealArray kzmvsz;
-
-    aevsz.assign( n3,zero);
-    pevsz.assign( n3,zero);
-    chvsz.assign( n3,zero);
-    cevsz.assign( n3,zero);
-    oevsz.assign( n3,zero);
-    zpvsz.assign( n3,zero);
-    zmvsz.assign( n3,zero);
-    zepvsz.assign(n3,zero);
-    zemvsz.assign(n3,zero);
-    nchvsz.assign(n3,zero);
-    kcvsz.assign( n3,zero);
-    kovsz.assign( n3,zero);
-    kzpvsz.assign(n3,zero);
-    kzmvsz.assign(n3,zero);
+    RealArray aevsz;    aevsz.assign(   n3,zero); /* ~ magnetic energy by layer                                             ~ */
+    RealArray pevsz;    pevsz.assign(   n3,zero); /* ~ kinetic  energy by layer                                             ~ */
+    RealArray tevsz;    tevsz.assign(   n3,zero); /* ~ total energy by layer                                                ~ */
+    RealArray revsz;    revsz.assign(   n3,zero); /* ~ residual energy by layer                                             ~ */
+    RealArray nevsz;    nevsz.assign(   n3,zero); /* ~ normalized residual energy by layer                                  ~ */
+    RealArray chvsz;    chvsz.assign(   n3,zero); /* ~ cross helicity by layer                                              ~ */
+    RealArray cevsz;    cevsz.assign(   n3,zero); /* ~ Ohmic dissipation per unit magnetic diffusivity by layer             ~ */
+    RealArray oevsz;    oevsz.assign(   n3,zero); /* ~ viscous dissipation per unit kinematic viscosity by layer            ~ */
+    RealArray zpvsz;    zpvsz.assign(   n3,zero); /* ~ Z^+ elsasser dissipation per unit zeta by layer                      ~ */
+    RealArray zmvsz;    zmvsz.assign(   n3,zero); /* ~ Z^- elsasser dissipation per unit zeta by layer                      ~ */
+    RealArray zepvsz;   zepvsz.assign(  n3,zero); /* ~ Z^+ elsasser energy by layer                                         ~ */
+    RealArray zemvsz;   zemvsz.assign(  n3,zero); /* ~ Z^- elsasser energy by layer                                         ~ */
+    RealArray nchvsz;   nchvsz.assign(  n3,zero); /* ~ normalized cross helicity by layer                                   ~ */
+    RealArray lcvsz;    lcvsz.assign(   n3,zero); /* ~ current density based scale length by layer                          ~ */
+    RealArray lovsz;    lovsz.assign(   n3,zero); /* ~ vorticity based scale length by layer                                ~ */
+    RealArray rzpvsz;   rzpvsz.assign(  n3,zero); /* ~ square root of Z^+ elsasser energy by layer                          ~ */
+    RealArray rzmvsz;   rzmvsz.assign(  n3,zero); /* ~ square root of Z^- elsasser energy by layer                          ~ */
+    RealArray zpmvsz;   zpmvsz.assign(  n3,zero); /* ~ product of rzpvsz and rzmvsz                                         ~ */
+    RealArray lzpvsz;   lzpvsz.assign(  n3,zero); /* ~ Z^+ Elsasser vorticity length scale by layer                         ~ */
+    RealArray lzmvsz;   lzmvsz.assign(  n3,zero); /* ~ Z^- Elsasser vorticity length scale by layer                         ~ */
+    RealArray lplvsz;   lplvsz.assign(  n3,zero); /* ~ Z^+ Elsasser length scale from F.T. of Z^+                           ~ */
+    RealArray lmivsz;   lmivsz.assign(  n3,zero); /* ~ Z^- Elsasser length scale from F.T. of Z^-                           ~ */
+    RealArray lplavsz;  lplavsz.assign( n3,zero); /* ~ Z^+ Elsasser length scale from F.T. of Z^+ (alternative definition)  ~ */
+    RealArray lmiavsz;  lmiavsz.assign( n3,zero); /* ~ Z^- Elsasser length scale from F.T. of Z^- (alternative definition)  ~ */
+    RealArray consevsz; consevsz.assign(n3,zero); /* ~ Energy conservation check y layer                                    ~ */
 
     int kdx;
-    RealArray& k2 = run.k2;
-    int n1n2c     = k2.capacity();
+    RealArray& k2  = run.k2;
+    int n1n2c      = k2.capacity();
+
+    int capa       = A.capacity();
+
+    assert(capa == (n3+2)*n1n2c);
+
+    ComplexArray ZP; ZP.assign( capa, czero);
+    ComplexArray ZM; ZM.assign( capa ,czero);
+
+    for (unsigned k = 0; k < ((n3+2)*n1n2c); k++) {
+
+      ZP[k] = A[k] + P[k];
+      ZM[k] = A[k] - P[k];
+
+    }
 
     for (unsigned l = 0; l < n3; l++) {
 
-      kdx         = 0;
+      kdx          = 0;
 
       for ( unsigned k = ((l+1) * n1n2c) ; k < ((l+2) * n1n2c); k++ ) {
 
-        aevsz[l]  = dz*(aevsz[l] + k2[kdx] * pow(std::norm(A[k]),2));             /* ~ Magnetic Energy layer l  ~ */
-        pevsz[l]  = dz*(pevsz[l] + k2[kdx] * pow(std::norm(P[k]),2));             /* ~ Kinetic  Energy layer l  ~ */
+        aevsz[l]   = dz*(aevsz[l] + (k2[kdx]           * ( ( A[k].real() * A[k].real())  + ( A[k].imag() *  A[k].imag()))  ));
+        pevsz[l]   = dz*(pevsz[l] + (k2[kdx]           * ( ( P[k].real() * P[k].real())  + ( P[k].imag() *  P[k].imag()))  ));
 
-        chvsz[l]  = dz*(chvsz[l] + k2[kdx] * (P[k].real() * A[k].real()) + (P[k].imag() * A[k].imag())) * two; 
-        cevsz[l]  = dz*(cevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(A[k]),2) );
-        oevsz[l]  = dz*(oevsz[l] + k2[kdx] * k2[kdx] * pow(std::norm(P[k]),2) );
-        zpvsz[l]  = dz*(zpvsz[l] + k2[kdx] * pow(std::norm((A[k] + P[k])),2 ) );
-        zmvsz[l]  = dz*(zmvsz[l] + k2[kdx] * pow(std::norm((A[k] - P[k])),2 ) );
+        chvsz[l]   = dz*(chvsz[l] + (k2[kdx]           * ( ( P[k].real() * A[k].real())  + ( P[k].imag() *  A[k].imag()))  )) * two;
+
+        cevsz[l]   = dz*(cevsz[l] + (k2[kdx] * k2[kdx] * ( ( A[k].real() * A[k].real())  + ( A[k].imag() *  A[k].imag()))  ));
+        oevsz[l]   = dz*(oevsz[l] + (k2[kdx] * k2[kdx] * ( ( P[k].real() * P[k].real())  + ( P[k].imag() *  P[k].imag()))  ));
+
+        zpvsz[l]   = dz*(zpvsz[l] + (k2[kdx] * k2[kdx] * ( (ZP[k].real() * ZP[k].real()) + (ZP[k].imag() * ZP[k].imag())) ));
+        zmvsz[l]   = dz*(zmvsz[l] + (k2[kdx] * k2[kdx] * ( (ZM[k].real() * ZM[k].real()) + (ZM[k].imag() * ZM[k].imag())) ));
+
+        zepvsz[l]  = dz*(zpvsz[l] + (k2[kdx]           * ( (ZP[k].real() * ZP[k].real()) + (ZP[k].imag() * ZP[k].imag())) ));
+        zemvsz[l]  = dz*(zmvsz[l] + (k2[kdx]           * ( (ZM[k].real() * ZM[k].real()) + (ZM[k].imag() * ZM[k].imag())) ));
+
+        lplvsz[l]  = lplvsz[l]    + (sqrt(k2[kdx])     * ( (ZP[k].real() * ZP[k].real()) + (ZP[k].imag() * ZP[k].imag())) ); 
+        lmivsz[l]  = lmivsz[l]    + (sqrt(k2[kdx])     * ( (ZM[k].real() * ZM[k].real()) + (ZM[k].imag() * ZM[k].imag())) ); 
+
+        lplavsz[l] = lplvsz[l]    +                      ( (ZP[k].real() * ZP[k].real()) + (ZP[k].imag() * ZP[k].imag()))  ;
+        lmiavsz[l] = lmivsz[l]    +                      ( (ZM[k].real() * ZM[k].real()) + (ZM[k].imag() * ZM[k].imag()))  ;
 
         ++kdx;
 
       }
 
-      zepvsz[l] = aevsz[l] + pevsz[l] + chvsz[l];
-      zemvsz[l] = aevsz[l] + pevsz[l] - chvsz[l];
+      rzpvsz[l]    = sqrt(zepvsz[l]);
+      rzmvsz[l]    = sqrt(zemvsz[l]);
+
+      zpmvsz[l]    = rzpvsz[l]*rzmvsz[l];
+
+      tevsz[l]     = pevsz[l] + aevsz[l];
+      revsz[l]     = pevsz[l] - aevsz[l];
+
+      if (l > 0) {
+
+        consevsz[l] = ( tevsz[l] - QtyVsZ[(rank*n3) + l][i_tez] )                  \
+                       + umean[l+1]*(  (tevsz[l] - tevsz[l-1])/ dz                 \
+                                  - two*(EllA[l+1]*revsz[l] - Elln[l+1]*tevsz[l])  \
+                                )                                                  \
+                       - valfven[l+1] *(                                           \
+                                          (chvsz[l] - chvsz[l-1]) / dz             \
+                                         - two*Elln[l+1] * chvsz[l]                \
+                                       )                                           \
+                       +(nu * oevsz[l]) + (eta *cevsz[l] )                         \
+                               ;
+      }
+      else {
+
+        consevsz[l] = ( tevsz[l] - QtyVsZ[(rank*n3) + l][i_tez] )                  \
+                       + umean[l+1]*(   tevsz[l] / dz                              \
+                                  - two*(EllA[l+1]*revsz[l] - Elln[l+1]*tevsz[l])  \
+                                )                                                  \
+                       - valfven[l+1] *(                                           \
+                                           chvsz[l]/ dz                            \
+                                         - two*Elln[l+1] * chvsz[l]                \
+                                       )                                           \
+                       +(nu * oevsz[l]) + (eta *cevsz[l] )                         \
+                                ;
+      }
+
+      if (std::abs(tevsz[l]) >=teensy) {
+        nevsz[l] = revsz[l]/tevsz[l];
+      }
+      else { if      (revsz[l] > zero ) { nevsz[l] =  huge;}
+             else if (revsz[l] < zero ) { nevsz[l] = -huge;}
+             else                       { nevsz[l] =  zero;}
+      }
+
+      if (std::abs(zepvsz[l]) <= teensy ) { 
+        lplvsz[l]  = huge;
+        lplavsz[l] = huge;
+      }
+      else {
+        lplvsz[l]  =      lplvsz[l] *dz / zepvsz[l];
+        lplavsz[l] = sqrt(lplavsz[l]*dz / zepvsz[l]);
+      }
+      if (std::abs(zemvsz[l]) <= teensy ) {
+        lmivsz[l]  = huge;
+        lmiavsz[l] = huge;
+      }
+      else {
+        lmivsz[l]  =      lmivsz[l] *dz / zemvsz[l];
+        lmiavsz[l] = sqrt(lmiavsz[l]*dz / zemvsz[l]);
+      }
+
+/* ~ Normalized cross helicity ~ */
 
       if ( (std::abs(aevsz[l]) >= teensy) || (std::abs(pevsz[l])  >= teensy) ) {
         nchvsz[l] = chvsz[l] / (aevsz[l] + pevsz[l]) ;
       }
       else { nchvsz[l] = zero; }
-      if ( std::abs(aevsz[l]) >= teensy ) {
-         kcvsz[l] = cevsz[l] / aevsz[l];
-         if ( (std::abs(kcvsz[l]) < teensy) || (std::abs(kcvsz[l]) > huge)) { kcvsz[l] = zero; }
-      }
-      else{ kcvsz[l] = zero;}
-      if ( std::abs(pevsz[l]) >= teensy) {
-        kovsz[l]  = oevsz[l] / pevsz[l];
-        if ((std::abs(kovsz[l]) < teensy) || (std::abs(kovsz[l]) > huge)) { kovsz[l] = zero; }
-      }
-      else {kovsz[l] = zero ;}
-      if (std::abs(zepvsz[l]) >= teensy) {
-        kzpvsz[l] = zpvsz[l] / zepvsz[l];
-        if ((std::abs(kzpvsz[l]) < teensy) || (std::abs(kzpvsz[l]) > huge) ) {kzpvsz[l] = zero; }
-      }
-      else{kzpvsz[l] =zero;}
-      if (std::abs(zemvsz[l]) >= teensy) {
-        kzmvsz[l] = zmvsz[l] / zemvsz[l];
-        if ((std::abs(kzmvsz[l]) < teensy) || (std::abs(kzmvsz[l]) > huge) ) {kzmvsz[l] = zero; }
-      }
-      else{ kzmvsz[l] =zero; }
 
-      QtyVsZ[(rank*n3) + l][ 0]   = z[l + 1];
-      QtyVsZ[(rank*n3) + l][ 1]   = QtyVsZ[(rank*n3) + l][ 1] + aevsz[ l];
-      QtyVsZ[(rank*n3) + l][ 2]   = QtyVsZ[(rank*n3) + l][ 2] + pevsz[ l];
-      QtyVsZ[(rank*n3) + l][ 3]   = QtyVsZ[(rank*n3) + l][ 3] + chvsz[ l];
-      QtyVsZ[(rank*n3) + l][ 4]   = QtyVsZ[(rank*n3) + l][ 4] + cevsz[ l];
-      QtyVsZ[(rank*n3) + l][ 5]   = QtyVsZ[(rank*n3) + l][ 5] + oevsz[ l];
-      QtyVsZ[(rank*n3) + l][ 6]   = QtyVsZ[(rank*n3) + l][ 6] + zpvsz[ l];
-      QtyVsZ[(rank*n3) + l][ 7]   = QtyVsZ[(rank*n3) + l][ 7] + zmvsz[ l];
-      QtyVsZ[(rank*n3) + l][ 8]   = QtyVsZ[(rank*n3) + l][ 8] + zepvsz[l];
-      QtyVsZ[(rank*n3) + l][ 9]   = QtyVsZ[(rank*n3) + l][ 9] + zemvsz[l];
-      QtyVsZ[(rank*n3) + l][10]   = QtyVsZ[(rank*n3) + l][10] + nchvsz[l];
-      QtyVsZ[(rank*n3) + l][11]   = QtyVsZ[(rank*n3) + l][11] + kcvsz[ l];
-      QtyVsZ[(rank*n3) + l][12]   = QtyVsZ[(rank*n3) + l][12] + kovsz[ l];
-      QtyVsZ[(rank*n3) + l][13]   = QtyVsZ[(rank*n3) + l][13] + kzpvsz[l];
-      QtyVsZ[(rank*n3) + l][14]   = QtyVsZ[(rank*n3) + l][14] + kzmvsz[l];
+/* ~ Current length scale ~ */
+
+      if ( std::abs(cevsz[l]) >= teensy ) {
+        lcvsz[l] = sqrt(std::abs(aevsz[l] / cevsz[l]));
+        if ( std::abs(lcvsz[l]) > huge  ) { lcvsz[l] = huge; }
+        if ( std::abs(lcvsz[l]) < teensy) { lcvsz[l] = zero; }
+      }
+      else{ lcvsz[l] = huge;}
+
+/* ~ Vorticity length scale ~ */
+
+      if ( std::abs(oevsz[l]) >= teensy) {
+        lovsz[l]  = pevsz[l] / oevsz[l];
+        if ( std::abs(lovsz[l]) > huge  ) { lovsz[l] = huge; }
+        if ( std::abs(lovsz[l]) < teensy) { lovsz[l] = zero; }
+      }
+      else {lovsz[l] = huge ;}
+
+/* ~ Elsasser z^+ length scale ~ */
+
+      if (std::abs(zpvsz[l]) >= teensy) {
+        lzpvsz[l] = sqrt(std::abs(zepvsz[l] / zpvsz[l]));
+        if ( std::abs(lzpvsz[l]) > huge  ) { lzpvsz[l] = huge; }
+        if ( std::abs(lzpvsz[l]) < teensy) { lzpvsz[l] = zero; }
+      }
+      else{lzpvsz[l] = huge;}
+
+/* ~ Elsasser z^- length scale ~ */
+
+      if (std::abs(zmvsz[l]) >= teensy) {
+        lzmvsz[l] = zemvsz[l] / zmvsz[l];
+        if ( std::abs(lzmvsz[l]) > huge  )  {lzmvsz[l] = huge; }
+        if ( std::abs(lzmvsz[l]) < teensy)  {lzmvsz[l] = zero; }
+      }
+      else{ lzmvsz[l] = huge; }
+
+      QtyVsZ[(rank*n3) + l][  i_z]   = z[l + 1];
+      QtyVsZ[(rank*n3) + l][ i_ae]   = QtyVsZ[(rank*n3) + l][ i_ae]  + aevsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_pe]   = QtyVsZ[(rank*n3) + l][ i_pe]  + pevsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_ch]   = QtyVsZ[(rank*n3) + l][ i_ch]  + chvsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_ep]   = QtyVsZ[(rank*n3) + l][ i_ep]  + cevsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_em]   = QtyVsZ[(rank*n3) + l][ i_em]  + oevsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_ce]   = QtyVsZ[(rank*n3) + l][ i_ce]  + zpvsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_oe]   = QtyVsZ[(rank*n3) + l][ i_oe]  + zmvsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_zp]   = QtyVsZ[(rank*n3) + l][ i_zp]  + zepvsz[l];
+      QtyVsZ[(rank*n3) + l][ i_zm]   = QtyVsZ[(rank*n3) + l][ i_zm]  + zemvsz[l];
+      QtyVsZ[(rank*n3) + l][i_nch]   = QtyVsZ[(rank*n3) + l][i_nch]  + nchvsz[l];
+      QtyVsZ[(rank*n3) + l][ i_lc]   = QtyVsZ[(rank*n3) + l][ i_lc]  + lcvsz[ l];
+      QtyVsZ[(rank*n3) + l][ i_lo]   = QtyVsZ[(rank*n3) + l][ i_lo]  + lovsz[ l];
+      QtyVsZ[(rank*n3) + l][i_lzp]   = QtyVsZ[(rank*n3) + l][i_lzp]  + lzpvsz[l];
+      QtyVsZ[(rank*n3) + l][i_lzm]   = QtyVsZ[(rank*n3) + l][i_lzm]  + lzmvsz[l];
+      QtyVsZ[(rank*n3) + l][i_tez]   = QtyVsZ[(rank*n3) + l][i_tez]  + tevsz[l];
+      QtyVsZ[(rank*n3) + l][i_rez]   = QtyVsZ[(rank*n3) + l][i_rez]  + revsz[l];
+      QtyVsZ[(rank*n3) + l][i_nez]   = QtyVsZ[(rank*n3) + l][i_nez]  + nevsz[l];
+      QtyVsZ[(rank*n3) + l][i_rzp]   = QtyVsZ[(rank*n3) + l][i_rzp]  + rzpvsz[l];
+      QtyVsZ[(rank*n3) + l][i_rzm]   = QtyVsZ[(rank*n3) + l][i_rzm]  + rzmvsz[l];
+      QtyVsZ[(rank*n3) + l][i_zpm]   = QtyVsZ[(rank*n3) + l][i_zpm]  + zpmvsz[l];
+      QtyVsZ[(rank*n3) + l][i_lpl]   = QtyVsZ[(rank*n3) + l][i_lpl]  + lplvsz[l];
+      QtyVsZ[(rank*n3) + l][i_lmi]   = QtyVsZ[(rank*n3) + l][i_lmi]  + lmivsz[l];
+      QtyVsZ[(rank*n3) + l][i_lpla]  = QtyVsZ[(rank*n3) + l][i_lpla] + lplavsz[l];
+      QtyVsZ[(rank*n3) + l][i_lmia]  = QtyVsZ[(rank*n3) + l][i_lmia] + lmiavsz[l];
+      QtyVsZ[(rank*n3) + l][i_cnse]  = consevsz[l];
 
     }
-      //if (rank == 0) {
-      //  for (int m = 0; m < n3; ++m) {
-      //    std::cout << "trackQ: z[" << rank*n3 + m  << "] = " << QtyVsZ[(rank*n3)+m][0] << std::endl;
-      //  }
-      //}
   }
 }
 
@@ -2076,9 +2193,9 @@ void redhallmhd::reportQtyVsZ ( stack& run ) {
 
  for (unsigned l = 0; l < n3; l++) {
 
-   if (rank != 0 ) { MPI_Send(&QtyVsZ[rank*n3 + l].front(), 15, MPI_DOUBLE, 0, rank, MPI_COMM_WORLD); }
+   if (rank != 0 ) { MPI_Send(&QtyVsZ[rank*n3 + l].front(), 25, MPI_DOUBLE, 0, rank, MPI_COMM_WORLD); }
    else { for (unsigned rnk_k = 1; rnk_k < np; rnk_k++) {
-            MPI_Recv(&QtyVsZ[rnk_k*n3+l].front(), 15, MPI_DOUBLE, rnk_k, rnk_k, MPI_COMM_WORLD, status);
+            MPI_Recv(&QtyVsZ[rnk_k*n3+l].front(), 25, MPI_DOUBLE, rnk_k, rnk_k, MPI_COMM_WORLD, status);
           }
         }
  }
@@ -2102,7 +2219,7 @@ void redhallmhd::reportQtyVsZ ( stack& run ) {
     if (ofs.good() ) {
       ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << t_cur << std::endl;
       for (unsigned l = 0; l < np*n3; l++) {
-        for (unsigned k = 0; k < 15; k++) { 
+        for (unsigned k = 0; k < 26; k++) { 
           if (k > 0) { QtyVsZ[l][k] = nw_m1 * QtyVsZ[l][k]; }
           ofs << std::setw(24) << std::right << std::setprecision(12) << std::scientific << QtyVsZ[l][k] << " ";
         }
@@ -2375,33 +2492,32 @@ double redhallmhd::evalTotalFootPointKE( stack& run ) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
+RealVar redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   
   RealArray& k2       = run.k2;
 
-  int np;    run.palette.fetch(   "np",    &np    );
-  int n1n2c; run.stack_data.fetch("n1n2c", &n1n2c );
-  int iu2;   run.stack_data.fetch("iu2",   &iu2   );
-  int n3;    run.stack_data.fetch("n3",    &n3    );
-  double dz; run.stack_data.fetch("dz",    &dz    );
-  double n0; run.palette.fetch("n0",       &n0    ); /* ~ density at z_0 (i.e. z = zl / 2)     ~ */
+  int np;    run.palette.fetch(   "np",     &np    );
+  int n1n2c; run.stack_data.fetch("n1n2c",  &n1n2c );
+  int iu2;   run.stack_data.fetch("iu2",    &iu2   );
+  int n3;    run.stack_data.fetch("n3",     &n3    );
+  RealVar dz; run.stack_data.fetch("dz",    &dz    );
+  RealVar n0; run.palette.fetch("n0",       &n0    ); /* ~ density at z_0 (i.e. z = zl / 2)     ~ */
 
   std::string model; run.palette.fetch("model",      &model);
 
-  double fe           = zero;
-  double dfe_r        = zero;
-  double dfe_i        = zero;
-  double fe_sum       = zero;
+  RealVar fe           = zero;
+  RealVar fe_sum       = zero;
 
-  double Valf;
-  double valfmax;       run.palette.fetch("valfmax",  &valfmax );
+  RealVar Valf;
+  RealVar valfmax; run.palette.fetch("valfmax",  &valfmax );
+  RealVar Umean0;
 
-  if (      model.compare("rmhd") == 0) { Valf = one;              }
+  if (      model.compare("rmhd") == 0) { Valf = one;         Umean0 = zero;          }
   else if ( model.compare("inhm") == 0) {
-    if (      rank == 0     ) {           Valf = valfmax;          }
-    else if ( rank == np -1 ) {           Valf = valfven[ n3 ];    }
+    if (      rank == 0     ) {           Valf = valfmax;     Umean0 = one / nofz[0]; }
+    else if ( rank == np -1 ) {           Valf = valfven[n3]; Umean0 = one / nofz[n3];}
   }
 
   int idx             = 0;
@@ -2419,19 +2535,19 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 
       if (( rank == np - 1 ) && ( kdx >= ( n3 * n1n2c) )) {
 
-        dfe_r         =       k2[idx] * ( (A[kdx].imag() * P[kdx].real()) + (A[kdx].real() * P[kdx].imag()) );
-        dfe_i         =       k2[idx] * ( (A[kdx].imag() * P[kdx].imag()) - (A[kdx].real() * P[kdx].real()) );
-
-        fe            = fe + sqrt(pow(dfe_r,2) + pow(dfe_i,2));
-
+        fe            = fe + Valf   * k2[idx] * ( (P[kdx].real() * A[kdx].real()) + (P[kdx].imag() * A[kdx].imag()) )  \
+                           + Umean0 * k2[idx] * ( (P[kdx].real() * P[kdx].real())  +(P[kdx].imag() * P[kdx].imag()) )  \
+                           + Umean0 * k2[idx] * ( (A[kdx].real() * A[kdx].real())  +(A[kdx].imag() * A[kdx].imag()) );
       }
+
       if ((rank  == 0      ) && ( kdx <   n1n2c)           ) {
 
-        dfe_r         =       k2[idx] * ( (A[idx + n1n2c].imag() * P[idx].real()) + (A[idx + n1n2c].real() * P[kdx].imag()) );
-        dfe_i         =       k2[idx] * ( (A[idx + n1n2c].imag() * P[idx].imag()) - (A[idx + n1n2c].real() * P[kdx].real()) );
-
-        fe            = fe - sqrt(pow(dfe_r,2) + pow(dfe_i,2));
-
+        fe            = fe - Valf   * k2[idx] * (   (P[kdx].real()        * A[kdx+n1n2c].real())    \
+                                                  + (P[kdx].imag()        * A[kdx+n1n2c].imag()) )  \
+                           + Umean0 * k2[idx] * (   (P[kdx].real()        * P[kdx].real())          \
+                                                  + (P[kdx].imag()        * P[kdx].imag()) )        \
+                           + Umean0 * k2[idx] * (   (A[kdx+n1n2c].real()  * A[kdx+n1n2c].real())    \
+                                                  + (A[kdx+n1n2c].imag()  * A[kdx+n1n2c].imag()) );
       }
       ++idx;
   }
@@ -2440,9 +2556,6 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 
   int i_red           = MPI_Reduce(&fe, &fe_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-// fe_sum = two*two_thirds * fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
-// fe_sum = fe_sum;  /* ~ NOTE!: why the two_thirds. Seems necessary but at moment I don't know why ~ */
-
   return fe_sum;
 
 }
@@ -2450,6 +2563,33 @@ double redhallmhd::evalTotalPoyntingFlux ( stack& run ) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 double redhallmhd::evalTotalHelicalEnergy ( stack& run ) {
+
+  static const int i_z    =  0;
+  static const int i_ae   =  1;
+  static const int i_pe   =  2;
+  static const int i_ch   =  3;
+  static const int i_ep   =  4;
+  static const int i_em   =  5;
+  static const int i_ce   =  6;
+  static const int i_oe   =  7;
+  static const int i_zp   =  8;
+  static const int i_zm   =  9;
+  static const int i_nch  = 10;
+  static const int i_lc   = 11;
+  static const int i_lo   = 12;
+  static const int i_lzp  = 13;
+  static const int i_lzm  = 14;
+  static const int i_tez  = 15;
+  static const int i_rez  = 16;
+  static const int i_nez  = 17;
+  static const int i_rzp  = 18;
+  static const int i_rzm  = 19;
+  static const int i_zpm  = 20;
+  static const int i_lpl  = 21;
+  static const int i_lmi  = 22;
+  static const int i_lpla = 23;
+  static const int i_lmia = 24;
+  static const int i_cnse = 25;
 
   int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   
@@ -2462,43 +2602,14 @@ double redhallmhd::evalTotalHelicalEnergy ( stack& run ) {
   double dz; run.stack_data.fetch("dz",    &dz    );
 
   double he           = zero;
-  double dhe_r        = zero;
-  double dhe_i        = zero;
   double he_sum       = zero;
 
-  int idx             = 0;
-  int ldx             = 0;
+  for ( unsigned l = 0; l < n3;++l) { 
 
-  int kstart          = n1n2c;
-  int kstop           = (n3+1)*n1n2c;
-  RealVar lcoff;
-
-  for (unsigned kdx = kstart; kdx < kstop; kdx++){
-
-        if ( idx % n1n2c == 0) {
-          ++ldx;
-          std::cout << "" << std::endl;
-          std::cout << "evalTotalH: for rank = " << rank << ": Elln["    << ldx  <<   "]    = " << Elln[ldx]    << std::endl;
-          std::cout << "evalTotalH: for rank = " << rank << ": EllB["    << ldx  <<   "]    = " << EllB[ldx]    << std::endl;
-          std::cout << "evalTotalH: for rank = " << rank << ": EllA["    << ldx  <<   "]    = " << EllA[ldx]    << std::endl;
-          std::cout << "evalTotalH: for rank = " << rank << ": valfven[" << ldx  <<   "] = "    << valfven[ldx] << std::endl;
-          std::cout << "evalTotalH: for rank = " << rank << ": dvalfdz[" << ldx  <<   "] = "    << dvalfdz[ldx] << std::endl;
-
-          idx         = 0 ; 
-
-          lcoff       = (dvalfdz[ldx] + two * valfven[ldx] * (Elln[ldx] + EllB[ldx] + EllA[ldx] ));
-
-        }
-
-        dhe_r         =       k2[idx] * ( (A[kdx].imag() * P[kdx].real()) + (A[kdx].real() * P[kdx].imag()) );
-        dhe_i         =       k2[idx] * ( (A[kdx].imag() * P[kdx].imag()) - (A[kdx].real() * P[kdx].real()) );
-
-        he            = he + lcoff * sqrt(pow(dhe_r,2) + pow(dhe_i, 2));
-
-      ++idx;
+    he = he + QtyVsZ[rank*n3+l][i_tez] * ( dudz[l+1] - two*umean[l+1]*Elln[l+1] ) \
+            + QtyVsZ[rank*n3+l][i_rez] * two * umean[l+1]*EllA[l+1]               \
+            - QtyVsZ[rank*n3+l][i_ch]  * (dvalfdz[l+1] + valfven[l+1]*Elln[l+1]);
   }
-  
-  he                  = he * dz;
 
   int i_red           = MPI_Reduce(&he, &he_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
