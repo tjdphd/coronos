@@ -1,5 +1,7 @@
-FUNCTION scan_parameters, param, n_step, desc_label, $
-             prefix,     INC_PREFIX    = inc_prefix
+FUNCTION scan_parameters, param,          $
+                          n_step,         $
+                          desc_label,     $
+                          PREFIX = prefix
 
 FORWARD_FUNCTION scan_parameters
 
@@ -21,7 +23,7 @@ ENDIF ELSE BEGIN
          str_z_res  = STRTRIM(i_z_res, 2)
          str_n_step = STRTRIM(n_step,  2)
 
-            str_res = '_' + str_x_res + '_' + str_z_res
+         str_res    = '_' + str_x_res + '_' + str_z_res
           
          par_file   = '/' + prefix + str_res + '.00.' + 'o' + desc_label + str_n_step
       ENDELSE

@@ -1,5 +1,7 @@
-FUNCTION scan_parameters, param, n_step, desc_label, $
-         PREFIX=prefix
+FUNCTION scan_parameters, param,          $
+                          n_step,         $
+                          desc_label,     $
+                          PREFIX = prefix
 
 FORWARD_FUNCTION scan_parameters
 
@@ -24,7 +26,6 @@ ENDIF ELSE BEGIN
          str_res    = '_' + str_x_res + '_' + str_z_res
           
          par_file   = '/' + prefix + str_res + '.00.' + 'o' + desc_label + str_n_step
-         PRINT, 'scan_parameters: opening file ', par_file
       ENDELSE
 par_dat = cur_dir + par_file
 

@@ -1,10 +1,9 @@
-FUNCTION scan_parameters, param, n_step, desc_label
+FUNCTION scan_parameters, param,          $
+                          n_step,         $
+                          desc_label,     $
+                          PREFIX = prefix
 
 FORWARD_FUNCTION scan_parameters
-
-COMMON fnc, prefix, inc_res, nfld
-
-
 
 cur_dir = GETENV('PWD')
 IF (n_step EQ 0) THEN BEGIN
@@ -24,14 +23,9 @@ ENDIF ELSE BEGIN
          str_z_res  = STRTRIM(i_z_res, 2)
          str_n_step = STRTRIM(n_step,  2)
 
-         IF ( inc_res EQ 'y' ) THEN BEGIN
-            str_res      = '_' + str_x_res + '_' + str_z_res
-         ENDIF ELSE BEGIN
-            str_res = ''
-         ENDELSE
+         str_res    = '_' + str_x_res + '_' + str_z_res
           
          par_file   = '/' + prefix + str_res + '.00.' + 'o' + desc_label + str_n_step
-         PRINT, 'scan_parameters: opening file ', par_file
       ENDELSE
 par_dat = cur_dir + par_file
 
