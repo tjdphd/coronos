@@ -7,15 +7,19 @@ PRO cts,  desc_label,       $
           PREFIX  = prefix, $
           N_CNTRS = n_cntrs
 
+
   total_steps        = last_step - first_step + 1
+
+  IF (total_steps LT 100) THEN total_steps = 999
+
   cur_dir            = GETENV('PWD')
   out_dir            = cur_dir + '/cts/eps' 
       
   IF (NOT KEYWORD_SET(PREFIX) ) THEN prefix   = 'rmct2'
   IF (NOT KEYWORD_SET(N_CNTRS)) THEN n_cntrs  = 31
  
-  ip1                = scan_parameters('ip1', 0, desc_label)
-  ip2                = scan_parameters('ip2', 0, desc_label)
+  ip1                = scan_parameters('p1', 0, desc_label)
+  ip2                = scan_parameters('p2', 0, desc_label)
   n1                 = 2^ip1
   n2                 = 2^ip2
   KK                 = calcKK(n1,n2)
@@ -38,19 +42,18 @@ PRO cts,  desc_label,       $
       READF, in_unit,  FORMAT = '(4(e24.16,1x),:)',   line
       global_qty_minmax[*, 1]                    =    line
       READF, in_unit,  FORMAT = '(4(e24.16,1x),:)',   line
-      global_qty_minmax[*, 2]                     =   line
-      READF, in_unit, FORMAT = '(4(e24.16,1x),:)',    line
+      global_qty_minmax[*, 2]                    =    line
+      READF, in_unit,  FORMAT = '(4(e24.16,1x),:)',   line
       global_qty_minmax[*, 3]                    =    line
     
       CLOSE, in_unit
 
     ENDIF ELSE BEGIN
 
-;     PRINT, 'glb_ext: WARNING - could not open file ', in_file, '. Assuming no global minmax given...' & STOP
       PRINT, 'glb_ext: WARNING - could not open file ', in_file, '. Assuming no global minmax given...'
 
-      ip1               = scan_parameters('ip1', 0, desc_label)
-      ip2               = scan_parameters('ip2', 0, desc_label)
+      ip1               = scan_parameters('p1', 0, desc_label)
+      ip2               = scan_parameters('p2', 0, desc_label)
 
       n1                = 2^ip1
       n2                = 2^ip2
@@ -86,30 +89,20 @@ PRO cts,  desc_label,       $
   FOR I = first_step, last_step DO BEGIN
 
     IF (I EQ first_step) THEN BEGIN
-      IF (qty NE 'j') THEN BEGIN
-        Q_CNTRS         = set_contour_levels(desc_label,qty,n_slice,n_cntrs,first_step,last_step,global_qty_minmax)
-      ENDIF ELSE BEGIN
-        Q_CNTRS         = set_contour_levels(desc_label,qty,n_slice,n_cntrs,first_step,last_step,global_qty_minmax)
-        A_CNTRS         = set_contour_levels(desc_label,'a',n_slice,n_cntrs,first_step,last_step,global_qty_minmax)
-      ENDELSE
+        Q_CNTRS = set_contour_levels(desc_label, qty, n_slice, n_cntrs, first_step, last_step, global_qty_minmax)
     ENDIF
 
-    dummy = plot_surface(n_slice, qty, I, 999,desc_label, global_qty_minmax, KK)
-;   Pic                 = construct_contour( n_slice,           $
-;                                            qty,               $
-;                                            I,                 $
-;                                            999,               $
-;                                            desc_label,        $
-;                                            global_qty_minmax, $
-;                                            KK,                $
-;                                            PREFIX=prefix,     $
-;                                            QCNTRS=Q_CNTRS,    $
-;                                            ACNTRS=A_CNTRS     $
-;                                          )
-
-;  IF (Pic EQ -1) THEN PRINT, FORMAT = '(a48,1x,i4,1x,a12)',                                 $
-;                                        'single_slice_contour_time_series: WARNING - step', $
-;                                         I, 'was skipped.'
+    PRINT, "CTS: I  = ", I
+    dummy       = makeContourPlot( n_slice,           $
+                                   qty,               $
+                                   I,                 $
+                                   total_steps,       $
+                                   desc_label,        $
+                                   global_qty_minmax, $
+                                   KK,                $
+                                   QCNTRS = Q_CNTRS,  $
+                                   PREFIX = prefix    $
+                                   )
 
   ENDFOR
 

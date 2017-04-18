@@ -15,9 +15,9 @@ FUNCTION global_q_minmax_by_slice, n_step, i_qty, first_slice, last_slice, desc_
 
   ENDIF
   
-  n3                              = scan_parameters('n3',  0, desc_label )
-  ip1                             = scan_parameters('ip1', 0, desc_label )
-  ip2                             = scan_parameters('ip2', 0, desc_label )
+  n3                              = scan_parameters('p3',  0, desc_label )
+  ip1                             = scan_parameters('p1', 0, desc_label )
+  ip2                             = scan_parameters('p2', 0, desc_label )
   
   x_res                           = 2^ip1
   y_res                           = 2^ip2   

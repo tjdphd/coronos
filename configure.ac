@@ -1,14 +1,17 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
+#
 
 AC_PREREQ([2.63])
 AC_INIT([coronos], [0.01], [tdennis10@alaska.edu])
+AC_LANG(C++)
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/coronos.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Get the architecture
+
 # -> if ARCH is 64 are lib64's gauranteed to exist? 
 
 AC_MSG_CHECKING([architecture])
@@ -23,6 +26,7 @@ else
 fi
 
 AC_MSG_RESULT([$ARCH])
+AC_MSG_NOTICE([setting suffix to $SUFFIX])
 
 # Establish precision to be used 
 
@@ -40,35 +44,75 @@ else
   AC_DEFINE([OD_PRECISION_H])
 fi
 
+                  USR="/usr"
+            USR_LOCAL="/usr/local"
+                  OPT="/opt"
+
   # ->->-> compiler info
     
-
-  CRS_CXX="mpiCC CC "
+  CRS_CXX="mpic++ mpiCC CC "
   AC_PROG_CXX([$CRS_CXX])
-  CRS_CC="mpicc cc "
+  CRS_CC="mpicc mpiCC cc "
   AC_PROG_CC([$CRS_CC])
 
   AX_COMPILER_VERSION
 
-  AC_MSG_NOTICE([found compiler vendor $ax_cv_c_compiler_vendor])
-  AC_MSG_NOTICE([found compiler version $ax_cv_c_compiler_version])
+  AC_MSG_NOTICE([found compiler vendor $ax_cv_cxx_compiler_vendor])
+  AC_MSG_NOTICE([found compiler version $ax_cv_cxx_compiler_version])
 
-  PORTLAND=`expr match "$ax_cv_c_compiler_vendor" '\(portland\)'`
-     INTEL=`expr match "$ax_cv_c_compiler_vendor" '\(intel\)'`
-       GNU=`expr match "$ax_cv_c_compiler_vendor" '\(gnu\)'`
+  PORTLAND=`expr match "$ax_cv_cxx_compiler_vendor" '\(portland\)'`
+     INTEL=`expr match "$ax_cv_cxx_compiler_vendor" '\(intel\)'`
+       GNU=`expr match "$ax_cv_cxx_compiler_vendor" '\(gnu\)'`
+
+  if  test -n "$PORTLAND"
+  then VENDOR=$PORTLAND
+  fi
+  if  test -n "$INTEL"
+  then VENDOR=$INTEL
+  fi
+  if  test -n "$GNU"
+  then VENDOR=$GNU
+  fi
 
   echo "PORTLAND = " $PORTLAND
   echo "INTEL    = " $INTEL
   echo "GNU      = " $GNU
+  echo "VENDOR   = " $VENDOR
+
+# Find mpi.h
+
+   if  test -n "$MPIHOME"
+   then
+     MPI_DIR=$MPIHOME
+   fi
+
+   if test -n "MPI_HOME"
+   then
+     MPI_DIR=$MPI_HOME
+   fi
+     MPI_INC="$MPI_DIR/include"
+     MPI_LIB="$MPI_DIR/lib"
+   
+   if test -n "$MPI_DIR"
+   then
+     AC_CHECK_HEADERS([$MPI_INC/"mpi.h"],[],[],[])
+   fi
+   
+
+  if [[ $VENDOR == $INTEL ]]
+  then
+    echo "VENDOR really is $VENDOR"
+  fi
 
 # Check for CUDA
 
-AH_TEMPLATE([     HAVE_CUDA_H], [Define to one if using cuda])
 AH_TEMPLATE([DONT_HAVE_CUDA_H], [Define to one if not using cuda])
+AH_TEMPLATE(     [HAVE_CUDA_H], [Define to one if using cuda])
 
 AC_ARG_WITH([cuda], AS_HELP_STRING([--with-cuda=PATH],
                                    [use gpu acceleration (default is no)])],
                                    [],[])    
+
 
 # Start CUDA vs. NOT-CUDA CONDITIONAL
 # -> IF CUDA ==>
@@ -171,14 +215,22 @@ else # -> IF NOT-CUDA ==>
             CUDA_LIBS=""
     CUDA_PATH_DEFAULT=""
 
-            USR_LOCAL="/usr/local"
-                 OPT="/opt"
 
     # ->->-> FFT:
 
     FFTW_PATH_DEFAULT="$USR_LOCAL/fftw"
                FFTW_H="fftw3.h"
             FFTW_LIBS="-lm -lfftw3"
+
+
+  if test -n "$FFTWHOME"
+  then
+  FFTW_PATH=$FFTWHOME
+  fi
+  if test -n "$FFTW_ROOT"
+  then
+  FFTW_PATH=$FFTW_ROOT
+  fi
 
   AC_MSG_CHECKING([whether FFTW_PATH is set])
 
@@ -474,7 +526,7 @@ AC_MSG_NOTICE([please disregard the superfluous warning above regarding rejectio
 # Wrap up
 
 
-          CRS_INC_FLAGS=" -I.. -I$FFTW_PATH_INC "
+          CRS_INC_FLAGS=" -I.. -I$FFTW_PATH_INC -I$MPI_INC"
 
 if test ! -n "$CUDA_PATH"
 then

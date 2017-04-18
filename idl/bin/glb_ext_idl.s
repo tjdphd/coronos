@@ -46,13 +46,13 @@ setenv GLEX_LAST_SLC   $7  # - Last slice
 #
 #######################################
                                       #
+source /etc/profile.d/modules.csh     #
 module load idl                       # load idl onto the compute node
-                                      #
-set       SRCDIR=$PWD/idl/glb_ext     # idl script source directory
-echo   "SRCDIR   = " $SRCDIR          #
+set SRCDIR=$PWD/idl/pro/glb_ext       #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR  #
 echo "IDL_PATH   = " $IDL_PATH        #
-setenv IDL_STARTUP $PWD/glb_ext_batch # idl batch script to execute
+setenv IDL_STARTUP $PWD/idl/bin/glb_ext_batch # idl batch script to execute
+echo "IDL_STARTUP =" $IDL_STARTUP
                                       #
 idl                                   # invoke idl
                                       #

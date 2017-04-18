@@ -29,6 +29,7 @@ data_file    = cur_dir + '/' + data_dir + '/' + data_file
 PRINT, 'opening file: ', data_file
 OPENR, data_unit, data_file, /GET_LUN
 
+<<<<<<< HEAD
 nlines       = LONG64(0)
 nlines       = FILE_LINES(data_file)
 
@@ -39,11 +40,20 @@ print, "cols = ", cols
 str_cols     = STRING(cols)
 str_fmt      = '(' + str_cols + '(e24.20,1x),:)'
 print, "str_fmt = ", str_fmt
+=======
+nlines       = FILE_LINES(data_file)
+line         = ""
+READF, data_unit, line
+cols         = N_ELEMENTS(StrSplit(line))
+str_cols     = STRING(cols)
+str_fmt      = '(' + str_cols + '(e24.20,1x),:)'
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
 Point_Lun, data_unit, 0
 
 Eline        = FLTARR(cols, 1)
 E            = FLTARR(cols, nlines)
 
+<<<<<<< HEAD
 PRINT, "nlines = ", nlines
 FOR I = 0, nlines - 1 DO BEGIN
 
@@ -53,6 +63,12 @@ FOR I = 0, nlines - 1 DO BEGIN
    READF, data_unit, FORMAT = str_fmt, Eline
 ;  READF, data_unit, FORMAT = '( 28(e24.16,1x),:/)', Eline
    E[*, I]    = Eline
+=======
+FOR I = 0, nlines - 1 DO BEGIN
+
+   READF, data_unit, FORMAT = str_fmt, Eline
+   E[*, I]   = Eline
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
   
 ENDFOR
 

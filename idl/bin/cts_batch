@@ -52,9 +52,10 @@ qty         = GETENV('CTS_QTY')          ; field for which contours/color maps
 n_slice     = GETENV('CTS_SLC')          ; which slice to contour
 first_step  = GETENV('CTS_FIRST_STEP')   ; first data-frame in time-series
 last_step   = GETENV('CTS_LAST_STEP')    ; last data-frame in time-series
-n_cntrs     = GETENV('CTS_NUM_CONT')     ; Number of contour levels for plots
+n_cntrs     = GETENV('CTS_N_CNTRS')      ; Number of contour levels for plots
 
 global_in_minmax = GETENV('CTS_GLB_EXT') ;
+prefix      = GETENV('CTS_PFX')          ;
                                          ; base contour levels
 first_step  = UINT(first_step)           ; convert these to 
 last_step   = UINT(last_step)            ; integer values
@@ -66,18 +67,21 @@ n_cntrs     = UINT(n_cntrs)
 ; upon one another                                                            ;
 
 .run scan_parameters.pro
-.run construct_eps_outfile_name.pro
 .run fetch_datafile.pro
 .run fetch_layer.pro
 .run getSliceRange.pro
 .run set_contour_levels.pro
-;.run calc_jz.pro
-;.run cfdp.pro
-.run construct_contour.pro
 .run calcKK.pro
 .run global_q_minmax.pro
 .run global_q_minmax_by_slice.pro
-.run plot_surface.pro
+.run getCoordConvs.pro
+.run getResString.pro
+.run getInfixString.pro
+.run getOutputPath.pro
+.run makeAxes.pro
+.run getTitle.pro
+.run makeColorBar.pro
+.run makeContourPlot.pro
 .run cts.pro 
                                                                                ;
 ; Next we tell idl to add 'idl_src_dir' to its value for IDL_PATH. I don't     ;
@@ -102,6 +106,6 @@ cts, desc_label,       $
      last_step,        $
      global_in_minmax, $
      PREFIX  = prefix, $
-     N_CNTRS = n_cntrs
+     N_CNTRS = n_cntrs 
 retall
 exit

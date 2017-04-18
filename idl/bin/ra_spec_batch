@@ -2,21 +2,45 @@ idl_src_dir = GETENV('IDL_PATH')                    ; Directory where the requir
                                                     ; sources reside
 spec_dsc_lab     = GETENV('SPEC_DSC_LAB')           ;
 spec_sfld        = GETENV('SPEC_SFLD')              ;
-spec_layer       = GETENV('SPEC_LAYER')             ;
+spec_first_layer = GETENV('SPEC_FIRST_LAYER')       ;
+spec_last_layer  = GETENV('SPEC_LAST_LAYER')        ;
 spec_first_step  = GETENV('SPEC_FIRST_STEP')        ;
 spec_last_step   = GETENV('SPEC_LAST_STEP')         ;
 spec_minmax_mode = GETENV('SPEC_MINMAX_MODE')       ;
+spec_plot_mode   = GETENV('SPEC_PLOT_MODE')         ;
 
-spec_layer       = UINT(spec_layer)
 spec_first_step  = UINT(spec_first_step)
 spec_last_step   = UINT(spec_last_step)
+spec_first_layer = UINT(spec_first_layer)
+spec_last_layer  = UINT(spec_last_layer)
 
 .run scan_parameters.pro                            ; compile
-.run global_sfld_minmax.pro
+.run getResString.pro
+.run getSfldIndex.pro
+.run getSfldString.pro
+.run setKData.pro
+.run getDataOutDir.pro
+.run getSpectrumTitle.pro
+.run getSpectralIndexDataOutFile.pro
+.run getCaseFileString.pro
+.run getSubrunRangeString.pro
+.run plotSpectrum.pro
+.run plotSpVsZ.pro
+.run global_sfld_minmax_by_slice.pro
+.run global_sfld_minmax_over_slices.pro
 .run open_spec_data_file.pro
+.run open_evsz_data_file.pro
 .run run_ave_spec.pro
 
-run_ave_spec, spec_dsc_lab, spec_sfld, spec_layer, spec_first_step, spec_last_step, spec_minmax_mode ; run
+run_ave_spec, spec_dsc_lab,     $
+              spec_sfld,        $
+              spec_first_layer, $
+              spec_last_layer,  $ 
+              spec_first_step,  $
+              spec_last_step,   $
+              spec_minmax_mode, $ 
+              spec_plot_mode
+                                                    ; run
 
 retall                                              ; get ready to exit
 exit

@@ -1,4 +1,4 @@
-FUNCTION getOutputPath, n_step, str_pfx, str_ifx, last_step
+FUNCTION getOutputPath, n_step, str_pfx, str_ifx, last_step, file_type
 
 ; would like this or getInfix to know about:
 
@@ -17,9 +17,9 @@ FUNCTION getOutputPath, n_step, str_pfx, str_ifx, last_step
 
   FOR I_Len             = 0, dif_len - 1 DO str_n_step = '0' + str_n_step
 
-  out_dir               = GETENV('PWD') + '/' + str_pfx + '/eps'
+  out_dir               = GETENV('PWD') + '/cts/' + str_pfx + '/' + file_type
 
-  output_path           = out_dir + '/' + str_pfx + '_' + str_ifx + str_n_step + '.eps'
+  output_path           = out_dir + '/' + str_pfx + '_' + str_ifx + str_n_step + '.' + file_type
   
   RETURN, output_path
 

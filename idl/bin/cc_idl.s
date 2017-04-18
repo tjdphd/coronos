@@ -41,7 +41,7 @@ set SRCDIR=$PWD/idl/pro/ff_cc        # idl script source directory
 echo "SRCDIR   = " $SRCDIR           #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
 echo "IDL_PATH = " $IDL_PATH         #
-setenv IDL_STARTUP $PWD/cc_batch     # idl batch script to execute
+setenv IDL_STARTUP $PWD/idl/bin/cc_batch     # idl batch script to execute
                                      #
 idl                                  # invoke idl
                                      #

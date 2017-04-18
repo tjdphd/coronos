@@ -1,9 +1,9 @@
 FUNCTION getResString, desc_label
 
-  n3               = scan_parameters('n3',  0, desc_label )
-  mp               = scan_parameters('mp',  0, desc_label )
-  ip1              = scan_parameters('ip1', 0, desc_label )
-  ip2              = scan_parameters('ip2', 0, desc_label )
+  n3               = scan_parameters('p3', 0, desc_label )
+  mp               = scan_parameters('np', 0, desc_label )
+  ip1              = scan_parameters('p1', 0, desc_label )
+  ip2              = scan_parameters('p2', 0, desc_label )
 
   i_x_res          = LONG64(2^ip1)
   i_y_res          = LONG64(2^ip2)

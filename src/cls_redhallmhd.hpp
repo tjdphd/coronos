@@ -82,12 +82,10 @@ class redhallmhd
   void initFootPointDriving(            stack& run);
   void initNoDrive(                     stack& run);
 
-  void initIRMHD(                       stack& run);
- 
-  void initialize(                      stack& run );
+  void retrieveOJ (                     stack& run);
   void OfromP(                          stack& run );                 /* ~ Obtain vorticity from P                   ~ */
   void HfromA(                          stack& run );                 /* ~ Obtain H from A                           ~ */
-  void JfromA(                          stack& run );                 /* ~ Obtain J from A                           ~ */
+//void JfromA(                          stack& run );                 /* ~ Obtain J from A                           ~ */
 
 
   void applyFootPointDrivingBC(std::string str_stp, stack& run );     /* ~ "pevol"                                   ~ */
@@ -95,6 +93,7 @@ class redhallmhd
 
   void finalizeBoundaries(              stack& run );
   void finalizeFootPointDriving(        stack& run );                 /* ~                                           ~ */
+  void finalizeLineTiedBoundaries(      stack& run );                 /* ~                                           ~ */
 
   public:
 
@@ -103,8 +102,10 @@ class redhallmhd
   fft fftw;
 
   ComplexArray P;                                                     /* ~ Stream function Phi in Fourier Space      ~ */
+  ComplexArray O;                                                     /* ~  Vorticity storage  in Fourier Space      ~ */
   ComplexArray A;                                                     /* ~ flux function A in Fourier Space          ~ */
   ComplexArray J;                                                     /* ~ current density in Fourier Space          ~ */
+
 
   RealArray valfven;                                                  /* ~ Needed for Inhomogeneous RMHD             ~ */
   RealArray dvalfdz;
@@ -138,16 +139,17 @@ class redhallmhd
   int         ikf;
   int         nk;
 
-  void updatePAJ( std::string str_step, stack& run );
-  void applyBC(   std::string str_step, stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
-  void updateTimeInc(                   stack& run );
+  void updatePAOJ( std::string str_step, stack& run );
+  void checkState( int pair, stack &run, std::string roc); 
+  void applyBC(    std::string str_step, stack& run );                 /* ~ Apply Boundary Conditions at current step ~ */
+  void updateTimeInc(                    stack& run );
 
-  void PfromO(                          stack& run );                 /* ~ Obtain P from vorticity                   ~ */
-  void AfromH(                          stack& run );                 /* ~ Obtain A from H                           ~ */
+  void PfromO(                           stack& run );                 /* ~ Obtain P from vorticity                   ~ */
+  void AfromH(                           stack& run );                 /* ~ Obtain A from H                           ~ */
 
-  void evalElls(                        stack& run );                 /* ~ calculate l's and h's at each layer       ~ */
-  void evalValf(                        stack& run );                 /* ~ calculate Va at each layer                ~ */
-  void evalUmean(                       stack& run );                 /* ~ calculate Va at each layer                ~ */
+  void evalElls(                         stack& run );                 /* ~ calculate l's and h's at each layer       ~ */
+  void evalValf(                         stack& run );                 /* ~ calculate Va at each layer                ~ */
+  void evalUmean(                        stack& run );                 /* ~ calculate Va at each layer                ~ */
 
                                                                       /* ~ Energy etc time-series related            ~ */
 

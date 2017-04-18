@@ -2,34 +2,60 @@ FUNCTION scan_parameters, param, n_step, desc_label
 
   FORWARD_FUNCTION scan_parameters
 
-  cur_dir        = GETENV('PWD')
+  this_step        = n_step
+
+  IF ( NOT ( ( STRCMP(param, "srun",4)) AND (n_step = -1) )) THEN BEGIN
+
+    next_step      = scan_parameters("srun", -1, desc_label)
+    last_step      = next_step - 1
+    n_step         = this_step
+
+  ENDIF ELSE BEGIN
+    last_step      = -1
+  ENDELSE
+
+  cur_dir          = GETENV('PWD')
 
   IF (n_step EQ 0) THEN BEGIN
 
-    par_file     = '/coronos.in'
+    par_file       = '/crs_init.in'
 
   ENDIF ELSE BEGIN
 
-    prefix       = scan_parameters('prefix', 0, desc_label )
-    ip1          = scan_parameters('p1',     0, desc_label )
-    n3           = scan_parameters('p3',     0, desc_label )
-    mp           = scan_parameters('np',     0, desc_label )
+    IF (n_step GT 0 AND n_step LT last_step)  THEN BEGIN
 
-    x_res        = 2^ip1
-    z_res        = n3 * mp
+      prefix       = scan_parameters('prefix',   0, desc_label )
+      data_dir     = scan_parameters('data_dir', 0, desc_label )
+      ip1          = scan_parameters('p1',       0, desc_label )
+      n3           = scan_parameters('p3',       0, desc_label )
+      mp           = scan_parameters('np',       0, desc_label )
 
-    i_x_res      = UINT(x_res)
-    i_z_res      = UINT(z_res)
+      x_res        = 2^ip1
+      z_res        = n3 * mp
 
-    str_x_res    = STRTRIM(i_x_res, 2)
-    str_z_res    = STRTRIM(i_z_res, 2)
-    str_n_step   = STRTRIM(n_step,  2)
-    IF ( inc_res EQ 'y' ) THEN BEGIN
-      str_res    = '_' + str_x_res + '_' + str_z_res
+      i_x_res      = UINT(x_res)
+      i_z_res      = UINT(z_res)
+
+      str_x_res    = STRTRIM(i_x_res, 2)
+      str_z_res    = STRTRIM(i_z_res, 2)
+      str_n_step   = STRTRIM(n_step,  2)
+
+      str_res      = '_' + str_x_res + '_' + str_z_res
+
+      par_file     = '/' + data_dir + '/' + prefix + str_res + '.00.' + 'o' + desc_label + str_n_step
+
     ENDIF ELSE BEGIN
-      str_res    = ''
+      IF (STRCMP(param,"srun",4) AND (n_step EQ -1)) THEN BEGIN
+        par_file   = '/coronos.in'
+      ENDIF ELSE BEGIN
+        IF (n_step EQ last_step) THEN BEGIN
+          par_file = '/coronos.in'
+          n_step   = this_step
+        ENDIF ELSE BEGIN
+          PRINT, "scan_parameters: ERROR - Something is wrong, this should never be output"
+        ENDELSE
+      ENDELSE
     ENDELSE
-    par_file     = '/' + prefix + str_res + '.00.' + 'o' + desc_label + str_n_step
   ENDELSE
 
   par_dat        = cur_dir + par_file

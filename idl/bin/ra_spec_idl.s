@@ -5,10 +5,12 @@
 setenv SPEC_DSC_LAB     $1 # - string coding for information about the data
 setenv SPEC_RES_STR     $2 #
 setenv SPEC_SFLD        $3 # - string coding for information about the data
-setenv SPEC_LAYER       $4 # - layer to average over
-setenv SPEC_FIRST_STEP  $5 # - First data-set in series to be plotted
-setenv SPEC_LAST_STEP   $6 # - Last data-set in series to be plotted
-setenv SPEC_MINMAX_MODE $7 # - either 'global' or 'local'
+setenv SPEC_FIRST_LAYER $4 # - layer to average over
+setenv SPEC_LAST_LAYER  $5 # - layer to average over
+setenv SPEC_FIRST_STEP  $6 # - First data-set in series to be plotted
+setenv SPEC_LAST_STEP   $7 # - Last data-set in series to be plotted
+setenv SPEC_MINMAX_MODE $8 # - either 'global' or 'local'
+setenv SPEC_PLOT_MODE   $9 # - either 'global' or 'local'
                            #
 ############################
 #
@@ -38,7 +40,7 @@ endif                                      #
 source /etc/profile.d/modules.csh    #
 module load idl                      # load idl onto the compute node
                                      #
-set SRCDIR=$PWD/idl/pro/spec             #
+set SRCDIR=$PWD/idl/pro/spec         #
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
 echo "IDL_PATH = " $IDL_PATH         #
 setenv IDL_STARTUP $PWD/idl/bin/ra_spec_batch   # idl batch script to execute
@@ -56,10 +58,12 @@ unsetenv IDL_STARTUP               #
 unsetenv SPEC_DSC_LAB              #
 unsetenv SPEC_RES_STR              #
 unsetenv SPEC_SFLD                 #
-unsetenv SPEC_LAYER                #
+unsetenv SPEC_FIRST_LAYER          #
+unsetenv SPEC_LAST_LAYER           #
 unsetenv SPEC_FIRST_STEP           #
 unsetenv SPEC_LAST_STEP            #
 unsetenv SPEC_MINMAX_MODE          #
+unsetenv SPEC_PLOT_MODE            #
                                    #
 exit 0                             #
                                    #

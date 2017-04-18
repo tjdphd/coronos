@@ -28,12 +28,22 @@ i_aveK2           = 24 ; aveK2/t
 i_aveME           = 25 ; time averaged perpendicular magnetic field
 i_avepe           = 26 ; sqrt(2.*AVEpe/t)
 i_kze	          = 27 ; parallel kinetic energy
+<<<<<<< HEAD
 i_aze             = 28 ; parallel magnetic energy
 i_ne              = 29 ; internal energy
 i_bze             = 30 ; Z Laplacian
 i_vze             = 31 ; V_z Laplacian
 i_kapbze          = 32 ; parallel conductive heat loss
 i_nuvze           = 33 ; parallel viscous dissipation
+=======
+i_he              = 28 ; a conservation check based on z-tracked conservation
+i_aze             = 29 ; parallel magnetic energy
+i_ne              = 30 ; internal energy
+i_bze             = 31 ; Z Laplacian
+i_vze             = 32 ; V_z Laplacian
+i_kapbze          = 33 ; parallel conductive heat loss
+i_nuvze           = 34 ; parallel viscous dissipation
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
  
 E_case            = open_energy_data_file(dsc_lab, 'ff')
 
@@ -89,12 +99,22 @@ i_field           = fld_one
 '25': str_field   = 'aveME'
 '26': str_field   = 'avepe'
 '27': str_field   = 'kze'
+<<<<<<< HEAD
 '28': str_field   = 'aze'
 '29': str_field   = 'ne'
 '30': str_field   = 'bze'
 '31': str_field   = 'vze'
 '32': str_field   = 'kapbze'
 '33': str_field   = 'nuvze'
+=======
+'28': str_field   = 'he'
+'29': str_field   = 'aze'
+'30': str_field   = 'ne'
+'31': str_field   = 'bze'
+'32': str_field   = 'vze'
+'33': str_field   = 'kapbze'
+'34': str_field   = 'nuvze'
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
  ELSE: str_field  = 'Something_is_wrong'
  ENDCASE
 
@@ -112,6 +132,13 @@ max_y             = MAX(E_case[*, i_field])
 min_y             = MIN(E_case[*, i_field])
                  
 y_range           = [min_y, max_y]
+<<<<<<< HEAD
+=======
+
+PRINT, "min_y   = ", min_y
+PRINT, "max_y   = ", max_y
+PRINT, "n_lines = ", n_lines
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
                   
 min_t             = MIN(E_case[*, i_time])
 max_t             = MAX(E_case[*, i_time])
@@ -149,6 +176,7 @@ cur_dir           = GETENV('PWD')
 '25': str_title   = 'Time-Averaged Perpendicular Field Strength vs.t: '
 '26': str_title   = 'Mean Photospheric Flow Velocity vs.t: '
 '27': str_title   = 'Total Parallel Kinetic Energy vs.t: '
+<<<<<<< HEAD
 '28': str_title   = 'Total Parallel Magnetic Energy vs.t: '
 '29': str_title   = 'Total Internal Energy vs.t: '
 '30': str_title   = 'Square Magnitude of Z vs.t: '
@@ -159,6 +187,18 @@ cur_dir           = GETENV('PWD')
  ENDCASE
 
 
+=======
+'28': str_title   = 'conesvsz summed over z vs.t: '
+'29': str_title   = 'Total Parallel Magnetic Energy vs.t: '
+'30': str_title   = 'Total Internal Energy vs.t: '
+'31': str_title   = 'Square Magnitude of Z vs.t: '
+'32': str_title   = 'Square Magnitude of V_z vs.t: '
+'33': str_title   = 'Parallel Conductive Heat Loss vs.t: '
+'34': str_title   = 'Parallel Viscous Dissipation vs.t: '
+ ELSE: str_title  = 'Something_is_wrong'
+ ENDCASE
+
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
        max_ediss1 = MAX(E_case[*,  i_ediss], i_max_ediss1)
      t_max_ediss1 =     E_case[i_max_ediss1, i_time]
 
@@ -185,6 +225,7 @@ cur_dir           = GETENV('PWD')
 
    str_title      = str_title + ' For ' + case_res_str
 
+<<<<<<< HEAD
 IF (out_dev EQ 'X') THEN BEGIN
    SET_PLOT, 'X'
 ENDIF ELSE BEGIN
@@ -267,6 +308,90 @@ IF ( Q EQ 'y') THEN BEGIN
    SET_PLOT, 'X'
 
 ENDIF
+=======
+  IF (out_dev EQ 'X') THEN BEGIN
+     SET_PLOT, 'X'
+  ENDIF ELSE BEGIN
+  
+            eps_out = cur_dir + '/ffts' + case_file_str + '.eps'
+  
+            SET_PLOT, 'PS'
+            DEVICE  , /ENCAPSULATED
+            DEVICE  ,  FILENAME       = eps_out
+        ENDELSE
+  
+  PLOT, E_case[0:(n_lines-1),i_time], E_case[0:(n_lines-1),i_field], $
+        CHARSIZE    = 1.1,                                           $
+        LINESTYLE   = 0,                                             $
+        YTICKFORMAT = '(E7.1)',                                      $
+  ;     XMARGIN     = [12,4],                                        $
+  ;     YMARGIN     = [4,4],                                         $
+        TITLE       = str_title,                                     $
+        XTITLE      = 't',                                           $
+        YTITLE      = ' ',                                           $
+        XRANGE      = t_range,                                       $
+        YRANGE      = y_range,                                       $
+        THICK       = 2;,                                            $
+  ;     /YLOG
+  
+    OPLOT, E_case[0:(n_lines-1),i_time], AVL[0:(n_lines-1)],         $
+    LINESTYLE = 1,                                                   $
+    THICK     = 5
+  
+  IF (fld_two NE '0') THEN BEGIN
+    i_field = fld_two
+    OPLOT, E_case[0:(n_lines-1),i_time], E_case[0:(n_lines-1),i_field], $
+           LINESTYLE   = 2
+    i_field = fld_one
+  ENDIF
+  
+  Q = ''
+  READ, Q, PROMPT = 'Save to postscript? [y/n]:'
+  
+  IF ( Q EQ 'y') THEN BEGIN
+  
+     eps_out        = cur_dir + '/ffts' + case_file_str + '.eps'
+  
+     SET_PLOT, 'PS'
+     DEVICE  , /ENCAPSULATED
+     DEVICE  ,  FILENAME = eps_out, /COLOR, BITS_PER_PIXEL=8
+     LOADCT, 13
+  
+     PLOT, E_case[0:(n_lines-1),i_time], E_case[0:(n_lines-1),i_field], $
+           CHARSIZE    = 0.9,                                           $
+           LINESTYLE   = 0,                                             $
+           YTICKFORMAT = '(E7.1)',                                      $
+           XMARGIN     = [12,4],                                        $
+           YMARGIN     = [4,4],                                         $
+           TITLE       = str_title,                                     $
+           XTITLE      = 't',                                           $
+           YTITLE      = ' ',                                           $
+           XRANGE      = t_range,                                       $
+           YRANGE      = y_range,                                       $
+           THICK       = 2,                                             $
+           /NODATA       ;,                                             $
+  ;        /YLOG,                                                       $
+  
+     OPLOT, E_case[0:(n_lines-1),i_time], E_case[0:(n_lines-1),i_field],   $
+           COLOR       = 255
+     
+     IF (fld_two NE '0') THEN BEGIN
+  
+       i_field = fld_two
+       OPLOT, E_case[0:(n_lines-1),i_time], E_case[0:(n_lines-1),i_field], $
+           COLOR       = 219
+       i_field = fld_one
+  
+     ENDIF
+  
+     PRINT, 'Plotted to file ', eps_out
+  
+     DEVICE, /CLOSE
+  
+     SET_PLOT, 'X'
+  
+  ENDIF
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
 
 READ, Q, PROMPT = 'enter <Return> to quit: '
               
@@ -288,6 +413,10 @@ READ, Q, PROMPT = 'enter <Return> to quit: '
 ;XYOUTS, CHARSIZE  = 1.5, 0.31, 8.0e-03, 'No Noise'
 ;XYOUTS, CHARSIZE  = 1.5, 0.31, 7.0e-03, case_legend_str
 
+<<<<<<< HEAD
 IF (out_dev EQ 'PS') THEN DEVICE, /CLOSE
+=======
+;IF (out_dev EQ 'PS') THEN DEVICE, /CLOSE
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
 
 END

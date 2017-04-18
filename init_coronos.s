@@ -58,10 +58,6 @@ xres=$((2**$p1))                                 # calculate resolution in x
 yres=$((2**$p2))                                 # calculate resolution in y
 zres=$(($p3*$np))                                # calculate resolution in z
 #
-echo "zres = " $zres
-echo "p3   = " $p3
-echo "np   = " $np
-#
 if [[ "$xres" -eq "$yres" ]]
 then
   res_label="$xres"_"$zres"
@@ -92,6 +88,10 @@ echo -n "specify run wall time (nn:nn:nn):"
 read run_wall
 echo -n "specify archive wall time (nn:nn:nn):"
 read arch_wall
+echo -n "specify partition:"
+read partition
+echo -n "specify project:"
+read project
 #
 if  [ "$ppn" -le  16 ] 
 then
@@ -166,46 +166,47 @@ then
   jobr=$job_name$j_sr_$start-$stop$rsc_man
   joba=$arc_name$j_ar_$start-$stop$rsc_man
 #
-  echo "#!/bin/sh"                                                                     > $jobr
-  echo " "                                                                            >> $jobr
-  echo "#SBATCH --partition=debug"                                                    >> $jobr
-  echo "#SBATCH --ntasks=$np"                                                         >> $jobr
-  echo "#SBATCH --tasks-per-node=$ppn"                                                >> $jobr
-  echo "#SBATCH --mail-user=tdennis10@alaska.edu"                                     >> $jobr
-  echo "#SBATCH --mail-type=FAIL"                                                     >> $jobr
-  echo "#SBATCH --time=$run_wall"                                                     >> $jobr
-  echo "#SBATCH --output=tjd.%j"                                                      >> $jobr
-  if [ "$stop" -gt "$start" ]
-  then
-    echo "#SBATCH  --array=$start-$stop%1"                                            >> $jobr       
-  fi
-  echo " "                                                                            >> $jobr
-  echo ". /usr/share/Modules/init/sh"                                                 >> $jobr
-  echo " "                                                                            >> $jobr
-  echo "cd $cur_dir"                                                                  >> $jobr
-  echo "srun -l /bin/hostname | sort -n | awk '{print \$2}' > ./nodes.\$SLURM_JOB_ID" >> $jobr
-  echo "time mpirun -np 8 -machinefile ./nodes.\$SLURM_JOB_ID ./src/coronos"          >> $jobr
-  echo " "                                                                            >> $jobr
-  echo "#EOF "                                                                        >> $jobr
+  echo "#!/bin/sh"                                                                            > $jobr
+  echo " "                                                                                   >> $jobr
+# echo "#SBATCH -A $project"                                                                 >> $jobr
+  echo "#SBATCH --job-name=coronos"                                                          >> $jobr
+  echo "#SBATCH --output=tjd.%j.%N.out"                                                      >> $jobr
+  echo "#SBATCH --partition=$partition"                                                      >> $jobr
+  echo "#SBATCH --nodes=$nnodes"                                                             >> $jobr
+  echo "#SBATCH --tasks-per-node=$ppn"                                                       >> $jobr
+  echo "#SBATCH --export=ALL"                                                                >> $jobr
+  echo "#SBATCH -t $run_wall"                                                                >> $jobr
+  echo "#SBATCH  --array=$start-$stop%1"                                                     >> $jobr       
+  echo "#SBATCH --mail-user=tdennis10@alaska.edu"                                            >> $jobr
+  echo "#SBATCH --mail-type=FAIL"                                                            >> $jobr
+  echo " "                                                                                   >> $jobr
+  echo ". /usr/share/Modules/init/sh"                                                        >> $jobr
+  echo " "                                                                                   >> $jobr
+  echo "cd $cur_dir"                                                                         >> $jobr
+  echo "srun -l /bin/hostname | sort -n | awk '{print \$2}' > ./nodes.\$SLURM_ARRAY_TASK_ID" >> $jobr
+  echo "time mpirun -np $np -machinefile ./nodes.\$SLURM_ARRAY_TASK_ID ./src/coronos"        >> $jobr
+# echo "time ibrun -v ./src/coronos"                                                         >> $jobr
+  echo " "                                                                                   >> $jobr
+  echo "#EOF "                                                                               >> $jobr
   chmod u+x $jobr
 #
-  echo "#!/bin/sh"                                                                     > $joba
-  echo " "                                                                            >> $joba
-  echo "#SBATCH --partition=transfer"                                                 >> $joba
-  echo "#SBATCH --ntasks=1"                                                           >> $joba
-  echo "#SBATCH --tasks-per-node=1"                                                   >> $joba
-  echo "#SBATCH --mail-user=tdennis10@alaska.edu"                                     >> $joba
-  echo "#SBATCH --mail-type=FAIL"                                                     >> $joba
-  echo "#SBATCH --time=$arch_wall"                                                    >> $joba
-  echo "#SBATCH --output=tjd.%j"                                                      >> $joba
-  echo " "                                                                            >> $joba
-  echo ". /usr/share/Modules/init/sh"                                                 >> $joba
-  echo " "                                                                            >> $joba
-  echo "cd $cur_dir"                                                                  >> $joba
-  echo "srun -l /bin/hostname | sort -n | awk '{print \$2}' > ./nodes.\$SLURM_JOB_ID" >> $joba
-  echo "time $cur_dir/crs-archive.s $start $stop"                                     >> $joba
-  echo " "                                                                            >> $joba
-  echo "#EOF "                                                                        >> $joba
+  echo "#!/bin/sh"                                                                            > $joba
+  echo " "                                                                                   >> $joba
+  echo "#SBATCH --partition=transfer"                                                        >> $joba
+  echo "#SBATCH --ntasks=1"                                                                  >> $joba
+  echo "#SBATCH --tasks-per-node=1"                                                          >> $joba
+  echo "#SBATCH --mail-user=tdennis10@alaska.edu"                                            >> $joba
+  echo "#SBATCH --mail-type=FAIL"                                                            >> $joba
+  echo "#SBATCH --time=$arch_wall"                                                           >> $joba
+  echo "#SBATCH --output=tjd.%j"                                                             >> $joba
+  echo " "                                                                                   >> $joba
+  echo ". /usr/share/Modules/init/sh"                                                        >> $joba
+  echo " "                                                                                   >> $joba
+  echo "cd $cur_dir"                                                                         >> $joba
+  echo "srun -l /bin/hostname | sort -n | awk '{print \$2}' > ./nodes.\$SLURM_JOB_ID"        >> $joba
+  echo "time $cur_dir/crs-archive.s $start $stop"                                            >> $joba
+  echo " "                                                                                   >> $joba
+  echo "#EOF "                                                                               >> $joba
   chmod u+x $joba
 else
   echo "init-coronos: ERROR - the resource management option " $rsc_man " is unknown."

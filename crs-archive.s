@@ -65,7 +65,7 @@ fi
 
            sep='/'
 #         prefix='/import/c'                                       # Needed as a prefix to the archive pathname when
-        prefix='/center'                                           # Needed as a prefix to the archive pathname when
+        prefix='/center1'                                          # Needed as a prefix to the archive pathname when
   archive_root=$ARCHIVE                                            # $ARCHIVE is the environment variable specifying the
         whoami=`whoami`                                            # So is this. Find user's userid.
         center=$prefix'/w/'$whoami
@@ -179,11 +179,13 @@ do
 #
         echo "archiving for subrun = " $j "..."
 
-        cp coronos.in            $subdir_abspath
-        cp $energy_tracking_file $subdir_abspath'/'$data_dir
+        cp coronos.in                $subdir_abspath
+        cp $energy_tracking_file     $subdir_abspath'/'$data_dir
 
-        cp $sr_input_files$j     $subdir_abspath'/'$data_dir
-        cp $field_data_files$j   $subdir_abspath'/'$data_dir
+        cp $sr_input_files$j         $subdir_abspath'/'$data_dir
+        cp $field_data_files$j       $subdir_abspath'/'$data_dir
+        cp $field_data_files$j'.gz'  $subdir_abspath'/'$data_dir
+
         if [ "$j" -gt 0 ]
         then
           if [ "$calcqvz" -eq 1 ]

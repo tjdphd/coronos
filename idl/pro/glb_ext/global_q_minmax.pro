@@ -16,8 +16,8 @@ FUNCTION global_q_minmax, i_qty, first_step, last_step, first_slice, last_slice,
 
   ENDIF
 
-  ip1                                          = scan_parameters('ip1', 0, label)
-  ip2                                          = scan_parameters('ip2', 0, label)
+  ip1                                          = scan_parameters('p1', 0, label)
+  ip2                                          = scan_parameters('p2', 0, label)
   n1                                           = 2^ip1
   n2                                           = 2^ip2
 
@@ -52,13 +52,13 @@ FUNCTION global_q_minmax, i_qty, first_step, last_step, first_slice, last_slice,
   ENDELSE
 
   FOR I = first_step, last_step  DO BEGIN
-  
+
     ndx                                        = I - first_step
 
     ; start multi-threading here.
     
     FOR J = 0, n_threads - 1 DO BEGIN
-   
+
       IF (J EQ  n_threads - 1) THEN BEGIN
 
         thread_q_minmax_by_slice               = global_q_minmax_by_slice(I, i_qty, slice_range[J,0], slice_range[J,1], desc_label, KK)
@@ -80,18 +80,22 @@ FUNCTION global_q_minmax, i_qty, first_step, last_step, first_slice, last_slice,
         ENDELSE
         oBridge[J]                             -> Execute, $
         "thread_q_minmax_by_slice = global_q_minmax_by_slice(step_idx, i_qty, start_slice, stop_slice, desc_label, KK)", /nowait
+
       ENDELSE
     ENDFOR
+
     notdone                                    = 1
     IF (n_threads GT 1) THEN BEGIN
       WHILE notdone DO BEGIN
         done                                   = 0
         FOR J = 0, n_threads - 2 DO done       = done + oBridge[J] -> Status()
         IF (done EQ 0) THEN notdone            = done
+
       ENDWHILE
     ENDIF
 
     FOR J = 0, n_threads - 1 DO BEGIN
+
       IF (J EQ n_threads - 1) THEN BEGIN
         IF (i_qty LT i_x) THEN BEGIN
           all_threads_q_minmax_by_slice[*,J]   = thread_q_minmax_by_slice[*]
@@ -106,6 +110,7 @@ FUNCTION global_q_minmax, i_qty, first_step, last_step, first_slice, last_slice,
         ENDELSE
         obj_destroy, oBridge[J]
       ENDELSE
+
     ENDFOR
 
     ; end multi-threading here.

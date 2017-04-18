@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 FUNCTION scan_parameters, param,          $
                           n_step,         $
                           desc_label,     $
@@ -136,4 +137,104 @@ CASE param OF
  
  
 RETURN, value
+=======
+FUNCTION scan_parameters, param, n_step, desc_label
+
+  FORWARD_FUNCTION scan_parameters
+
+  this_step        = n_step
+
+  IF ( NOT ( ( STRCMP(param, "srun",4)) AND (n_step = -1) )) THEN BEGIN
+
+    next_step      = scan_parameters("srun", -1, desc_label)
+    last_step      = next_step - 1
+    n_step         = this_step
+
+  ENDIF ELSE BEGIN
+    last_step      = -1
+  ENDELSE
+
+  cur_dir          = GETENV('PWD')
+
+  IF (n_step EQ 0) THEN BEGIN
+
+    par_file       = '/crs_init.in'
+
+  ENDIF ELSE BEGIN
+
+    IF (n_step GT 0 AND n_step LT last_step)  THEN BEGIN
+
+      prefix       = scan_parameters('prefix', 0, desc_label )
+      ip1          = scan_parameters('p1',     0, desc_label )
+      n3           = scan_parameters('p3',     0, desc_label )
+      mp           = scan_parameters('np',     0, desc_label )
+
+      x_res        = 2^ip1
+      z_res        = n3 * mp
+
+      i_x_res      = UINT(x_res)
+      i_z_res      = UINT(z_res)
+
+      str_x_res    = STRTRIM(i_x_res, 2)
+      str_z_res    = STRTRIM(i_z_res, 2)
+      str_n_step   = STRTRIM(n_step,  2)
+
+      str_res      = '_' + str_x_res + '_' + str_z_res
+
+      par_file     = '/' + prefix + str_res + '.00.' + 'o' + desc_label + str_n_step
+
+    ENDIF ELSE BEGIN
+      IF (STRCMP(param,"srun",4) AND (n_step EQ -1)) THEN BEGIN
+        par_file   = '/coronos.in'
+      ENDIF ELSE BEGIN
+        IF (n_step EQ last_step) THEN BEGIN
+          par_file = '/coronos.in'
+          n_step   = this_step
+        ENDIF ELSE BEGIN
+          PRINT, "scan_parameters: ERROR - Something is wrong, this should never be output"
+        ENDELSE
+      ENDELSE
+    ENDELSE
+  ENDELSE
+
+  par_dat        = cur_dir + par_file
+
+  n_lines        = FILE_LINES(par_dat)
+
+  OPENR, par_unit, par_dat, /GET_LUN
+
+  record         = 'dummy'
+
+  str_type       = ''
+  FOR I = 1, n_lines DO BEGIN
+
+    READF, par_unit, FORMAT = '(A)', record
+    split_name   = STRSPLIT(record)
+    str_name     = STRTRIM(STRMID(record,split_name[0],split_name[1]),2)
+  
+    IF (param EQ str_name) THEN BEGIN
+      sub_record = STRTRIM(STRMID(record,split_name[1],split_name[2]),2)
+      split_val  = STRSPLIT(sub_record)
+      str_val    = STRTRIM(STRMID(sub_record, split_val[0],split_val[1]),2)
+
+      s_sub_rec  = STRTRIM(STRMID(sub_record,split_val[1],split_val[2]),2)
+      split_type = STRSPLIT(s_sub_rec)
+      str_type   = STRTRIM(STRMID(s_sub_rec, split_type[0],split_type[1]),2)
+      
+    ENDIF
+  ENDFOR
+
+  FREE_LUN, par_unit
+
+  CASE str_type of
+    'int': value = UINT(str_val)
+    'dbl': value = DOUBLE(str_val)
+    'str': value = str_val
+    'log': value = UINT(str_val)
+    ELSE : PRINT, 'scan_parameters: WARNING - parameter ', str_name, ' is of unknown type.'
+  ENDCASE
+  
+
+  RETURN, value
+>>>>>>> 2828a96c7de58aa9dbd3162460334aa15b677d54
 END

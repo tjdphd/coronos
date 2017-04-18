@@ -52,7 +52,7 @@ cur_dir=`pwd` # directory originating script invocation
 
 cd cts
 
-cts_eps=`ls $pfx/eps/$pfx_contour*stp-*ff-spec.eps`
+cts_eps=`ls -1 $pfx/eps/$pfx'_ctr_'$res_str*.eps`
 
 if [ ! -e $pfx/gif ]   # create gif directory if needed
   then 
@@ -66,6 +66,8 @@ fi
 
 trunc=$pfx'/eps/'
 
+echo "trunc = " trunc
+
 #for plot in $cts_eps; do
 #        plot=${plot#$trunc}
 #    len_plot=${#plot}                                    # Get the file's basename and create a gif version
@@ -75,10 +77,11 @@ trunc=$pfx'/eps/'
 #   convert -density 144x144 $pfx/eps/$base_name.eps $pfx/gif/$base_name.gif
 #done
 
-cts_gif=`ls $pfx/gif/$1_contour*stp-*ff-spec.gif`
+cts_gif=`ls $pfx/gif/$pfx'_ctr_'$res_str*.gif`
+echo "cts_gif = " $cts_gif
 
-cts_anim=$1'_cts_'$res_str'_'$desc_label'-anim.gif'
-#convert -delay 10 -loop 0 -coalesce -background white -dispose 1 $cts_gif $cts_anim
+cts_anim=$pfx'_cts_'$res_str'_'$desc_label'-anim.gif'
+convert -delay 10 -loop 0 -coalesce -background white -dispose 1 $cts_gif $cts_anim
 
 #for plot in $cts_eps; do
 #        plot=${plot#$trunc}
@@ -90,33 +93,33 @@ cts_anim=$1'_cts_'$res_str'_'$desc_label'-anim.gif'
 #done
 
 
-sep=`expr index $res_str '_'`
-echo 'sep       = ' $sep
+#sep=`expr index $res_str '_'`
+#echo 'sep       = ' $sep
 
-z_res=${res_str:$sep}
-echo 'z_res     = ' $z_res
+#z_res=${res_str:$sep}
+#echo 'z_res     = ' $z_res
 
-len_z_res=`expr length $z_res`
-echo 'len_z_res = ' $len_z_res
+#len_z_res=`expr length $z_res`
+#echo 'len_z_res = ' $len_z_res
 
-len_n_slc=`expr length $n_slc`
-echo 'len_n_slc = ' $len_n_slc
+#len_n_slc=`expr length $n_slc`
+#echo 'len_n_slc = ' $len_n_slc
 
-len_dif=`expr $len_z_res - $len_n_slc`
+#len_dif=`expr $len_z_res - $len_n_slc`
 
-echo 'len_dif   = ' $len_dif
+#echo 'len_dif   = ' $len_dif
 
-if [ $len_dif -eq 0 ]
-then
-  zero_str=''
-else
-  zero_str='000000000000000000000000000000'
-  pos=`expr 30 - $len_dif`
-  echo 'pos = ' $pos
-  zero_str=${zero_str:$pos}
-fi
+#if [ $len_dif -eq 0 ]
+#then
+#  zero_str=''
+#else
+#  zero_str='000000000000000000000000000000'
+#  pos=`expr 30 - $len_dif`
+#  echo 'pos = ' $pos
+#  zero_str=${zero_str:$pos}
+#fi
 
-echo 'zero_str  = ' $zero_str
+#echo 'zero_str  = ' $zero_str
 
 #if [ $len_n_slc -eq 1 ]
 #then zero_str='00'
@@ -128,19 +131,19 @@ echo 'zero_str  = ' $zero_str
 #then zero_str=''
 #fi
 
-str_n_slc=$zero_str$n_slc
+#str_n_slc=$zero_str$n_slc
 
-echo "str_n_slc = " $str_n_slc
+#echo "str_n_slc = " $str_n_slc
 
-cts_jpg=$pfx/jpg/$1_contour_slc-${str_n_slc}_stp-%03d-ff-spec.jpg  # going to have to pass the slice as argument
+#cts_jpg=$pfx/jpg/$1_contour_slc-${str_n_slc}_stp-%03d-ff-spec.jpg  # going to have to pass the slice as argument
 
-cts_anim=$1'_cts_'$res_str'_'$desc_label'-anim.mp4'
+#cts_anim=$1'_cts_'$res_str'_'$desc_label'-anim.mp4'
 
-if [ -e $cts_anim ]                                      # ffmpeg won't overwrite
-then 
-  rm $cts_anim
-fi
+#if [ -e $cts_anim ]                                      # ffmpeg won't overwrite
+#then 
+#  rm $cts_anim
+#fi
 
-ffmpeg -sameq -i $cts_jpg $cts_anim
+#ffmpeg -sameq -i $cts_jpg $cts_anim
 
 exit 0

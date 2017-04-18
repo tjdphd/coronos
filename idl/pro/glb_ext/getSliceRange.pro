@@ -14,6 +14,7 @@ FUNCTION getSliceRange, first_slice, last_slice
   ENDIF ELSE BEGIN
     n_threads                              = 1
   ENDELSE
+  IF (n_threads GT 12) THEN n_threads = 12
   stagger                                  = 0
   IF ((slices_per_cpu GT 1) AND (last_slice  - (n_threads * slices_per_cpu)) GE n_threads / 2 ) THEN stagger = 1
   IF (slices_per_cpu EQ 0 ) THEN slices_per_cpu = 1

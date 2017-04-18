@@ -208,7 +208,11 @@ module load idl                      # load idl onto the compute node
                                      #
 set SRCDIR=$PWD/idl/pro/ff_time_series   # idl script source directory
 setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
+#setenv IDL_PATH $IDLHOME/lib:$SRCDIR        #
 setenv IDL_STARTUP $PWD/idl/bin/ffts_batch   # idl batch script to execute
+
+echo "IDL_STARTUP =" $IDL_STARTUP
+
                                      #
 idl                                  # invoke idl
                                      #

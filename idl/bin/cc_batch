@@ -1,6 +1,28 @@
+
+idl_src_dir  = GETENV('IDL_PATH')         ; Directory where the required IDL
+
+qty          = GETENV('CC_QTY')
+first_step   = GETENV('CC_FIRST_STEP')
+last_step    = GETENV('CC_LAST_STEP')
+first_slc    = GETENV('CC_FIRST_SLC')
+last_slc     = GETENV('CC_LAST_SLC')
+res_str      = GETENV('CC_RES_STR')
+label_one    = GETENV('CC_LABEL_ONE')
+label_two    = GETENV('CC_LABEL_TWO')
+tol          = GETENV('CC_TOL')
+
+first_step   = UINT(first_step)
+last_step    = UINT(last_step)
+first_slc    = UINT(first_slc)
+last_slc     = UINT(last_slc)
+
 .run scan_parameters.pro
 .run fetch_datafile.pro
 .run fetch_layer.pro
 .run max_diff.pro
 .run cross_check.pro
-cross_check, 'j', 0, 0, 1, 16 , '64_16', 'cr', 'ts', 1.00e-06
+
+ cross_check, qty, first_step, last_step, first_slc, last_slc, res_str, label_one, label_two, tol
+
+retall
+exit

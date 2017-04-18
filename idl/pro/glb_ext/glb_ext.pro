@@ -47,6 +47,7 @@ PRO glb_ext, desc_label,         $
     PRINT, 'glb_ext: no previous output'
     global_out_minmax            = global_q_minmax(i_qty, first_step, last_step, first_slice, last_slice, desc_label)
 
+    PRINT, 'glb_ext: found minmax'
   ENDELSE
 
   IF (i_qty EQ i_x) THEN BEGIN

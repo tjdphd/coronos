@@ -57,7 +57,6 @@ setenv CTS_N_CNTRS    $6  # - Nominal number of contours to include in plots
 if( -e glb_ext.out) then  # - if global extrema data is available
   setenv CTS_GLB_EXT 'y'  #
 endif                     #
-setenv CTS_PFX rmct2      #
                           #
 ###########################
 #
@@ -83,20 +82,18 @@ endif                                 #
 # Next we load the idl module, tell it where to find IDL sources and
 # tell it the name of the batch script we want it to execute
 #
-######################################
-                                     #
-#source /etc/profile.d/modules.csh   #
-module load idl                      # load idl onto the compute node
-                                     #
-set SRCDIR=$PWD/idl/pro/cts          # idl script source directory
-echo "SRCDIR   = " $SRCDIR           #
-setenv IDL_PATH $IDL_DIR/lib:$SRCDIR #
-echo "IDL_PATH = " $IDL_PATH         #
-setenv IDL_STARTUP $PWD/cts_batch    # idl batch script to execute
-                                     #
-idl                                  # invoke idl
-                                     #
-######################################
+###########################################
+                                          #
+module load idl                           # load idl onto the compute node
+                                          #
+set SRCDIR=$PWD/idl/pro/cts               # idl script source directory
+setenv IDL_PATH $IDL_DIR/lib:$SRCDIR      #
+echo "IDL_PATH = " $IDL_PATH              #
+setenv IDL_STARTUP $PWD/idl/bin/cts_batch # idl batch script to execute
+                                          #
+idl                                       # invoke idl
+                                          #
+###########################################
 #
 # Next initiate animation script
 #

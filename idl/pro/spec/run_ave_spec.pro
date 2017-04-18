@@ -1,185 +1,250 @@
-PRO run_ave_spec, dsc_lab, sfld, layer, first_step, last_step, minmax_mode
+PRO run_ave_spec, dsc_lab, sfld, first_layer, last_layer, first_step, last_step, minmax_mode, plot_mode
 
-COMMON step, time
+  COMMON step, time
 
-  i_k             = 0 ; k-value
-  i_pe            = 1 ; kinetic        energy spectrum in layer ? of time step ?
-  i_ae            = 2 ; magnetic       energy spectrum in layer ? of time step ?
-  i_ts            = 3 ; total          energy spectrum in layer ? of time step ?
-  i_zp            = 4 ; elsasser+      energy spectrum in layer ? of time step ?
-  i_zm            = 5 ; elsasser-      energy spectrum in layer ? of time step ?
-  i_tz            = 6 ; total elsasser energy spectrum in layer ? of time step ?
+  ZERO                          = 0.0D
+  HALF                          = 0.5D
+  five_thirds                   = 5.0D/3.0D
+  three_halves                  = 3.0D/2.0D
+  EULER                         = 2.7182818284590452D
 
-  CASE sfld OF
-  'pe' : i_sfld   = i_pe
-  'ae' : i_sfld   = i_ae
-  'ts' : i_sfld   = i_ts
-  'zp' : i_sfld   = i_zp
-  'zm' : i_sfld   = i_zm
-  'tz' : i_sfld   = i_tz
-  ELSE:  i_sfld   = -1
+  i_k                           =  0 ; k-value
+  i_pe                          =  1 ; kinetic        energy spectrum in layer ? of time step ? averaged in code before logarithm
+  i_ae                          =  2 ; magnetic       energy spectrum in layer ? of time step ? averaged in code before logarithm
+  i_ts                          =  3 ; total          energy spectrum in layer ? of time step ? averaged in code before logarithm
+  i_zp                          =  4 ; elsasser+      energy spectrum in layer ? of time step ? averaged in code before logarithm
+  i_zm                          =  5 ; elsasser-      energy spectrum in layer ? of time step ? averaged in code before logarithm
+  i_tz                          =  6 ; total elsasser energy spectrum in layer ? of time step ? averaged in code before logarithm
+  i_pef                         =  7 ; kinetic        energy spectrum in layer ? of time step ? averaged in code after  logarithm
+  i_aef                         =  8 ; magnetic       energy spectrum in layer ? of time step ? averaged in code after  logarithm
+  i_zpf                         =  9 ; elsasser+      energy spectrum in layer ? of time step ? averaged in code after  logarithm
+  i_zmf                         = 10 ; elsasser-      energy spectrum in layer ? of time step ? averaged in code after  logarithm
 
-  ENDCASE
-  CASE i_sfld OF
-  '0' :  str_sfld = 'kk_'
-  '1' :  str_sfld = 'pe_'
-  '2' :  str_sfld = 'ae_'
-  '3' :  str_sfld = 'ts_'
-  '4' :  str_sfld = 'zp_'
-  '5' :  str_sfld = 'zm_'
-  '6' :  str_sfld = 'tz_'
-  ELSE:  str_sfld = 'xx_'
-  ENDCASE
+  i_sfld                        = getSfldIndex(sfld)
+  str_sfld                      = getSfldString(sfld)
 
-  ip1             = scan_parameters('p1', 0, dsc_lab )                     ; power of 2 giving x-resolution
-  ip2             = scan_parameters('p2', 0, dsc_lab )                     ; power of 2 giving y-resolution
-  n3              = scan_parameters('p3', 0, dsc_lab )                     ; number of slices per data file
-  mp              = scan_parameters('np', 0, dsc_lab )                     ; number of processors used in run
-  zl              = scan_parameters('zl', 0, dsc_lab )                     ; total height along z of integration volume
+  n3                            = scan_parameters('p3' , 0, dsc_lab )                     ; number of slices per data file
+  mp                            = scan_parameters('np' , 0, dsc_lab )                     ; number of processors used in run
+  zl                            = scan_parameters('zl' , 0, dsc_lab )                     ; total height along z of integration volume
    
-  x_res           = 2^ip1                                                   ; resolution in x
-  y_res           = 2^ip2                                                   ; resolution in y
-  z_res           = n3 * mp                                                 ; resolution in z
+  dz                            = zl / (n3 * mp)
+  cur_dir                       = GETENV('PWD')
 
+  tot_steps                     = FLOAT(last_step - first_step + 1)
 
-  n_proc          = UINT(mp / (z_res / layer  )) - 1
-  str_zpos        = STRTRIM(zl / (z_res/layer),2)
-  loc_layer       = UINT(layer / ( n_proc+1 ))
-  str_proc        = STRTRIM(n_proc,   2)
-  len_str_proc    = STRLEN(str_proc)
+  EVSZ                          = open_evsz_data_file(dsc_lab, first_step)
 
-  WHILE (STRLEN(str_proc) LT 3) DO BEGIN
-    str_proc      = '0' + str_proc
-  ENDWHILE
+  size_evsz                     = SIZE(EVSZ, /DIMENSIONS)
+
+  NCHVSZ                        = DBLARR(size_evsz[0],2)
   
-  str_layer       = STRTRIM(loc_layer,2)
-  
-  WHILE (STRLEN(str_layer) LT 3) DO BEGIN
-    str_layer     = '0' + str_layer
-  ENDWHILE
-  
-  i_x_res         = UINT(x_res)
-  i_y_res         = UINT(y_res)
-  i_z_res         = UINT(z_res)
-   
-  str_x_res       = STRTRIM(i_x_res, 2)
-  str_y_res       = STRTRIM(i_y_res, 2)
-  str_z_res       = STRTRIM(i_z_res, 2)
-  
-  str_zl          = STRTRIM(UINT(zl),2)
+  i_z                           = 0
+  i_nch                         = 10
 
-  cur_dir         = GETENV('PWD')
-  eps_out_dir     = cur_dir + '/ra_spec/' + sfld + '/eps'
+  NCHVSZ[*,0]                   = EVSZ[*,i_z]
+  NCHVSZ[*,1]                   = EVSZ[*,i_nch]
 
-  res_str         = str_x_res + '!9X!X'   + str_y_res +'!9X!X'    + str_z_res
+  FOR S = first_step + 1, last_step DO BEGIN
+    EVSZ                        = open_evsz_data_file(dsc_lab, S)
+    NCHVSZ[*,1]                 = NCHVSZ[*,1] + EVSZ[*,i_nch]
+  ENDFOR
 
-  case_res_str    = + ' (L = ' + str_zl    + ')'
+  NCHVSZ[*,1]                   = NCHVSZ[*,1] / tot_steps
+
+; layer dependencies
+
+  SPIDX                         = DBLARR(last_layer - first_layer + 1, 5)
+  data_out_dir                  = getDataOutDir(plot_mode)
+  spec_idx_out_file             = getSpectralIndexDataOutFile(plot_mode, first_step, last_step)
+
+; OpenW, spidx_unit, spec_idx_out_file, /GET_LUN
 
   IF (minmax_mode EQ  'global') THEN BEGIN
-    glb_minmax_y  = DBLARR(2)
-    glb_minmax_y  = global_sfld_minmax(i_sfld, dsc_lab, layer, first_step, last_step)
+    slc_minmax_y                = global_sfld_minmax_over_slices(i_sfld, dsc_lab, first_layer, last_layer, last_step)
   ENDIF
 
-  E               = open_spec_data_file( dsc_lab, layer, first_step)
-  size_E          = SIZE(E)
+  LOADCT, 13
 
-  n_lines         = size_E[1]
-  n_cols          = size_E[2]
+  FOR L = first_layer, last_layer DO BEGIN
+    
+    ELOG                        = open_spec_data_file( dsc_lab, L, first_step)
+    size_ELOG                   = SIZE(ELOG,/DIMENSIONS)
 
-  tfirst          = time
-  FOR I = first_step + 1, last_step DO BEGIN
+    n_lines                     = size_ELOG[0]
+    n_cols                      = size_ELOG[1]
 
-       E_next     = open_spec_data_file( dsc_lab, layer, I)
+    ENLG                        = DBLARR(n_lines,n_cols)
+    ENLG_next                   = DBLARR(n_lines,n_cols)
 
-       FOR J = 0, 6 DO BEGIN
-         E[*,J]   = E[*, J] + E_next[*, J]
-       ENDFOR
+    ENLG[*,*]                   = ELOG[*,*]
+
+    FOR J = 1, i_tz DO BEGIN
+
+       e_zz                     = WHERE(ELOG[*,J] EQ ZERO, zz_cnt)
+       e_nz                     = WHERE(ELOG[*,J] NE ZERO, nz_cnt)
+
+       IF (zz_cnt NE 0) THEN BEGIN
+          ELOG[e_zz,J]          = -30.0
+       ENDIF
+       IF (nz_cnt NE 0) THEN BEGIN
+          ELOG[e_nz,J]          = ALOG10(ELOG[e_nz,J])
+       ENDIF
+       
+       e_nz_max                 = MAX(ELOG[*,J])
+       e_nz_min                 = MIN(ELOG[*,J])
+
+    ENDFOR
+
+    FOR J = i_tz + 1, i_zmf DO BEGIN
+
+       ELOG[*,J]                = ALOG10(EULER) * ELOG[*,J]      ; adjust elogs in ELOG to base-ten logs
+       ENLG[*,J]                = EULER^ENLG[*,J]                ; adjust elogs to "un" logged values in ENLG
+
+    ENDFOR
+
+
+
+    tfirst                      = time
+
+    FOR I = first_step + 1, last_step DO BEGIN                   ; getting ELOG and ENLG starts here
+
+      ELOG_next                 = open_spec_data_file( dsc_lab, L, I)
+      ENLG_next[*,*]            = ELOG_next[*,*]
+
+         FOR J = 1, i_tz DO BEGIN
+
+            e_zz                = WHERE(ELOG_next[*,J] EQ ZERO, zz_cnt)
+            e_nz                = WHERE(ELOG_next[*,J] NE ZERO, nz_cnt)
+
+            IF (zz_cnt NE 0) THEN BEGIN
+              ELOG_next[e_zz,J] = -30.0
+            ENDIF
+            IF (nz_cnt NE 0) THEN BEGIN
+              ELOG_next[e_nz,J] = ALOG10(ELOG_next[e_nz,J])
+            ENDIF
+
+         ENDFOR
+
+         FOR J = i_tz + 1, i_zmf DO BEGIN
+
+           ELOG_next[*,J]       = ALOG10(EULER) * ELOG_next[*,J] ; adjust elogs in ELOG to base-ten logs
+           ENLG_next[*,J]       = EULER^ENLG_next[*,J]           ; adjust elogs to "un" logged values in ENLG
+
+         ENDFOR
+
+         FOR J = 0, n_cols - 1 DO BEGIN
+
+           ELOG[*,J]            = ELOG[*, J] + ELOG_next[*, J]
+           ENLG[*,J]            = ENLG[*, J] + ENLG_next[*, J]
+
+         ENDFOR
+
+
+    ENDFOR
+
+    tlast                       = time
+
+    IF (tfirst EQ tlast) THEN BEGIN
+      str_dt                    = ' for t = '      + STRTRIM(tfirst,2)
+    ENDIF ELSE BEGIN
+      str_dt                    = ' Average over ' + STRTRIM(tfirst,2) + ' < t < ' + STRTRIM(tlast,2)
+    ENDELSE
+
+    ELOG[*,*]                   = ELOG[*,*] / tot_steps
+    ENLG[*,*]                   = ENLG[*,*] / tot_steps
+
+    FOR J = 1, n_cols - 1 DO BEGIN
+      ELOG[*,J]                 = 10^ELOG[*,J]
+    ENDFOR
+
+    ELOG                        = TRANSPOSE(ELOG)
+    ENLG                        = TRANSPOSE(ENLG)
+
+; getting ELOG and ENLG ends here
+
+    !P.FONT = -1
+
+    k_data                      = setKData( 12.0, ELOG)
+
+    k_drive                     = k_data.k_drive
+    k_high_idx                  = k_data.k_high_idx
+    k_low_idx                   = k_data.k_low_idx
+    fit_range                   = k_high_idx[0] - k_low_idx[0] + 1
+
+;   CHKEDIF                     = (                                                                                         $
+;                                   ( ENLG[i_sfld, k_low_idx[0]:k_high_idx[0]] - ELOG[i_sfld, k_low_idx[0]:k_high_idx[0]] ) $
+;                                   /                                                                                       $
+;                                     ELOG[i_sfld,k_low_idx[0]:k_high_idx[0]]                                               $
+;                                 )
+
+;   max_edif                    = MAX(CHKEDIF, SUBSCRIPT_MIN=loc_max_edif )
+;   min_edif                    = MIN(CHKEDIF, SUBSCRIPT_MAX=loc_min_edif )
+
+    KXNLG                       = DBLARR(fit_range)
+    KYNLG                       = DBLARR(fit_range)
+
+    KXNLG[*]                    = ALOG10(ENLG[i_k,   k_low_idx:k_high_idx])
+    KYNLG[*]                    = ALOG10(ENLG[i_sfld,k_low_idx:k_high_idx])
+
+    lfit_nlg                    = LINFIT(KXNLG, KYNLG, CHISQR = chi_sqr)
+
+    KXLOG                       = DBLARR(fit_range)
+    KYLOG                       = DBLARR(fit_range)
+
+    KXLOG[*]                    = ALOG10(ELOG[i_k,   k_low_idx:k_high_idx])
+    KYLOG[*]                    = ALOG10(ELOG[i_sfld,k_low_idx:k_high_idx])
+
+    lfit                        = LINFIT(KXLOG, KYLOG, CHISQR = chi_sqr)
+
+    zcoord                      = dz*L
+    z_coord_idx                 = WHERE((NCHVSZ[*,0] GE zcoord  - half*dz) AND (NCHVSZ[*,0] LE zcoord  + half*dz),  z_count )
+    size_zci                    = SIZE(z_coord_idx,/DIMENSIONS)
+    
+    SPIDX[L-first_layer,0]      = zcoord                        ; z coordinate for layer L
+    SPIDX[L-first_layer,1]      = lfit[1]                       ; spectral index
+    SPIDX[L-first_layer,2]      = lfit[0]                       ; intercept
+    SPIDX[L-first_layer,3]      = chi_sqr                       ; chi square for fit
+
+    IF (size_zci[0] EQ 1) THEN BEGIN
+      SPIDX[L-first_layer,4]    = NCHVSZ[z_coord_idx[0],1]      ; will contain normalized cross-helicity.
+    ENDIF ELSE BEGIN
+      SPIDX[L-first_layer,4]    = ZERO
+      PRINT, 'ra_spec: too many z coordinates for layer ', L
+    ENDELSE
+
+    IF (STRCMP(plot_mode, "spectra", 6, /FOLD_CASE) EQ 1) THEN BEGIN
+
+      dummy                     = plotSpectrum( desc_label,                                                                 $
+                                                sfld,                                                                       $
+                                                str_dt,                                                                     $
+                                                k_data,                                                                     $
+                                                ENLG, KXNLG, KYNLG, lfit_nlg,                                               $
+                                                ELOG, KXLOG, KYLOG, lfit,                                                   $
+                                                L,                                                                          $
+                                                slc_minmax_y,                                                               $
+                                                first_step, last_step,                                                      $
+                                                plot_mode                                                                   $
+                                              )
+
+    ENDIF 
 
   ENDFOR
-  tlast           = time
 
-  str_steps       = '_' + STRTRIM(first_step,2) + '-' + STRTRIM(last_step,2)
-  str_dt          = STRTRIM(tfirst,2) + ' < t < ' + STRTRIM(tlast,2)
-  tot_steps       = FLOAT(last_step - first_step + 1)
+  IF ( (STRCMP(plot_mode, "idxvsz",   6, /FOLD_CASE) EQ 1)                                                                  $
+  OR   (STRCMP(plot_mode, "idxvsnch", 6, /FOLD_CASE) EQ 1)                                                                  $
+     )                                                                                                                      $
+  THEN BEGIN
 
-  E[*,*]          = E[*,*] / tot_steps
+    dummy                         = plotSpVsZ( desc_label,                                                                  $
+                                               sfld,                                                                        $
+                                               str_dt,                                                                      $
+                                               SPIDX,                                                                       $
+                                               first_step, last_step,                                                       $
+                                               plot_mode                                                                    $
+                                             )
 
-  data_out_file   = cur_dir + '/ra_spec/' + 'ra_' + sfld + '_L-' + str_zl + '.dat'
+  ENDIF
 
-
-
-  OpenW, data_unit, data_out_file, /GET_LUN
-
-  FOR K = 0, n_lines - 1 DO BEGIN
-
-     PRINTF, data_unit,  E[K, 0:6], FORMAT='(7(E16.8,1x),:/)'
-
-  ENDFOR
-
-  FREE_LUN, data_unit
-
-  case_file_str   = str_sfld + "ra_spec_" + str_x_res + '_' + str_z_res + '_zl_' + str_zl $
-                    + '_proc-' + str_proc + '_layer-' + str_layer + '_srs' + str_steps 
-  eps_out         = eps_out_dir + '/' + case_file_str + '.eps'
-
-  str_ave         = ' Averaged over ' + str_dt
-  str_ps          = ' Power Spectrum for layer ' + str_layer + ' of process '
-  str_line_two    = 'at z = ' + str_zpos + ' (L = ' + str_zl + '),' + str_ave
-  aumlaut         = STRING(228B)
-  str_els         = ' Els' + aumlaut + 'sser '
-  str_elsp        = 'Z!E+!N Els' + aumlaut + 'sser' 
-  str_elsm        = 'Z!E-!N Els' + aumlaut + 'sser'
-  CASE i_sfld OF
-  '1' : str_title = 'Kinetic Energy'             + str_ps + str_proc + '!C' + str_line_two
-  '2' : str_title = 'Magnetic Energy'            + str_ps + str_proc + '!C' + str_line_two
-  '3' : str_title = 'Total Energy'               + str_ps + str_proc + '!C' + str_line_two
-  '4' : str_title = str_elsp                     + str_ps + str_proc + '!C' + str_line_two
-  '5' : str_title = str_elsm                     + str_ps + str_proc + '!C' + str_line_two
-  '6' : str_title = 'Total' + str_els + 'Energy' + str_ps + str_proc + '!C' + str_line_two
-  ELSE: str_title = 'Something is terribly wrong'
-  ENDCASE
-
-  nz_idx          = WHERE(E[*, i_sfld] GT 0., nz_count)
-  PRINT, 'nz_count = ', nz_count
-  PRINT, 'i_sfld   = ', i_sfld
-
-
-
-  min_x           = MIN(E[nz_idx, i_k   ])
-  max_x           = MAX(E[*,      i_k   ])
-
-  x_rng           = [min_x, max_x]
-
-  min_y           = MIN(E[nz_idx, i_sfld])
-  max_y           = MAX(E[*,      i_sfld])
-
-  PRINT, 'min_y = ', min_y
-  PRINT, 'max_y = ', max_y
-
-  y_rng           = [min_y, max_y]
-
-  SET_PLOT, 'PS' 
-  DEVICE, /ENCAPSULATED
-  DEVICE, FILENAME = eps_out
-
-  PLOT, E[*,i_k], E[*, i_sfld],    $
-        CHARSIZE    = 0.8,         $
-        LINESTYLE   = 0,           $
-        YTICKFORMAT = '(E8.1)',    $
-        XMARGIN     =[12,4],       $
-        YMARGIN     =[4,4],        $
-        XRANGE      = x_rng,       $
-        YRANGE      = y_rng,       $
-        XTITLE      = 'k',         $
-        YTITLE      = str_y_title, $
-        THICK       = 2,           $
-        /XLOG,                     $
-        /YLOG,                     $
-        TITLE       = str_title
-
- 
-  DEVICE, /CLOSE
-        
-  SET_PLOT, 'X'
+; FREE_LUN, spidx_unit
 
 END
